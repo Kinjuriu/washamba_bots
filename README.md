@@ -88,6 +88,42 @@ washamba_bots/
 └── requirements.txt
 ```
 
+## Project architecture
+
+GitHub is the shared source of truth for both development and the Kaggle-facing
+materials. The VS Code branch contains the competition entrypoint and its local
+tests. The Kaggle branch contains the notebook used to demonstrate the agent and
+explain the approach.
+
+```mermaid
+flowchart TD
+    github["GitHub"]
+
+    github --> vscode["VS Code"]
+    github --> kaggle["Kaggle"]
+
+    vscode --> development["Development"]
+    kaggle --> notebook["Notebook"]
+
+    development --> main["main.py"]
+    development --> tests["tests/"]
+
+    notebook --> demo["Demo"]
+    notebook --> writeup["Writeup"]
+
+    main --> agent["nikaangukia_meroni(obs)"]
+    agent --> game["Kaggriculture"]
+```
+
+The responsibilities are deliberately separated:
+
+- `main.py` is the Kaggle-compatible competition entrypoint and exposes
+  `nikaangukia_meroni(obs)`.
+- `tests/` verifies individual decisions and protects the agent from regressions.
+- The Kaggle notebook provides a runnable demo and the public methodology writeup.
+- Versioned candidates such as `nikaangukia_meroni_v0`, V1, and V2 move through
+  the validation workflow below before replacing the active agent.
+
 ## Development workflow
 
 ```text
