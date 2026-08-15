@@ -4,6 +4,37 @@ An autonomous agent for [Kaggriculture](https://kaggle.com/competitions/kaggricu
 
 Full competition rules, game mechanics, pricing formulas, and observation/action schemas are compiled in **[`docs/kaggriculture_context.md`](docs/kaggriculture_context.md)** — read it before changing any game logic. `CLAUDE.md` has the condensed version for AI coding agents working in this repo.
 
+## Agent anatomy
+
+At its simplest, `melon_maxxer(obs)` reads the current state and chooses between market and farm decisions. The market branch buys seed or sells produce; the farm branch moves, plants, waters, or harvests.
+
+```mermaid
+flowchart TD
+    agent["melon_maxxer(obs)"]
+
+    agent --> read["READ STATE"]
+    agent --> market["MAKE MARKET<br/>DECISIONS"]
+    agent --> farm["MAKE FARM<br/>DECISION"]
+
+    read --> observation["OBSERVATION"]
+    market --> trade["BUY SEED / SELL"]
+    farm --> farm_actions["MOVE / PLANT /<br/>WATER / HARVEST"]
+```
+
+The complete agent is an observation-to-action control loop. The state manager turns each observation into a useful model of the world. Strategy selects the objective, the planner determines an efficient route to it, and the executor emits one legal game action. Kaggriculture then returns the next observation and the cycle repeats.
+
+```mermaid
+flowchart TD
+    game_in["KAGGRICULTURE"] --> observation["OBSERVATION"]
+    observation --> state["<b>STATE MANAGER</b><br/><br/>farm<br/>crops<br/>animals<br/>market<br/>town<br/>opponent<br/>time"]
+    state --> strategy["<b>STRATEGY</b><br/><br/>What should we be<br/>trying to accomplish?"]
+    strategy --> planner["<b>PLANNER</b><br/><br/>How do we do it<br/>efficiently?"]
+    planner --> executor["<b>EXECUTOR</b><br/><br/>MOVE / PLANT /<br/>WATER / SELL..."]
+    executor --> action["ACTION"]
+    action --> game_out["KAGGRICULTURE"]
+    game_out -. next turn .-> observation
+```
+
 ## Repository layout
 
 ```text
