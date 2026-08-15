@@ -35,6 +35,40 @@ flowchart TD
     game_out -. next turn .-> observation
 ```
 
+The decision pipeline expands the loop into the specific information and choices the agent processes each turn:
+
+```mermaid
+flowchart TD
+    game_in["KAGGRICULTURE"] -->|gives us| observation["OBSERVATION"]
+
+    observation --> farm_state["FARM<br/>crops / money<br/>position<br/>animals"]
+    observation --> market_state["MARKET<br/>prices / stock<br/>inventory"]
+    observation --> town_state["TOWN<br/>shops<br/>demand"]
+
+    farm_state --> analysis["STATE ANALYSIS"]
+    market_state --> analysis
+    town_state --> analysis
+
+    analysis --> attention["What needs attention?"]
+    attention --> harvest["HARVEST"]
+    attention --> water["WATER"]
+    attention --> plant["PLANT"]
+
+    harvest --> market_decision["MARKET DECISION"]
+    water --> market_decision
+    plant --> market_decision
+
+    market_decision --> sell["SELL"]
+    market_decision --> buy["BUY"]
+    sell --> planner["ACTION PLANNER"]
+    buy --> planner
+
+    planner --> execution["MOVE / FARM / MARKET"]
+    execution --> game_out["KAGGRICULTURE"]
+    game_out --> new_observation["NEW OBSERVATION"]
+    new_observation -. repeat .-> observation
+```
+
 ## Repository layout
 
 ```text
