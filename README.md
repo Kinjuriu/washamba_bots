@@ -110,6 +110,27 @@ Track the leaderboard
 
 The local simulation loop is the main iteration cycle: make a focused change, run many games against varied opponents, inspect outcomes and replays, then keep or revise the strategy before submitting.
 
+## Validation workflow
+
+Each candidate version (e.g. `nikaangukia_meroni_v0`) goes through the same gate before it's trusted: confirm it runs without erroring, then benchmark it to see how good it actually is. Weaknesses found there feed a targeted market experiment, which in turn decides the next version.
+
+```mermaid
+flowchart TD
+    agent["nikaangukia_meroni_v0"] --> works{"DOES IT WORK?"}
+    works -->|YES| quality["HOW GOOD IS IT?"]
+
+    quality --> random["Random"]
+    quality --> melon["Melon Maxxer"]
+    quality --> multi["Multiple games"]
+
+    random --> weaknesses["FIND WEAKNESSES"]
+    melon --> weaknesses
+    multi --> weaknesses
+
+    weaknesses --> market["MARKET EXPERIMENT"]
+    market --> version["V1 / V2"]
+```
+
 ## Competition snapshot
 
 | | |
