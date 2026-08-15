@@ -12,7 +12,11 @@ Run with:
 import unittest
 
 from main import (
+    MAX_SELL_PER_TURN,
     choose_crop,
+    choose_farmer_action,
+    decide_market_actions,
+    is_harvestable,
     nikaangukia_meroni,
     should_sell,
     step_toward,
@@ -92,6 +96,168 @@ class TestShouldSell(unittest.TestCase):
         self.assertTrue(should_sell("MYSTERY_CROP", 1, market_state))
         market_state = {"prices": {"MYSTERY_CROP": 10}}
         self.assertFalse(should_sell("MYSTERY_CROP", 1, market_state))
+
+
+class TestDecideMarketActions(unittest.TestCase):
+    def _market(self, prices, inventory=None):
+        return {"prices": prices, "inventory": inventory or {}}
+
+    def test_caps_large_premium_good_sell_to_avoid_crashing_price(self):
+        private = {"shed": {"STRAWBERRY": 40}, "seeds": {}}
+        market_state = self._market(prices={"STRAWBERRY": 120})
+
+        actions = decide_market_actions({"money": 0}, private, market_state)
+
+        self.assertIn(["SELL", "STRAWBERRY", MAX_SELL_PER_TURN["STRAWBERRY"]], actions)
+
+    def test_caps_large_melon_sell_to_avoid_crashing_price(self):
+        private = {"shed": {"MELON": 50}, "seeds": {}}
+        market_state = self._market(prices={"MELON": 250})
+
+        actions = decide_market_actions({"money": 0}, private, market_state)
+
+        self.assertIn(["SELL", "MELON", MAX_SELL_PER_TURN["MELON"]], actions)
+
+    def test_does_not_cap_a_premium_good_holding_below_the_cap(self):
+        private = {"shed": {"STRAWBERRY": 3}, "seeds": {}}
+        market_state = self._market(prices={"STRAWBERRY": 120})
+
+        actions = decide_market_actions({"money": 0}, private, market_state)
+
+        self.assertIn(["SELL", "STRAWBERRY", 3], actions)
+
+    def test_does_not_cap_a_non_premium_good(self):
+        private = {"shed": {"WHEAT": 500}, "seeds": {}}
+        market_state = self._market(prices={"WHEAT": 25})
+
+        actions = decide_market_actions({"money": 0}, private, market_state)
+
+        self.assertIn(["SELL", "WHEAT", 500], actions)
+
+    def test_holds_instead_of_selling_below_threshold(self):
+        private = {"shed": {"MELON": 50}, "seeds": {}}
+        market_state = self._market(prices={"MELON": 10})
+
+        actions = decide_market_actions({"money": 0}, private, market_state)
+
+        self.assertEqual(actions, [])
+
+
+class TestWeedReclamation(unittest.TestCase):
+    def _farm(self, tiles, farmer):
+        return {
+            "money": 100,
+            "tiles": tiles,
+            "farmer": list(farmer),
+            "hands": [],
+            "unlocked_quadrants": ["NW"],
+            "hires_today": 0,
+        }
+
+    def _state(self, tiles, farmer, board_size, seeds=None):
+        return {
+            "farm": self._farm(tiles, farmer),
+            "private": {"shed": {}, "seeds": seeds or {}},
+            "market_state": {"prices": {}, "inventory": {}},
+            "board_size": board_size,
+            "day": 5,
+        }
+
+    def test_digs_a_weed_under_its_feet(self):
+        # A dead tile sitting under the farmer should be reclaimed for free
+        # instead of being left as permanently unusable land.
+        state = self._state(tiles=[[{"kind": "WEED"}]], farmer=(0, 0), board_size=1)
+        self.assertEqual(choose_farmer_action(state), ["DIG"])
+
+    def test_walks_toward_a_weed_when_nothing_more_urgent(self):
+        # Standing on empty ground with no seed to plant and nothing else
+        # urgent - go reclaim the nearby dead tile rather than PASS.
+        tiles = [[None, {"kind": "WEED"}]]
+        state = self._state(tiles=tiles, farmer=(0, 0), board_size=1)
+        self.assertEqual(choose_farmer_action(state), ["EAST"])
+
+    def test_watering_an_at_risk_crop_still_beats_digging_a_weed(self):
+        # Preventing a new weed is worth more than reclaiming an old one -
+        # the urgent watering target should win.
+        tiles = [
+            [
+                {"kind": "WEED"},
+                {
+                    "kind": "PLANT",
+                    "crop": "WHEAT",
+                    "planted_day": 3,
+                    "watered_today": False,
+                    "consecutive_unwatered": 1,
+                    "yield_units": 0,
+                },
+            ]
+        ]
+        state = self._state(tiles=tiles, farmer=(0, 0), board_size=1)
+        self.assertEqual(choose_farmer_action(state), ["EAST"])
+
+
+class TestHarvestReadiness(unittest.TestCase):
+    def _farm(self, tiles, farmer):
+        return {
+            "money": 100,
+            "tiles": tiles,
+            "farmer": list(farmer),
+            "hands": [],
+            "unlocked_quadrants": ["NW"],
+            "hires_today": 0,
+        }
+
+    def _state(self, tiles, farmer, day):
+        return {
+            "farm": self._farm(tiles, farmer),
+            "private": {"shed": {}, "seeds": {}},
+            "market_state": {"prices": {}, "inventory": {}},
+            "board_size": 1,
+            "day": day,
+        }
+
+    def test_freshly_planted_crop_is_not_harvestable(self):
+        # A non-ongoing crop (WHEAT) starts with yield_units=1 the instant
+        # it's planted - that's a payout placeholder, not a "ready" signal.
+        # The environment also gates HARVEST on first_yield_day, so a
+        # same-day planting must not read as harvestable.
+        tile = {
+            "kind": "PLANT",
+            "crop": "WHEAT",
+            "planted_day": 3,
+            "watered_today": False,
+            "consecutive_unwatered": 1,
+            "yield_units": 1,
+        }
+        self.assertFalse(is_harvestable(tile, day=3))
+
+    def test_becomes_harvestable_once_first_yield_day_arrives(self):
+        # WHEAT's first_yield_day is 2.
+        tile = {
+            "kind": "PLANT",
+            "crop": "WHEAT",
+            "planted_day": 3,
+            "watered_today": True,
+            "consecutive_unwatered": 0,
+            "yield_units": 1,
+        }
+        self.assertFalse(is_harvestable(tile, day=4))
+        self.assertTrue(is_harvestable(tile, day=5))
+
+    def test_farmer_waters_a_freshly_planted_crop_instead_of_trying_to_harvest_it(self):
+        # This is the actual failure mode: without the first_yield_day gate,
+        # the farmer would repeatedly issue a HARVEST that silently no-ops,
+        # never watering the crop, until it dies two days later.
+        tiles = [[{
+            "kind": "PLANT",
+            "crop": "WHEAT",
+            "planted_day": 3,
+            "watered_today": False,
+            "consecutive_unwatered": 1,
+            "yield_units": 1,
+        }]]
+        state = self._state(tiles=tiles, farmer=(0, 0), day=3)
+        self.assertEqual(choose_farmer_action(state), ["WATER"])
 
 
 class TestSafePassBehaviour(unittest.TestCase):

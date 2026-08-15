@@ -10,20 +10,22 @@ rule-based farmer that:
 
   1. Harvests ripe crops.
   2. Waters crops that need it.
-  3. Moves toward urgent tasks before doing anything else.
-  4. Plants a sensible crop when standing on an empty tile.
-  5. Otherwise walks toward the next useful tile.
-  6. PASSes if there is genuinely nothing useful to do.
+  3. Moves toward urgent tasks (saving a crop) before anything else.
+  4. Digs weeds under its feet for free, reclaiming dead land.
+  5. Plants a sensible crop when standing on an empty tile.
+  6. Otherwise walks toward the next useful tile (preferring a weed to
+     reclaim over aimless wandering).
+  7. PASSes if there is genuinely nothing useful to do.
 
 It also does simple, threshold-based market decisions: sell shed goods
-when the price is good, buy one seed at a time when we need one and can
-afford it.
+when the price is good (capped per turn for premium goods so a big
+harvest doesn't crash its own price), buy one seed at a time when we
+need one and can afford it.
 
 NOT implemented in this version (on purpose, to keep v0 simple):
   - Animals (COOP / PASTURE tiles), feeding, or collecting animal goods.
   - Hired hands ("hands" is always returned empty).
   - Buying land / unlocking new quadrants.
-  - Digging weeds (WEED tiles are simply avoided/ignored for now).
   - Any multi-turn planning, lookahead, or opponent modelling.
 
 Every piece of environment metadata used here (CROPS, action names, the
@@ -64,6 +66,18 @@ SELL_PRICE_THRESHOLDS = {
     "MELON": 180,
 }
 DEFAULT_SELL_THRESHOLD = 50
+
+# Premium goods (base price > $100) crash hard toward the $1 floor when a
+# large quantity is sold in one order, and there's no buy-back to undo it
+# (BUY_PRODUCT only works for WHEAT/FERTILIZER) - the market only recovers
+# gradually, via town shop/town-centre consumption between turns. Cap how
+# much of these we sell in a single turn so a big harvest doesn't crater the
+# price it would otherwise have fetched; the remainder stays in the shed and
+# sells on a later turn once the price has had a chance to recover.
+MAX_SELL_PER_TURN = {
+    "STRAWBERRY": 10,
+    "MELON": 15,
+}
 
 # Don't stockpile more seeds of one crop than this - keeps cash free for
 # other things instead of hoarding.
@@ -163,7 +177,30 @@ def step_toward(fx, fy, tx, ty):
     return None
 
 
-def find_nearest_target(farm, board_size, fx, fy, task, seeds=None):
+def is_harvestable(tile, day):
+    """
+    True if a PLANT tile is actually ready to pick right now.
+
+    yield_units > 0 alone is NOT enough: a freshly planted non-ongoing crop
+    (WHEAT/CARROT/MELON) starts with yield_units=1 the instant it's
+    planted - a placeholder for its eventual payout, not a "ready now"
+    signal. The environment separately gates HARVEST on
+    `day - planted_day >= first_yield_day` and silently no-ops otherwise.
+    Without checking that gate too, we'd repeatedly attempt (and fail) to
+    harvest a still-growing crop every turn - and because that check runs
+    before watering in the priority order, the crop never gets watered and
+    dies before it ever matures.
+    """
+    if tile.get("yield_units", 0) <= 0:
+        return False
+    crop_info = CROPS.get(tile.get("crop"))
+    if not crop_info:
+        return False
+    first_yield_day = crop_info.get("first_yield_day", 0)
+    return day - tile.get("planted_day", day) >= first_yield_day
+
+
+def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None):
     """
     Scan the whole farm grid and return the (x, y) of the closest tile
     matching `task`, or None if there isn't one.
@@ -172,6 +209,8 @@ def find_nearest_target(farm, board_size, fx, fy, task, seeds=None):
       "harvest"      - a plant tile that's ready to pick right now.
       "water_urgent" - a plant tile that already missed a watering and
                         will turn into a weed if it's missed again today.
+      "weed"         - a dead tile that can be dug back into plantable
+                        ground.
       "any"          - anything at all worth walking to: a ripe plant,
                         an unwatered plant, or (if we're holding at
                         least one seed) an empty tile we could plant.
@@ -190,7 +229,7 @@ def find_nearest_target(farm, board_size, fx, fy, task, seeds=None):
             is_match = False
 
             if isinstance(tile, dict) and tile.get("kind") == "PLANT":
-                is_ripe = tile.get("yield_units", 0) > 0
+                is_ripe = is_harvestable(tile, day)
                 needs_water = not tile.get("watered_today", True)
                 missed_before = tile.get("consecutive_unwatered", 0) >= 1
 
@@ -200,6 +239,9 @@ def find_nearest_target(farm, board_size, fx, fy, task, seeds=None):
                     is_match = True
                 elif task == "any" and (is_ripe or needs_water):
                     is_match = True
+
+            elif isinstance(tile, dict) and tile.get("kind") == "WEED" and task == "weed":
+                is_match = True
 
             elif tile is None and task == "any" and have_any_seed:
                 is_match = True
@@ -339,11 +381,14 @@ def decide_market_actions(farm, private, market_state):
     """Build the list of ["SELL", ...] / ["BUY_SEED", ...] actions for this turn."""
     actions = []
 
-    # Sell anything sitting in the shed that's fetching a good price.
+    # Sell anything sitting in the shed that's fetching a good price. Capped
+    # per product (see MAX_SELL_PER_TURN) so a big harvest of a premium good
+    # doesn't dump the whole stack into one price-crashing order.
     shed = private.get("shed", {})
     for product, quantity in shed.items():
         if should_sell(product, quantity, market_state):
-            actions.append(["SELL", product, quantity])
+            cap = MAX_SELL_PER_TURN.get(product, quantity)
+            actions.append(["SELL", product, min(quantity, cap)])
 
     # Buy exactly one seed of our preferred next crop, if it makes sense.
     preferred_crop = choose_crop(farm, market_state, private)
@@ -372,12 +417,13 @@ def choose_farmer_action(state):
     fx, fy = farmer_pos
 
     board_size = state["board_size"]
+    day = state["day"]
     private = state["private"]
     seeds = private.get("seeds", {})
     tile = get_current_tile(farm)
 
     # 1. Harvest a ripe crop under our feet.
-    if isinstance(tile, dict) and tile.get("kind") == "PLANT" and tile.get("yield_units", 0) > 0:
+    if isinstance(tile, dict) and tile.get("kind") == "PLANT" and is_harvestable(tile, day):
         return ["HARVEST"]
 
     # 2. Water a crop under our feet that hasn't been watered today.
@@ -385,29 +431,44 @@ def choose_farmer_action(state):
         return ["WATER"]
 
     # 3. Something urgent elsewhere (a ripe crop, or a crop about to turn
-    #    into a weed) beats planting a brand-new crop right now.
-    harvest_target = find_nearest_target(farm, board_size, fx, fy, "harvest")
-    water_target = find_nearest_target(farm, board_size, fx, fy, "water_urgent")
+    #    into a weed) beats anything else right now - preventing a new weed
+    #    is worth more than reclaiming an old one.
+    harvest_target = find_nearest_target(farm, board_size, fx, fy, "harvest", day)
+    water_target = find_nearest_target(farm, board_size, fx, fy, "water_urgent", day)
     urgent_target = _closer_target(fx, fy, harvest_target, water_target)
     if urgent_target:
         direction = step_toward(fx, fy, urgent_target[0], urgent_target[1])
         if direction:
             return [direction]
 
-    # 4. Plant here if the tile is empty and unlocked, and we hold a seed.
+    # 4. Reclaim a weed under our feet - free, and turns dead land back into
+    #    something we can plant again instead of losing it for the rest of
+    #    the season.
+    if isinstance(tile, dict) and tile.get("kind") == "WEED":
+        return ["DIG"]
+
+    # 5. Plant here if the tile is empty and unlocked, and we hold a seed.
     if tile is None:
         crop = choose_crop(farm, state["market_state"], private)
         if crop and seeds.get(crop, 0) > 0:
             return ["PLANT", crop]
 
-    # 5. Nothing to do right here - walk toward the closest useful tile.
-    fallback_target = find_nearest_target(farm, board_size, fx, fy, "any", seeds)
+    # 6. Reclaim the nearest weed elsewhere - dead land is a permanent loss
+    #    until it's dug back to plantable ground, so don't just leave it.
+    weed_target = find_nearest_target(farm, board_size, fx, fy, "weed", day)
+    if weed_target:
+        direction = step_toward(fx, fy, weed_target[0], weed_target[1])
+        if direction:
+            return [direction]
+
+    # 7. Nothing to do right here - walk toward the closest useful tile.
+    fallback_target = find_nearest_target(farm, board_size, fx, fy, "any", day, seeds)
     if fallback_target and fallback_target != (fx, fy):
         direction = step_toward(fx, fy, fallback_target[0], fallback_target[1])
         if direction:
             return [direction]
 
-    # 6. Genuinely nothing useful to do.
+    # 8. Genuinely nothing useful to do.
     return ["PASS"]
 
 
