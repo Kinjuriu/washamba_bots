@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An agent for the Kaggle **Kaggriculture** simulation competition: two agents each manage a virtual farm over a 30-day season (720 turns, 24/day) and compete for the highest bank balance. There is no static train/test set — everything is scored via live episodes against other agents plus a final Bradley-Terry tournament.
 
-**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). `hands` is always returned empty. `tests/` carries a 34-case stdlib-`unittest` suite for its helpers. There is no `agent/` package — that part of the `README.md` layout is still aspirational, and `notebooks/01_kaggriculture_exploration.ipynb` is a 0-byte placeholder.
+**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). `hands` is always returned empty. `tests/` carries a 34-case stdlib-`unittest` suite for its helpers. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has two working exploration notebooks.
 
 **Current baseline — mean final bank over 12 seeded 720-turn seasons per opponent:**
 
@@ -90,15 +90,14 @@ Tests are stdlib `unittest` — **pytest is not installed and the suite doesn't 
 
 Unit tests only cover helpers in isolation. **The real verification for a strategy change is a seeded batch, never a single game.** Run-to-run spread is huge — the same `main.py` vs `random` matchup scored 5228 and 3776 on two unseeded runs, and stdev is ~±600 across every opponent. A single episode cannot tell an improvement from luck, and a one-off loss to `starter` means nothing.
 
-Pass `seed` in the configuration to make episodes **fully deterministic** (verified: seed=42 reproduced 4062.0 exactly twice). Compare a change against the same seed set:
+Pass `seed` in the configuration to make episodes **fully deterministic** (verified: the same seed reproduces an identical final bank twice). Compare a change against the same seed set:
 
-```python
-for seed in range(12):
-    env = make('kaggriculture', configuration={'episodeSteps': 720, 'seed': seed})
-    env.run(['main.py', opponent])   # opponent in "pass" / "random" / "starter"
+```bash
+.venv/Scripts/python.exe experiments/seeded_batch.py   # mean/stdev/win-rate vs all 3 built-ins
+.venv/Scripts/python.exe experiments/benchmark.py      # adds melon_maxxer from the official notebook
 ```
 
-At ~7s per season, 12 seeds × 3 opponents is about 4 minutes. Report mean and win-rate, not a single score.
+At ~7s per season, 12 seeds × 3 opponents is about 4 minutes. Report mean and win-rate, not a single score. `experiments/replay_diagnostics.py` breaks a single episode down by action histogram and end-of-farm state — that's what found the weed cascade. Replay JSONs it dumps are multi-MB and gitignored.
 
 Kaggle CLI is authenticated (`~/.kaggle/credentials.json`) as `peterkibetspidey`, and the account is entered in the competition — verify with `kaggle competitions list --group entered` (expect `userHasEntered: True`). Re-auth with `kaggle auth login` if the session expires.
 

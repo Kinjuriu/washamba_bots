@@ -16,6 +16,7 @@ from main import (
     choose_crop,
     choose_farmer_action,
     decide_market_actions,
+    has_plantable_seed,
     is_harvestable,
     nikaangukia_meroni,
     should_sell,
@@ -96,6 +97,26 @@ class TestChooseCrop(unittest.TestCase):
         private = {"seeds": {"WHEAT": 2}}
 
         self.assertEqual(choose_crop(farm, market_state, private, day=27), "WHEAT")
+
+
+class TestHasPlantableSeed(unittest.TestCase):
+    # Backs the "any" fallback target in find_nearest_target(): a farmer
+    # shouldn't wander toward an empty tile on the strength of a seed that
+    # choose_crop() would refuse to plant anyway once it got there.
+
+    def test_true_when_a_held_seed_can_still_mature(self):
+        # WHEAT's first_yield_day is 2; day=27 leaves 2 remaining days.
+        self.assertTrue(has_plantable_seed({"WHEAT": 1}, day=27))
+
+    def test_false_when_every_held_seed_is_too_late_to_mature(self):
+        # Same seed, one day later: only 1 remaining day for a 2-day crop.
+        self.assertFalse(has_plantable_seed({"WHEAT": 1}, day=28))
+
+    def test_false_when_holding_no_seeds_at_all(self):
+        self.assertFalse(has_plantable_seed({}, day=0))
+
+    def test_ignores_zero_count_entries(self):
+        self.assertFalse(has_plantable_seed({"WHEAT": 0, "MELON": 0}, day=0))
 
 
 class TestShouldSell(unittest.TestCase):

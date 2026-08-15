@@ -213,6 +213,35 @@ def is_harvestable(tile, day):
     return day - tile.get("planted_day", day) >= first_yield_day
 
 
+def remaining_season_days(day):
+    """Days left, inclusive of today, before the season's last day (29)."""
+    return (SEASON_DAYS - 1) - day
+
+
+def has_plantable_seed(seeds, day):
+    """
+    True if at least one held seed belongs to a crop that could still
+    reach first_yield_day before the season ends.
+
+    Without this check, "any" targeting below would send the farmer
+    walking toward an empty tile on the strength of a seed it can never
+    usefully plant (choose_crop() would just refuse it again on arrival,
+    per the same season-maturity gate) - not a money loss, but a wasted
+    turn wandering toward a tile with nothing useful to do there.
+    """
+    remaining_days = remaining_season_days(day)
+    for crop, count in seeds.items():
+        if count <= 0:
+            continue
+        crop_info = CROPS.get(crop)
+        if not crop_info:
+            continue
+        first_yield_day = crop_info.get("first_yield_day")
+        if first_yield_day is None or first_yield_day <= remaining_days:
+            return True
+    return False
+
+
 def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None):
     """
     Scan the whole farm grid and return the (x, y) of the closest tile
@@ -226,11 +255,12 @@ def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None):
                         ground.
       "any"          - anything at all worth walking to: a ripe plant,
                         an unwatered plant, or (if we're holding at
-                        least one seed) an empty tile we could plant.
+                        least one seed that can still mature) an empty
+                        tile we could plant.
     """
     seeds = seeds or {}
     tiles = farm.get("tiles") or []
-    have_any_seed = any(count > 0 for count in seeds.values())
+    have_any_seed = has_plantable_seed(seeds, day)
 
     best_target = None
     best_distance = None
@@ -315,7 +345,7 @@ def choose_crop(farm, market_state, private, day):
     prices = market_state.get("prices", {})
     inventory = market_state.get("inventory", {})
     seeds = private.get("seeds", {})
-    remaining_days = (SEASON_DAYS - 1) - day
+    remaining_days = remaining_season_days(day)
 
     best_crop = None
     best_score = None
