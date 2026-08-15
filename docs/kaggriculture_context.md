@@ -30,6 +30,16 @@
 
 You (Billy) have already accepted the competition rules, so you're entered as of this writing (Aug 15, 2026) — that gives roughly 5.5 weeks until the entry/merge deadline and 6.5 weeks until final submission.
 
+### Matchmaking & Rating (Bradley-Terry)
+
+- Each submission gets a **skill rating**; matchmaking pairs you with similarly-rated opponents.
+- Only your **latest 2 submissions** are tracked/matched and count toward final evaluation — older submissions stop playing.
+- Rating only cares about **win / loss / tie** — margin of victory (coin difference) does **not** affect rating at all. A 1-coin win counts the same as a landslide.
+- Rating deltas scale with the **rating gap** between opponents: beating a higher-rated opponent (an upset) moves your rating more than beating a similarly- or lower-rated one.
+- Every upload runs a **validation episode** (agent vs. a copy of itself) before it enters the matchmaking pool; failures are marked `Error` with downloadable logs.
+- **Oct 1 – ~Oct 15, 2026:** games keep running post-deadline "until the leaderboard has reached convergence," then a single final Bradley-Terry tournament on those episodes sets the final leaderboard — explicitly to average out "hot streaks" rather than let a lucky late run decide placement.
+- **Caveat (unresolved as of Aug 2026):** multiple competitors report large, persistent rating gaps (1000+ points) between byte-identical agents, attributed to early-game RNG (e.g. one side getting an early weed) compounding through the rating-gap-scaled update rule. No host fix or explanation beyond "update to the latest env version" as of this writing. Practical implication: don't read early rating swings as a signal your strategy is bad, and consider resubmitting periodically rather than trusting one submission's rating trajectory.
+
 ---
 
 ## 2. Rules Summary (the parts that actually matter day-to-day)
@@ -149,6 +159,8 @@ Two players, each with their own farm, compete over a **30-day season = 720 turn
 | Pet Cafe | carrots (2×, single-product) |
 | Smoothie Shop | strawberries, milk |
 | Farmers Market | wheat, carrots, tomatoes, strawberries |
+
+- **Demand-spike pricing** (patch requires `kaggle-environments >= 1.32.7`): tomato, carrot, and egg prices spike significantly above their normal §3.10 curve when shop demand for them is high but there's no production feeding the market — unmet demand pushes price up beyond the standard scarcity formula. Host-quantified at a zero-production baseline: triggers in ~50% of games for tomato, ~26% for carrot, ~22% for egg. Host has stated this "should be the last [balance] change, excepting game-breaking bugs."
 
 ### 3.10 Market Pricing Mechanics
 
@@ -282,6 +294,8 @@ pip install kaggle   # CLI
 
 Kaggle API token: generate at kaggle.com/settings/api, save to `~/.kaggle/access_token` (or use `kaggle auth login` / `KAGGLE_API_TOKEN` env var).
 
+**Pin the version.** Recent balance patches (town-center demand, shop sampling, tomato/carrot/egg demand-spike pricing — see §3.9) require `kaggle-environments >= 1.32.7`. Check with `pip show kaggle-environments` before trusting local test results against the current live ruleset.
+
 ### 4.2 Testing an agent locally
 
 ```python
@@ -362,6 +376,12 @@ def agent(obs):
 
 This is intentionally minimal (single tile, single farmer, no fertilizer/animals/hands/land) — a working floor to build on top of, not a competitive baseline.
 
+### 4.5 Community & Host Resources
+
+- **[`kaggriculture-episodes-index`](https://www.kaggle.com/datasets/kaggle/kaggriculture-episodes-index)** — host-maintained dataset of daily replay dumps (up to 20 GB/day) from the top-rated episodes each day. Useful for imitation learning, RL bootstrapping, or studying what strong agents are doing without playing hundreds of games yourself.
+- The pinned **"Kaggriculture: Getting Started"** notebook on the Code tab is the only host-official code beyond the README/AGENTS.md quick-start — it doesn't add a separate environment wrapper or replay viewer beyond what ships in `kaggle-environments`.
+- Community tooling exists (unofficial, unverified) for faster local iteration — a batched CUDA env reimplementation and a Rust port validated against thousands of leaderboard games. Worth searching for if raw local-simulation throughput becomes a bottleneck later.
+
 ---
 
 ## 5. Open Strategy Questions (worth thinking through before coding)
@@ -373,7 +393,12 @@ This is intentionally minimal (single tile, single farmer, no fertilizer/animals
 - **Animals vs. crops** — animals need continuous feeding (wheat) but yield indefinitely and don't decay into weeds the way crops eventually do; there's a wheat-production-for-feed subsystem question here (grow your own feed vs. buy it).
 - **Fertilizer allocation** — since it doubles bonus-window yield for 3 days (only on watered days), the ROI is highest on high-value, well-tended plants — worth modeling explicitly rather than fertilizing everything.
 - **Town demand as a tailwind** — shops unlock randomly over the season and create a floor under demand for whatever they buy; watching `unlocked_shops` in the observation could inform which resource to lean into as the season progresses.
+- **Optimize for win probability, not margin** — the Bradley-Terry rating only sees win/loss/tie (see §1 Matchmaking & Rating), so a narrow win is worth exactly as much as a blowout. Once you're safely ahead late in a game, further risk to widen the margin has zero rating upside — the correct move is to protect the win, not maximize final coin count within that episode.
+- **Endgame turn-720 uncertainty** — there's an open, unresolved report (as of Aug 2026) that the very last turn of the season may not actually execute in the engine. Until confirmed, don't design a strategy that depends on a specific action landing on turn 720 exactly (e.g. a final liquidation sell) — front-load the endgame cash-out by a turn or two as a hedge.
+- **Unverified per-step compute limit** — an unconfirmed competitor report describes a ~1-second-per-step soft time limit with an overage "bank," similar to other Kaggle sim competitions. Not host-confirmed and not in the official docs, but worth profiling your agent's per-step wall time locally, especially before adding anything heavier than simple heuristics (search, ML inference, etc.).
 
 ---
 
 *Source: Kaggle competition pages — Overview (`/competitions/kaggriculture/overview`), Rules (`/competitions/kaggriculture/rules`), and the community "Kaggriculture: Getting Started" notebook README, all retrieved Aug 15, 2026.*
+
+*Follow-up pass (same day): Discussion tab review covering host balance-change threads ([735311](https://www.kaggle.com/competitions/kaggriculture/discussion/735311), [733431](https://www.kaggle.com/competitions/kaggriculture/discussion/733431), [731587](https://www.kaggle.com/competitions/kaggriculture/discussion/731587)), the doc-vs-engine discrepancy thread ([732450](https://www.kaggle.com/competitions/kaggriculture/discussion/732450)), the rules Q&A thread ([731953](https://www.kaggle.com/competitions/kaggriculture/discussion/731953)), and open rating-path-dependency reports ([734000](https://www.kaggle.com/competitions/kaggriculture/discussion/734000), [734074](https://www.kaggle.com/competitions/kaggriculture/discussion/734074)).*
