@@ -123,8 +123,14 @@ The local simulation loop is the main iteration cycle: make a focused change, ru
 ## Setup
 
 ```bash
-pip install -U kaggle-environments kaggle
+pyenv install --skip-existing 3.12.3
+pyenv exec python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements.txt
 ```
+
+The repository's `.python-version` selects Python 3.12.3 when pyenv is active. In VS Code, select `.venv/bin/python` as the Python interpreter and notebook kernel.
 
 Generate a Kaggle API token at kaggle.com/settings/api and save it to `~/.kaggle/access_token` (or `kaggle auth login`, or set `KAGGLE_API_TOKEN`).
 
