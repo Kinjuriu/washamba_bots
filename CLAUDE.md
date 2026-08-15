@@ -6,7 +6,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An agent for the Kaggle **Kaggriculture** simulation competition: two agents each manage a virtual farm over a 30-day season (720 turns, 24/day) and compete for the highest bank balance. There is no static train/test set — everything is scored via live episodes against other agents plus a final Bradley-Terry tournament.
 
-**Current state: docs and environment only. No agent code exists yet.** There is no `main.py`, no `agent/` package, no `tests/`. The layout sketched in `README.md` is aspirational — don't go looking for those files. `notebooks/01_kaggriculture_exploration.ipynb` is a 0-byte placeholder.
+**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). `hands` is always returned empty. `tests/` carries a 34-case stdlib-`unittest` suite for its helpers. There is no `agent/` package — that part of the `README.md` layout is still aspirational, and `notebooks/01_kaggriculture_exploration.ipynb` is a 0-byte placeholder.
+
+**Current baseline — mean final bank over 12 seeded 720-turn seasons per opponent:**
+
+| vs | mean | stdev | min | max | wins |
+|---|---|---|---|---|---|
+| `pass` | 5635 | ±744 | 4514 | 7045 | 12/12 |
+| `random` | 5264 | ±410 | 4815 | 6209 | 12/12 |
+| `starter` | 5555 | ±1128 | 4734 | 8757 | 12/12 |
+
+Two later fixes moved the **floor** far more than the mean, which is where the real gain is: a **season-maturity gate** (`choose_crop` refuses crops whose `first_yield_day` can't land before day 29 — the agent used to bleed cash buying tomato seed it could never harvest) and a **shed-overflow valve** (force-sell at 90/100 items, since overflow is silently discarded). Minimums rose ~1,200 across every opponent and `starter` went 11/12 → 12/12.
+
+**The weed cascade — fixed, and worth remembering.** The previous baseline lost to `pass` (an opponent that does nothing and banks $3000) on ~2/12 seeds, finishing *below* its own starting money. Root cause: one farmer planted more tiles than it could water, plants weeded out, and because the agent never emitted **`DIG`**, every weeded tile stayed dead for the rest of the season. The farm decayed to 23/25 weeds and sales starved to 3.9 `SELL` orders per season — zero on the losing seeds.
+
+Adding `DIG` moved every metric at once: **SELL orders 3.9 → 22.9**, **end-of-season weeds 23.0 → 2.1**, and the sub-$3000 downside disappeared. The lesson generalizes: **tile upkeep capacity, not sell-price tuning, is what gates this agent's income.** Before optimizing thresholds, check how many tiles are alive at season end.
+
+Still unimplemented (deliberately): animals, `FEED`/`CARE`, hired hands (`HIRE`), `FERTILIZE`, `BUY_LAND`, and shed transfers (`DROP`/`PICKUP`). Remaining known gap: still loses ~1/12 to `starter`.
 
 ## Sources of truth, in priority order
 
@@ -38,14 +54,22 @@ uv pip install --python .venv/Scripts/python.exe \
   numpy==2.4.6 pandas==3.0.5 matplotlib==3.11.1 seaborn==0.13.2 \
   jupyterlab==4.6.3 ipykernel==7.3.0
 
-# Smoke test — works today, no main.py needed (built-in opponents: "pass", "random", "starter")
+# Run the agent (built-in opponents: "pass", "random", "starter")
 .venv/Scripts/python.exe -c "
 from kaggle_environments import make
 env = make('kaggriculture', configuration={'episodeSteps': 720}, debug=True)
-env.run(['starter', 'random'])
+env.run(['main.py', 'random'])
 print([(i, s.reward) for i, s in enumerate(env.steps[-1])])
 "
-# Swap 'starter' for 'main.py' once an agent exists
+
+# PRE-SUBMIT GATE: Kaggle validates every upload with a self-play episode.
+# A crash there rejects the submission no matter how good the strategy is.
+.venv/Scripts/python.exe -c "
+from kaggle_environments import make
+env = make('kaggriculture', configuration={'episodeSteps': 720, 'seed': 0})
+env.run(['main.py', 'main.py'])
+print([s.status for s in env.steps[-1]])   # must be ['DONE', 'DONE']
+"
 
 # Submit
 .venv/Scripts/kaggle.exe competitions submit kaggriculture -f main.py -m 'message'
@@ -57,9 +81,26 @@ A full 720-turn episode runs in **~6.8s**, so hundreds of local games is a matte
 
 `requirements.txt` is a broad 190-package `pip freeze` from a wider ML workspace (jax, flax, transformers, open-spiel, litellm, and `pokerkit`), **not** this agent's dependency set. Installing it wholesale is not required, and a package appearing there is no license to import it from `main.py`.
 
-**No test or lint tooling is configured** — pytest, ruff, mypy, and black are all absent. The de facto verification for a change is running local episodes and comparing final bank balances across many games. If you add tests, you must add the runner too.
+Tests are stdlib `unittest` — **pytest is not installed and the suite doesn't need it**. Don't reach for pytest idioms (fixtures, `assert` rewriting, parametrize); match the existing `unittest.TestCase` style. No linter or type checker is configured (ruff, mypy, black all absent).
 
-Kaggle CLI credentials are **not** set up (`~/.kaggle` does not exist). Generate a token at kaggle.com/settings/api and save it to `~/.kaggle/access_token`, or run `kaggle auth login`.
+```bash
+.venv/Scripts/python.exe -m unittest discover -s tests          # whole suite
+.venv/Scripts/python.exe -m unittest tests.test_nikaangukia_meroni.TestShouldSell -v   # one case
+```
+
+Unit tests only cover helpers in isolation. **The real verification for a strategy change is a seeded batch, never a single game.** Run-to-run spread is huge — the same `main.py` vs `random` matchup scored 5228 and 3776 on two unseeded runs, and stdev is ~±600 across every opponent. A single episode cannot tell an improvement from luck, and a one-off loss to `starter` means nothing.
+
+Pass `seed` in the configuration to make episodes **fully deterministic** (verified: seed=42 reproduced 4062.0 exactly twice). Compare a change against the same seed set:
+
+```python
+for seed in range(12):
+    env = make('kaggriculture', configuration={'episodeSteps': 720, 'seed': seed})
+    env.run(['main.py', opponent])   # opponent in "pass" / "random" / "starter"
+```
+
+At ~7s per season, 12 seeds × 3 opponents is about 4 minutes. Report mean and win-rate, not a single score.
+
+Kaggle CLI is authenticated (`~/.kaggle/credentials.json`) as `peterkibetspidey`, and the account is entered in the competition — verify with `kaggle competitions list --group entered` (expect `userHasEntered: True`). Re-auth with `kaggle auth login` if the session expires.
 
 ## Hard constraints (violating these silently breaks a submission, not just a test)
 
@@ -77,6 +118,8 @@ Kaggle CLI credentials are **not** set up (`~/.kaggle` does not exist). Generate
 **The entrypoint is the *last callable in the module namespace*, not a function named `agent`.** `kaggle_environments/agent.py:64` does `[v for v in env.values() if callable(v)][-1]`. A helper function — or a class, since classes are callable — defined below `agent()` silently becomes your submission. Keep `agent` last in `main.py`, and put helpers in an imported module or above it.
 
 This fails **silently**, which makes it nasty to catch. Verified locally: with a helper defined after `agent()`, the episode still reports `status=DONE` with no error — the wrong callable returns garbage, every action is discarded as an invalid no-op, and the agent finishes on exactly `startingMoney`. **A local run that ends at exactly $3000 means your agent never actually acted.** Treat that number as a failure signal, not a bad strategy.
+
+`main.py` satisfies the rule with a trailing `agent = nikaangukia_meroni` binding on the final line. **Keep that line last** — anything callable added below it silently hijacks the submission.
 
 Both `def agent(obs)` and `def agent(obs, config)` work: the framework builds `[observation, configuration]` and truncates it to the function's `co_argcount` (`agent.py:151-153`). Taking `config` gets you `episodeSteps`, `boardSize`, `maxMarketOrdersPerTurn`, etc. rather than hardcoding defaults.
 
