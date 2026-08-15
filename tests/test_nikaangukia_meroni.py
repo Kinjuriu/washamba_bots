@@ -60,7 +60,7 @@ class TestChooseCrop(unittest.TestCase):
         )
         private = {"seeds": {}}
 
-        chosen = choose_crop(farm, market_state, private)
+        chosen = choose_crop(farm, market_state, private, day=0)
         self.assertEqual(chosen, "WHEAT")
 
     def test_returns_none_when_nothing_is_affordable_or_held(self):
@@ -68,14 +68,34 @@ class TestChooseCrop(unittest.TestCase):
         market_state = self._market(prices={}, inventory={})
         private = {"seeds": {}}
 
-        self.assertIsNone(choose_crop(farm, market_state, private))
+        self.assertIsNone(choose_crop(farm, market_state, private, day=0))
 
     def test_can_choose_a_crop_we_already_hold_seeds_for_even_if_broke(self):
         farm = {"money": 0}
         market_state = self._market(prices={"WHEAT": 20}, inventory={"WHEAT": 0})
         private = {"seeds": {"WHEAT": 2}}
 
-        self.assertEqual(choose_crop(farm, market_state, private), "WHEAT")
+        self.assertEqual(choose_crop(farm, market_state, private, day=0), "WHEAT")
+
+    def test_skips_a_crop_that_cannot_reach_first_yield_before_season_end(self):
+        # WHEAT's first_yield_day is 2. Diagnosed from a real lost game: on
+        # day 28 there's only 1 day left (season ends at day 29), so a WHEAT
+        # planted now can never be harvested - it should be skipped even
+        # though we already hold a seed for it, rather than wasting the plant.
+        farm = {"money": 0}
+        market_state = self._market(prices={"WHEAT": 20}, inventory={"WHEAT": 0})
+        private = {"seeds": {"WHEAT": 2}}
+
+        self.assertIsNone(choose_crop(farm, market_state, private, day=28))
+
+    def test_still_chooses_a_crop_with_exactly_enough_time_left(self):
+        # Same crop, one day earlier: remaining_days == first_yield_day, so
+        # it can just barely still be harvested before season end.
+        farm = {"money": 0}
+        market_state = self._market(prices={"WHEAT": 20}, inventory={"WHEAT": 0})
+        private = {"seeds": {"WHEAT": 2}}
+
+        self.assertEqual(choose_crop(farm, market_state, private, day=27), "WHEAT")
 
 
 class TestShouldSell(unittest.TestCase):
@@ -106,7 +126,7 @@ class TestDecideMarketActions(unittest.TestCase):
         private = {"shed": {"STRAWBERRY": 40}, "seeds": {}}
         market_state = self._market(prices={"STRAWBERRY": 120})
 
-        actions = decide_market_actions({"money": 0}, private, market_state)
+        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
 
         self.assertIn(["SELL", "STRAWBERRY", MAX_SELL_PER_TURN["STRAWBERRY"]], actions)
 
@@ -114,7 +134,7 @@ class TestDecideMarketActions(unittest.TestCase):
         private = {"shed": {"MELON": 50}, "seeds": {}}
         market_state = self._market(prices={"MELON": 250})
 
-        actions = decide_market_actions({"money": 0}, private, market_state)
+        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
 
         self.assertIn(["SELL", "MELON", MAX_SELL_PER_TURN["MELON"]], actions)
 
@@ -122,7 +142,7 @@ class TestDecideMarketActions(unittest.TestCase):
         private = {"shed": {"STRAWBERRY": 3}, "seeds": {}}
         market_state = self._market(prices={"STRAWBERRY": 120})
 
-        actions = decide_market_actions({"money": 0}, private, market_state)
+        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
 
         self.assertIn(["SELL", "STRAWBERRY", 3], actions)
 
@@ -130,7 +150,7 @@ class TestDecideMarketActions(unittest.TestCase):
         private = {"shed": {"WHEAT": 500}, "seeds": {}}
         market_state = self._market(prices={"WHEAT": 25})
 
-        actions = decide_market_actions({"money": 0}, private, market_state)
+        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
 
         self.assertIn(["SELL", "WHEAT", 500], actions)
 
@@ -138,9 +158,33 @@ class TestDecideMarketActions(unittest.TestCase):
         private = {"shed": {"MELON": 50}, "seeds": {}}
         market_state = self._market(prices={"MELON": 10})
 
-        actions = decide_market_actions({"money": 0}, private, market_state)
+        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
 
         self.assertEqual(actions, [])
+
+    def test_force_sells_below_threshold_when_shed_is_nearly_full(self):
+        # 95 items >= SHED_FORCE_SELL_THRESHOLD (90): anything not already
+        # selling would be silently discarded once the shed hits its 100 cap,
+        # so it should be sold anyway even though the price is below the
+        # normal MELON threshold - still capped per MAX_SELL_PER_TURN so the
+        # forced dump doesn't crash the price either.
+        private = {"shed": {"MELON": 95}, "seeds": {}}
+        market_state = self._market(prices={"MELON": 10})
+
+        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
+
+        self.assertIn(["SELL", "MELON", MAX_SELL_PER_TURN["MELON"]], actions)
+
+    def test_does_not_double_sell_a_product_already_selling_above_threshold(self):
+        # WHEAT already clears its threshold and gets sold in the normal
+        # pass - the near-full-shed pass should not add a second, duplicate
+        # SELL order for the same product.
+        private = {"shed": {"WHEAT": 95}, "seeds": {}}
+        market_state = self._market(prices={"WHEAT": 25})
+
+        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
+
+        self.assertEqual(actions.count(["SELL", "WHEAT", 95]), 1)
 
 
 class TestWeedReclamation(unittest.TestCase):

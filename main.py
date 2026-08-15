@@ -83,6 +83,19 @@ MAX_SELL_PER_TURN = {
 # other things instead of hoarding.
 MAX_SEED_STOCKPILE = 3
 
+# The season is a fixed 30 days (0-indexed: day 0 through day 29), per the
+# competition's hard constraints - not something that varies per episode.
+SEASON_DAYS = 30
+
+# The shed holds at most 100 non-seed items - anything harvested past that
+# cap is silently discarded at end of day, with no error and no way to
+# recover it (see docs/kaggriculture_context.md). should_sell() alone can
+# hold a slow-moving product indefinitely while price stays below
+# threshold, right up until it overflows and evaporates for free. Once the
+# shed gets this full, force a sale regardless of price - a mediocre sale
+# beats a guaranteed $0.
+SHED_FORCE_SELL_THRESHOLD = 90
+
 # Never spend more than this fraction of our current cash on a single
 # seed purchase, so a bad crop pick can't wipe out our bank balance.
 SEED_SPEND_CAP_FRACTION = 0.5
@@ -271,10 +284,11 @@ def _closer_target(fx, fy, target_a, target_b):
 # Crop selection
 # ---------------------------------------------------------------------
 
-def choose_crop(farm, market_state, private):
+def choose_crop(farm, market_state, private, day):
     """
     Pick the crop we'd most like to plant next, or None if nothing makes
-    sense right now (nothing affordable/held).
+    sense right now (nothing affordable/held, or nothing left has time to
+    mature).
 
     Deliberately simple scoring - no profit projection or lookahead:
 
@@ -291,12 +305,17 @@ def choose_crop(farm, market_state, private):
         don't favor a slow crop just because its total payout is bigger.
 
     A crop is only considered if we already hold a seed for it, or we
-    can afford to buy one.
+    can afford to buy one - AND it can reach first_yield_day before the
+    season's last day (29). Diagnosed from a real lost game: without this
+    check, the agent kept planting TOMATO (first_yield_day=8) as late as
+    day 29, spending seed money on plants that mathematically could never
+    produce a single unit - a guaranteed loss with no offsetting revenue.
     """
     money = farm.get("money", 0)
     prices = market_state.get("prices", {})
     inventory = market_state.get("inventory", {})
     seeds = private.get("seeds", {})
+    remaining_days = (SEASON_DAYS - 1) - day
 
     best_crop = None
     best_score = None
@@ -309,8 +328,11 @@ def choose_crop(farm, market_state, private):
         seed_cost = crop_info.get("seed")
         expected_yield = crop_info.get("max_yield")
         growth_days = crop_info.get("max_yield_day")
+        first_yield_day = crop_info.get("first_yield_day")
         if seed_cost is None or expected_yield is None or not growth_days:
             continue
+        if first_yield_day is not None and first_yield_day > remaining_days:
+            continue  # can't reach even a first harvest before season end
 
         have_seed = seeds.get(crop, 0) > 0
         can_afford = money >= seed_cost
@@ -377,9 +399,10 @@ def should_buy_seed(crop, farm, private):
     return True
 
 
-def decide_market_actions(farm, private, market_state):
+def decide_market_actions(farm, private, market_state, day):
     """Build the list of ["SELL", ...] / ["BUY_SEED", ...] actions for this turn."""
     actions = []
+    already_selling = set()
 
     # Sell anything sitting in the shed that's fetching a good price. Capped
     # per product (see MAX_SELL_PER_TURN) so a big harvest of a premium good
@@ -389,9 +412,22 @@ def decide_market_actions(farm, private, market_state):
         if should_sell(product, quantity, market_state):
             cap = MAX_SELL_PER_TURN.get(product, quantity)
             actions.append(["SELL", product, min(quantity, cap)])
+            already_selling.add(product)
+
+    # Shed is nearly full: anything not already being sold above would just
+    # be discarded once the cap hits. Force a sale (still capped, so we
+    # don't crash a premium good's price on the way out) rather than let it
+    # evaporate for free.
+    shed_total = sum(shed.values())
+    if shed_total >= SHED_FORCE_SELL_THRESHOLD:
+        for product, quantity in shed.items():
+            if product in already_selling or quantity <= 0:
+                continue
+            cap = MAX_SELL_PER_TURN.get(product, quantity)
+            actions.append(["SELL", product, min(quantity, cap)])
 
     # Buy exactly one seed of our preferred next crop, if it makes sense.
-    preferred_crop = choose_crop(farm, market_state, private)
+    preferred_crop = choose_crop(farm, market_state, private, day)
     if preferred_crop and should_buy_seed(preferred_crop, farm, private):
         actions.append(["BUY_SEED", preferred_crop, 1])
 
@@ -449,7 +485,7 @@ def choose_farmer_action(state):
 
     # 5. Plant here if the tile is empty and unlocked, and we hold a seed.
     if tile is None:
-        crop = choose_crop(farm, state["market_state"], private)
+        crop = choose_crop(farm, state["market_state"], private, day)
         if crop and seeds.get(crop, 0) > 0:
             return ["PLANT", crop]
 
@@ -493,7 +529,7 @@ def nikaangukia_meroni(obs):
         return {
             "farmer": choose_farmer_action(state),
             "hands": [],  # v0 doesn't hire any farm hands yet
-            "market": decide_market_actions(farm, state["private"], state["market_state"]),
+            "market": decide_market_actions(farm, state["private"], state["market_state"], state["day"]),
         }
     except Exception:
         # Last line of defense: an agent that crashes forfeits the match,
