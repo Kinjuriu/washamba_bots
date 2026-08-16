@@ -19,7 +19,7 @@ An autonomous agent for [Kaggriculture](https://kaggle.com/competitions/kaggricu
 | `pass` | 41,969 | 12/12 |
 | `random` | 42,812 | 12/12 |
 | `starter` | 43,105 | 12/12 |
-| **self-play** | **27,246/side** | — |
+| **self-play** | **31,132/side** | — |
 
 **Read the self-play number, not the others.** `pass`, `random` and `starter` sell nothing, so they leave every market untouched and flatter us badly — that gap is why a 33,000 local score became 289.3 on the ladder. Self-play is the cheapest honest proxy for a real opponent competing in the same market.
 

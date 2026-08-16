@@ -8,7 +8,7 @@ An agent for the Kaggle **Kaggriculture** simulation competition: two agents eac
 
 **Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). One shared, inventory-aware `choose_unit_action` ladder drives the main farmer **and every hired hand**, with a per-turn claim set so units spread out instead of converging on the same tile.
 
-The animal rollout is deliberately capped at **one goose** (`MAX_ANIMALS`): build a coop, buy/pick up/place the goose, feed and care for it, collect fertilizer, harvest eggs, and hold back a two-unit wheat reserve so selling feed can't starve it. The animal logic is data-driven off the engine's `ANIMALS` table, so cow and sheep need no new code — only a change to `ACTIVE_ANIMALS`.
+The animal rollout is capped at **three geese** (`MAX_ANIMALS`): build coops, buy/pick up/place geese, feed and care for them, collect fertilizer, harvest eggs, and hold back a two-unit-per-animal wheat reserve so selling feed can't starve them. Three is the measured zero-escape sweet spot; four increased the mean slightly but produced escapes. The animal logic is data-driven off the engine's `ANIMALS` table, so cow and sheep need no new code — only a change to `ACTIVE_ANIMALS`.
 
 `tests/` carries a stdlib-`unittest` suite. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has one working experiments notebook.
 
@@ -26,7 +26,7 @@ Self-play, 6 seeds / 12 agent-results — **the ladder proxy**, and the number t
 
 | | mean | stdev | min | max |
 |---|---|---|---|---|
-| self-play | **27,246** | ±1,604 | 24,763 | 29,894 |
+| self-play | **31,132** | ±1,880 | 27,836 | 33,777 |
 
 The ~15,000 gap between the two tables is the whole story of why a 33,000 local score became 289.3 on the ladder. Melon finishes near $280 against a built-in and at the **$1 floor** in self-play.
 
@@ -36,7 +36,7 @@ The ~15,000 gap between the two tables is the whole story of why a 33,000 local 
 
 **Hiring is the single highest-ROI mechanic in the game, by a wide margin.** The n-th hire of a day costs `farmHandCostMult × fib(n)` with the counter resetting each morning, so four hands cost **$1+$1+$2+$3 = $7/day — about $210 for the whole season.** That bought roughly **+1,400 mean bank** (`pass` 5635 → 6864, `random` 5264 → 7357, `starter` 5555 → 6609). Hands are cleared every night, so re-hire each morning (`HIRE_BEFORE_HOUR`); a hand bought at hour 20 costs the same and does a fraction of the work.
 
-The reason it pays so well is the same one behind the weed cascade below: **a single farmer's upkeep capacity is what caps income.** More units means more tiles watered and dug, while the one Goose adds a maintained animal revenue stream without the escape failures seen in the four-Goose experiment.
+The reason it pays so well is the same one behind the weed cascade below: **a single farmer's upkeep capacity is what caps income.** More units means more tiles watered and dug, while three Geese add a maintained animal revenue stream without the escape failures seen in the four-Goose experiment.
 
 Two earlier fixes moved the **floor** rather than the mean: a **season-maturity gate** (`choose_crop` refuses crops whose `first_yield_day` can't land before day 29 — the agent used to bleed cash buying tomato seed it could never harvest) and a **shed-overflow valve** (force-sell once the shed passes `SHED_FORCE_SELL_THRESHOLD`, since overflow past 100 items is silently discarded).
 

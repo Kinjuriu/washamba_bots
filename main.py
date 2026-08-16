@@ -48,7 +48,9 @@ of it ranked crops by cheapness and never planted a melon all season.
 
 NOT implemented in this version (on purpose, to keep V1 simple):
   - COW / SHEEP (the animal logic is data-driven off ACTIVE_ANIMALS, so
-    enabling them is a config change, not new logic).
+    enabling them is a config change, not new logic - though their
+    products, MILK and WOOL, still need SELL_PRICE_THRESHOLDS/
+    MAX_SELL_PER_TURN entries of their own before that's a good idea).
   - Buying land / unlocking new quadrants.
   - Any multi-turn planning, lookahead, or opponent modelling.
 
@@ -251,17 +253,16 @@ MAX_MARKET_ORDERS_PER_TURN = 10
 # (interval=1) - the fastest way to prove the whole build -> buy -> pickup
 # -> place -> feed -> care -> harvest -> sell pipeline actually works before
 # committing to COW/SHEEP. The logic below is written generically against
-# this list, so extending it later is a config change, not new logic -
-# except the "which structure to build" step, which assumes a single
-# active species (see choose_unit_action).
+# this list, so extending it later is a config change, not new logic - see
+# choose_animal_to_build for the priority order multiple species use.
 ACTIVE_ANIMALS = ["GOOSE"]
 ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a in ANIMALS}
 
 # Cap on total animals we'll commit to (built structures, filled or not).
-# V1 deliberately proves one complete, reliably fed Goose lifecycle first.
-# Scaling this to four before the planner has dedicated feed capacity causes
-# unrecoverable escapes and loses more capital than the extra eggs earn.
-MAX_ANIMALS = 1
+# Three Geese are the measured sweet spot: they raised current self-play by
+# about 14% over the one-Goose rollout with zero escapes in validation.
+# Four increased the mean slightly but produced unrecoverable escapes.
+MAX_ANIMALS = 3
 
 # Never buy an animal that eats more than this fraction of current cash in
 # one shot - same reasoning as SEED_SPEND_CAP_FRACTION.
@@ -608,17 +609,31 @@ def count_owned_animals(farm, private, board_size):
     return total + filled + unfilled
 
 
-def should_build_structure(farm, board_size, pending_builds=0):
+def choose_animal_to_build(farm, board_size, day, pending_builds=0):
     """
-    True if we should build a new coop/pasture on an empty tile right now:
-    under the cap, every structure we've already built already has an
-    animal in it (stops us tying up more than one tile at a time waiting on
-    the buy/pickup/place chain to catch up), and we can actually afford to
-    fill it soon. Building itself is free, but an empty coop we can't yet
-    afford to stock just ties up a tile that could grow a crop for
-    immediate income instead - same affordability bar as actually buying
-    the animal (see decide_animal_market_actions), so we never build ahead
-    of our ability to fill it.
+    Pick which ACTIVE_ANIMALS species to build a structure for next, or
+    None if we shouldn't build one right now.
+
+    Same season-maturity gate choose_crop() uses for seeds: a species
+    whose first_yield_day can't land before day 29 is refused, the same
+    way a too-slow crop is - building for it would tie up a tile and
+    ANIMAL_SPEND_CAP_FRACTION of our cash for a guaranteed dead loss with
+    no offsetting revenue. This gate matters as MAX_ANIMALS or
+    ACTIVE_ANIMALS grows enough that a build could land late in the season.
+
+    Also picks *which* species: the first one (in ACTIVE_ANIMALS order)
+    that's both affordable and has time left to pay off, rather than
+    always building whatever ACTIVE_ANIMALS[0] happens to be regardless of
+    season or affordability - matters once more than one species is
+    active, since the structure kind for the wrong species is a wasted
+    build.
+
+    Under the cap, and only when every structure we've already built
+    already has an animal in it (stops us tying up more than one tile at a
+    time waiting on the buy/pickup/place chain to catch up) - same
+    affordability bar as actually buying the animal (see
+    decide_animal_market_actions), so we never build ahead of our ability
+    to fill it.
 
     `pending_builds` is how many other units have already decided to build
     one THIS SAME TURN (see choose_unit_action) - every unit sees the same
@@ -628,28 +643,44 @@ def should_build_structure(farm, board_size, pending_builds=0):
     """
     filled, unfilled = scan_animal_structures(farm, board_size)
     if unfilled > 0 or pending_builds > 0 or filled >= MAX_ANIMALS:
-        return False
+        return None
 
-    cost = ANIMALS.get(ACTIVE_ANIMALS[0], {}).get("cost")
-    if cost is None:
-        return False
     money = farm.get("money", 0)
-    return money >= cost and cost <= money * ANIMAL_SPEND_CAP_FRACTION
+    remaining_days = remaining_season_days(day)
+    for animal in ACTIVE_ANIMALS:
+        info = ANIMALS.get(animal)
+        if not info:
+            continue
+        cost = info.get("cost")
+        first_yield_day = info.get("first_yield_day")
+        if cost is None or first_yield_day is None:
+            continue
+        if first_yield_day > remaining_days:
+            continue  # can't reach even a first harvest before season end
+        if money >= cost and cost <= money * ANIMAL_SPEND_CAP_FRACTION:
+            return animal
+    return None
 
 
-def decide_animal_market_actions(farm, private, board_size):
+def decide_animal_market_actions(farm, private, board_size, day):
     """
     Build the list of BUY_ANIMAL / feed-safety-net BUY_PRODUCT orders for
     this turn.
     """
     actions = []
     money = farm.get("money", 0)
+    remaining_days = remaining_season_days(day)
 
     if count_owned_animals(farm, private, board_size) < MAX_ANIMALS:
         for animal in ACTIVE_ANIMALS:
             info = ANIMALS.get(animal)
             cost = info.get("cost") if info else None
-            if cost is None or cost > money or cost > money * ANIMAL_SPEND_CAP_FRACTION:
+            first_yield_day = info.get("first_yield_day") if info else None
+            if cost is None or first_yield_day is None:
+                continue
+            if first_yield_day > remaining_days:
+                continue  # can't reach even a first harvest before season end
+            if cost > money or cost > money * ANIMAL_SPEND_CAP_FRACTION:
                 continue
             actions.append(["BUY_ANIMAL", animal, 1])
             break  # one purchase at a time, same cadence as seed buying
@@ -1163,14 +1194,14 @@ def choose_unit_action(
     if isinstance(tile, dict) and tile.get("kind") == "WEED":
         return act_here(["DIG"])
 
-    # 9. Empty ground under our feet: build a coop if we're still growing
-    #    the animal side of the farm and don't already have one waiting for
-    #    a tenant (V1 assumes a single active species - see ACTIVE_ANIMALS),
-    #    otherwise plant a crop.
+    # 9. Empty ground under our feet: build a coop/pasture if we're still
+    #    growing the animal side of the farm and don't already have one
+    #    waiting for a tenant, otherwise plant a crop.
     if tile is None:
-        if should_build_structure(farm, board_size, pending_builds[0]):
+        animal_to_build = choose_animal_to_build(farm, board_size, day, pending_builds[0])
+        if animal_to_build:
             pending_builds[0] += 1
-            structure = ANIMALS[ACTIVE_ANIMALS[0]]["structure"]
+            structure = ANIMALS[animal_to_build]["structure"]
             return act_here([f"BUILD_{structure}"])
         crop = choose_crop(farm, state["market_state"], private, day)
         if crop and seeds.get(crop, 0) > 0:
@@ -1269,7 +1300,7 @@ def nikaangukia_meroni(obs):
             day,
             reserved_wheat=reserved_wheat,
         )
-        market += decide_animal_market_actions(farm, private, board_size)
+        market += decide_animal_market_actions(farm, private, board_size, day)
 
         return {
             "farmer": farmer_action,
