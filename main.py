@@ -817,6 +817,7 @@ def extract_state(obs):
         # observation. Both feed estimate_future_price()'s town-demand
         # phase alignment via choose_crop() - see pricing.py.
         "step": obs.get("step", day * TURNS_PER_DAY + hour),
+        "opponent_pipeline": count_opponent_pipeline(obs),
         "unlocked_shops": town.get("unlocked_shops") or [],
     }
 
@@ -1205,6 +1206,41 @@ def decide_hire_orders(farm, board_size, day, hour, seeds=None):
 # Crop selection
 # ---------------------------------------------------------------------
 
+def count_opponent_pipeline(obs):
+    """
+    Units of each crop the OPPONENT is about to put on the market.
+
+    The observation carries both farms. We can see every tile they hold and
+    exactly which crop is growing on it - `obs["farms"][1 - player]` - and up
+    to now the agent has never once looked. Everything it knew about the
+    market was its own supply plus town demand, as if it were playing
+    solitaire.
+
+    That matters because both players sell into one shared order book. A melon
+    the opponent harvests on day 14 depresses the price of ours on day 14
+    exactly as much as one of our own, and estimate_future_price() already
+    accepts an `opponent_pipeline_supply` argument for precisely this - it has
+    simply been receiving 0.
+
+    Their shed is private, so this is what is growing only: a lower bound on
+    what they will sell, and the part we can actually see.
+    """
+    farms = obs.get("farms") or []
+    player = obs.get("player", 0)
+    if len(farms) < 2:
+        return {}
+
+    opponent = farms[1 - player] or {}
+    supply = {}
+    for row in (opponent.get("tiles") or []):
+        for tile in row:
+            if isinstance(tile, dict) and tile.get("kind") == "PLANT":
+                crop = tile.get("crop")
+                crop_info = CROPS.get(crop) or {}
+                supply[crop] = supply.get(crop, 0) + (crop_info.get("max_yield") or 1)
+    return supply
+
+
 def count_pipeline_supply(farm, private):
     """
     Units of each crop we are already committed to selling: everything
@@ -1231,7 +1267,10 @@ def count_pipeline_supply(farm, private):
     return supply
 
 
-def choose_crop(farm, market_state, private, day, unlocked_shops=(), start_step=None):
+def choose_crop(
+    farm, market_state, private, day, unlocked_shops=(), start_step=None,
+    opponent_pipeline=None,
+):
     """
     Pick the crop we'd most like to plant next, or None if nothing makes
     sense right now (nothing affordable/held, or nothing left has time to
@@ -1316,6 +1355,10 @@ def choose_crop(farm, market_state, private, day, unlocked_shops=(), start_step=
             stock,
             turns_ahead=turns_ahead,
             our_pipeline_supply=pipeline.get(crop, 0),
+            # What they are growing counts against the same order book as
+            # what we are growing. Their shed is private, so this is a lower
+            # bound - but a measured one, not an assumption.
+            opponent_pipeline_supply=(opponent_pipeline or {}).get(crop, 0),
             unlocked_shops=unlocked_shops,
             start_step=start_step,
         )
@@ -1378,7 +1421,8 @@ def should_buy_seed(crop, farm, private):
 
 
 def decide_market_actions(
-    farm, private, market_state, day, reserved_wheat=0, unlocked_shops=(), start_step=None
+    farm, private, market_state, day, reserved_wheat=0, unlocked_shops=(), start_step=None,
+    opponent_pipeline=None,
 ):
     """Build the list of ["SELL", ...] / ["BUY_SEED", ...] actions for this turn."""
     actions = []
@@ -1485,7 +1529,8 @@ def decide_market_actions(
 
     # Buy exactly one seed of our preferred next crop, if it makes sense.
     preferred_crop = choose_crop(
-        farm, market_state, private, day, unlocked_shops=unlocked_shops, start_step=start_step
+        farm, market_state, private, day, unlocked_shops=unlocked_shops,
+        start_step=start_step, opponent_pipeline=opponent_pipeline,
     )
     if preferred_crop and should_buy_seed(preferred_crop, farm, private):
         actions.append(["BUY_SEED", preferred_crop, 1])
@@ -1759,6 +1804,7 @@ def choose_unit_action(
             day,
             unlocked_shops=state.get("unlocked_shops", ()),
             start_step=state.get("step"),
+            opponent_pipeline=state.get("opponent_pipeline"),
         )
         if crop and seeds.get(crop, 0) > 0:
             return act_here(["PLANT", crop])
@@ -1886,6 +1932,7 @@ def nikaangukia_meroni(obs):
             reserved_wheat=reserved_wheat,
             unlocked_shops=state["unlocked_shops"],
             start_step=state["step"],
+            opponent_pipeline=state.get("opponent_pipeline"),
         )
         market += decide_animal_market_actions(farm, private, board_size, day)
 
