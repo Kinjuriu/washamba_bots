@@ -54,6 +54,10 @@ observation shape) comes from the official Kaggriculture "Getting
 Started" / Hosts notebook. Nothing is invented.
 """
 
+# ---------------------------------------------------------------------
+# Environment metadata (read from the engine, never hardcoded)
+# ---------------------------------------------------------------------
+
 # CROPS is the same environment-provided metadata table used in the
 # official starter notebook's "Melon Maxxer" example. It tells us, per
 # crop, the seed cost, how many days until it can be harvested, and how
@@ -108,10 +112,26 @@ SELF_SUPPLY_EXPONENT = 2.0
 MIN_GLUT_DISCOUNT = 0.1
 
 
+# ---------------------------------------------------------------------
+# Season
+# ---------------------------------------------------------------------
+
+# The season is a fixed 30 days (0-indexed: day 0 through day 29), per the
+# competition's hard constraints - not something that varies per episode.
+SEASON_DAYS = 30
+
+# ---------------------------------------------------------------------
+# Crop selection
+# ---------------------------------------------------------------------
+
 # The only crops the environment actually defines seed metadata for.
 # (EGG / MILK / WOOL / FERTILIZER are products, not plantable crops -
 # they come from animals rather than seeds.)
 PLANTABLE_CROPS = ["WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON"]
+
+# ---------------------------------------------------------------------
+# Selling and the shed
+# ---------------------------------------------------------------------
 
 # Minimum market price we're willing to sell a product at. These are
 # simple, per-product thresholds so the team can tune them independently
@@ -139,14 +159,6 @@ MAX_SELL_PER_TURN = {
     "MELON": 15,
 }
 
-# Don't stockpile more seeds of one crop than this - keeps cash free for
-# other things instead of hoarding.
-MAX_SEED_STOCKPILE = 3
-
-# The season is a fixed 30 days (0-indexed: day 0 through day 29), per the
-# competition's hard constraints - not something that varies per episode.
-SEASON_DAYS = 30
-
 # The shed holds at most 100 non-seed items - anything harvested past that
 # cap is silently discarded at end of day, with no error and no way to
 # recover it (see docs/kaggriculture_context.md). should_sell() alone can
@@ -166,9 +178,21 @@ SHED_FORCE_SELL_THRESHOLD = 70
 # don't dump the whole stock into one price-crashing order.
 LIQUIDATION_START_DAY = 25
 
+# ---------------------------------------------------------------------
+# Seed buying
+# ---------------------------------------------------------------------
+
+# Don't stockpile more seeds of one crop than this - keeps cash free for
+# other things instead of hoarding.
+MAX_SEED_STOCKPILE = 3
+
 # Never spend more than this fraction of our current cash on a single
 # seed purchase, so a bad crop pick can't wipe out our bank balance.
 SEED_SPEND_CAP_FRACTION = 0.5
+
+# ---------------------------------------------------------------------
+# Labour
+# ---------------------------------------------------------------------
 
 # Farm hands. The n-th hire of a day costs farmHandCostMult * fib(n) with
 # fib indexed 1, 1, 2, 3, 5, 8, ... (kaggriculture.py:_fib / _hire_cost), and
@@ -205,10 +229,19 @@ WORK_TILES_PER_HAND = 6
 # Don't spend our last coins on labour - seed money matters more.
 MIN_MONEY_TO_HIRE = 150
 
+# ---------------------------------------------------------------------
+# Market order budget
+# ---------------------------------------------------------------------
+
 # The engine processes at most this many market orders per player per turn
 # and silently drops the rest (kaggriculture.json: maxMarketOrdersPerTurn),
 # so going over the cap loses orders with no error to catch.
 MAX_MARKET_ORDERS_PER_TURN = 10
+
+
+# ---------------------------------------------------------------------
+# Animal husbandry
+# ---------------------------------------------------------------------
 
 # Animal husbandry (V1 scope: just GOOSE). It's the cheapest animal ($300),
 # has the fastest payback (first_yield_day=4), and produces every day
@@ -1243,6 +1276,9 @@ def nikaangukia_meroni(obs):
         return {"farmer": ["PASS"], "hands": [], "market": []}
 
 
-    # Kaggle environment calls the agent as a plain function of the
-# observation, exactly as shown in the official starter notebook.
+# The framework picks the LAST callable in this module's namespace - not a
+# function named `agent` (kaggle_environments/agent.py:64). Anything callable
+# defined below this line silently becomes the submission instead, the episode
+# still reports DONE, every action is discarded as invalid, and the agent
+# finishes on exactly its starting money. Keep this binding last.
 agent = nikaangukia_meroni
