@@ -13,6 +13,8 @@ import unittest
 
 from main import (
     LIQUIDATION_START_DAY,
+    ACTIVE_ANIMALS,
+    ANIMALS,
     MAX_ANIMALS,
     MAX_HANDS_PER_DAY,
     MAX_MARKET_ORDERS_PER_TURN,
@@ -38,6 +40,12 @@ from main import (
     should_sell,
     step_toward,
 )
+
+# The animal logic is data-driven off ACTIVE_ANIMALS, so these tests are
+# too. Hard-coding GOOSE/COOP here made 11 of them fail the moment the
+# active species changed, which is a test problem rather than a code one.
+TEST_ANIMAL = ACTIVE_ANIMALS[0]
+TEST_STRUCTURE = ANIMALS[TEST_ANIMAL]["structure"]
 
 
 class TestStepToward(unittest.TestCase):
@@ -682,8 +690,8 @@ class TestEndOfSeasonLiquidation(unittest.TestCase):
         self.assertEqual([a for a in actions if a[0] == "SELL"], [])
 def _unfed_goose_coop(consecutive_unfed=1, fed_today=False, cared_today=False, yield_units=0):
     return {
-        "kind": "COOP",
-        "animal": "GOOSE",
+        "kind": TEST_STRUCTURE,
+        "animal": TEST_ANIMAL,
         "placed_day": 0,
         "yield_units": yield_units,
         "consecutive_unfed": consecutive_unfed,
@@ -714,7 +722,7 @@ class TestAnimalCounting(unittest.TestCase):
         return {"money": money, "tiles": tiles, "farmer": [0, 0], "hands": []}
 
     def test_scan_counts_filled_and_unfilled_separately(self):
-        tiles = [[_unfed_goose_coop(), {"kind": "COOP"}, {"kind": "COOP"}]]
+        tiles = [[_unfed_goose_coop(), {"kind": TEST_STRUCTURE}, {"kind": TEST_STRUCTURE}]]
         farm = self._farm(tiles)
         self.assertEqual(scan_animal_structures(farm, 1), (1, 2))
 
@@ -722,8 +730,8 @@ class TestAnimalCounting(unittest.TestCase):
         tiles = [[_unfed_goose_coop()]]
         farm = self._farm(tiles)
         private = {
-            "shed": {"GOOSE": 1},
-            "inventories": [{"GOOSE": 1}, {}],
+            "shed": {TEST_ANIMAL: 1},
+            "inventories": [{TEST_ANIMAL: 1}, {}],
         }
         # 1 placed + 1 in shed + 1 carried = 3.
         self.assertEqual(count_owned_animals(farm, private, 1), 3)
@@ -737,7 +745,7 @@ class TestChooseAnimalToBuild(unittest.TestCase):
         # GOOSE costs 300; ANIMAL_SPEND_CAP_FRACTION=0.5 means we need
         # money >= 600 before committing to one.
         farm = self._farm([[None]], money=1000)
-        self.assertEqual(choose_animal_to_build(farm, 1, day=0), "GOOSE")
+        self.assertEqual(choose_animal_to_build(farm, 1, day=0), TEST_ANIMAL)
 
     def test_does_not_build_when_unaffordable(self):
         farm = self._farm([[None]], money=100)
@@ -746,7 +754,7 @@ class TestChooseAnimalToBuild(unittest.TestCase):
     def test_does_not_build_when_a_structure_is_already_unfilled(self):
         # One empty coop is already waiting for an animal - don't tie up a
         # second tile before that one's even filled.
-        farm = self._farm([[None, {"kind": "COOP"}]], money=10000)
+        farm = self._farm([[None, {"kind": TEST_STRUCTURE}]], money=10000)
         self.assertIsNone(choose_animal_to_build(farm, 1, day=0))
 
     def test_does_not_build_past_the_cap(self):
@@ -771,20 +779,20 @@ class TestDecideAnimalMarketActions(unittest.TestCase):
         farm = self._farm([[None]], money=1000)
         private = {"shed": {}, "inventories": [{}]}
         actions = decide_animal_market_actions(farm, private, 1, day=0)
-        self.assertIn(["BUY_ANIMAL", "GOOSE", 1], actions)
+        self.assertIn(["BUY_ANIMAL", TEST_ANIMAL, 1], actions)
 
     def test_does_not_buy_past_the_cap(self):
         tiles = [[_unfed_goose_coop() for _ in range(MAX_ANIMALS)]]
         farm = self._farm(tiles, money=10000)
         private = {"shed": {}, "inventories": [{}]}
         actions = decide_animal_market_actions(farm, private, 1, day=0)
-        self.assertNotIn(["BUY_ANIMAL", "GOOSE", 1], actions)
+        self.assertNotIn(["BUY_ANIMAL", TEST_ANIMAL, 1], actions)
 
     def test_does_not_buy_a_species_that_cannot_mature_before_season_end(self):
         farm = self._farm([[None]], money=1000)
         private = {"shed": {}, "inventories": [{}]}
         actions = decide_animal_market_actions(farm, private, 1, day=SEASON_DAYS - 2)
-        self.assertNotIn(["BUY_ANIMAL", "GOOSE", 1], actions)
+        self.assertNotIn(["BUY_ANIMAL", TEST_ANIMAL, 1], actions)
 
     def test_buys_wheat_when_reserve_is_empty_and_an_animal_is_placed(self):
         farm = self._farm([[_unfed_goose_coop()]], money=1000)
@@ -818,7 +826,10 @@ class TestAnimalPriority(unittest.TestCase):
         }
 
     def test_harvests_a_ripe_animal_under_its_feet(self):
-        tiles = [[_unfed_goose_coop(yield_units=2, fed_today=True, cared_today=True)]]
+        # The ladder harvests once held reaches max_held - 2, so derive the
+        # trigger from the species rather than hard-coding a goose's 2.
+        ripe = max(1, ANIMALS[TEST_ANIMAL]["max_held"] - 2)
+        tiles = [[_unfed_goose_coop(yield_units=ripe, fed_today=True, cared_today=True)]]
         state = self._state(tiles, farmer=(0, 0), board_size=1)
         self.assertEqual(choose_farmer_action(state), ["HARVEST"])
 
@@ -866,31 +877,31 @@ class TestAnimalPriority(unittest.TestCase):
         self.assertEqual(choose_farmer_action(state), ["CARE"])
 
     def test_places_a_carried_animal_on_its_empty_structure(self):
-        tiles = [[{"kind": "COOP"}]]
-        private = {"shed": {}, "seeds": {}, "inventories": [{"GOOSE": 1}]}
+        tiles = [[{"kind": TEST_STRUCTURE}]]
+        private = {"shed": {}, "seeds": {}, "inventories": [{TEST_ANIMAL: 1}]}
         state = self._state(tiles, farmer=(0, 0), board_size=1, private=private)
-        self.assertEqual(choose_farmer_action(state), ["PLACE", "GOOSE"])
+        self.assertEqual(choose_farmer_action(state), ["PLACE", TEST_ANIMAL])
 
     def test_picks_up_a_bought_animal_when_a_home_is_waiting(self):
         # Standing on a shed-access tile (board_size=10 -> (4,4) is one),
         # shed holds a bought GOOSE, and an empty coop is waiting for it.
         tiles = [[None] * 10 for _ in range(10)]
-        tiles[4][5] = {"kind": "COOP"}  # empty coop elsewhere on the board
-        private = {"shed": {"GOOSE": 1}, "seeds": {}, "inventories": [{}]}
+        tiles[4][5] = {"kind": TEST_STRUCTURE}  # empty coop elsewhere on the board
+        private = {"shed": {TEST_ANIMAL: 1}, "seeds": {}, "inventories": [{}]}
         state = self._state(tiles, farmer=(4, 4), board_size=10, private=private)
-        self.assertEqual(choose_farmer_action(state), ["PICKUP", "GOOSE", 1])
+        self.assertEqual(choose_farmer_action(state), ["PICKUP", TEST_ANIMAL, 1])
 
     def test_does_not_pick_up_an_animal_with_no_home_waiting(self):
         # Same shed stock, but no coop built anywhere yet - picking it up
         # would just carry it around uselessly.
         tiles = [[None] * 10 for _ in range(10)]
-        private = {"shed": {"GOOSE": 1}, "seeds": {}, "inventories": [{}]}
+        private = {"shed": {TEST_ANIMAL: 1}, "seeds": {}, "inventories": [{}]}
         state = self._state(tiles, farmer=(4, 4), board_size=10, private=private)
-        self.assertNotEqual(choose_farmer_action(state), ["PICKUP", "GOOSE", 1])
+        self.assertNotEqual(choose_farmer_action(state), ["PICKUP", TEST_ANIMAL, 1])
 
     def test_walks_toward_empty_structure_when_carrying_an_animal(self):
-        tiles = [[None, {"kind": "COOP"}]]
-        private = {"shed": {}, "seeds": {}, "inventories": [{"GOOSE": 1}]}
+        tiles = [[None, {"kind": TEST_STRUCTURE}]]
+        private = {"shed": {}, "seeds": {}, "inventories": [{TEST_ANIMAL: 1}]}
         state = self._state(tiles, farmer=(0, 0), board_size=1, private=private)
         self.assertEqual(choose_farmer_action(state), ["EAST"])
 
@@ -915,9 +926,9 @@ class TestAnimalPriority(unittest.TestCase):
         self.assertEqual(choose_farmer_action(state), ["PICKUP", "WHEAT", 1])
 
     def test_carried_animal_helper_finds_the_held_animal(self):
-        self.assertEqual(carried_animal({"GOOSE": 2}), "GOOSE")
+        self.assertEqual(carried_animal({TEST_ANIMAL: 2}), TEST_ANIMAL)
         self.assertIsNone(carried_animal({}))
-        self.assertIsNone(carried_animal({"GOOSE": 0}))
+        self.assertIsNone(carried_animal({TEST_ANIMAL: 0}))
 
 
 class TestMarketOrderCap(unittest.TestCase):
