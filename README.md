@@ -13,6 +13,8 @@ This file is a map. The detail lives in the documents it links to.
 | read the compiled competition rules | [docs/kaggriculture_context.md](docs/kaggriculture_context.md) |
 | see how the agent is built | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | explore results and charts | [notebooks/washamba_bots_experiments_v0.ipynb](notebooks/washamba_bots_experiments_v0.ipynb) |
+| follow the experiment protocol step by step | [docs/EXPERIMENT_WORKFLOW.md](docs/EXPERIMENT_WORKFLOW.md) |
+| run an LLM-based experiment | [docs/LLM_EXPERIMENT_WORKFLOW.md](docs/LLM_EXPERIMENT_WORKFLOW.md) |
 
 ## Current checkpoint
 
@@ -52,7 +54,7 @@ Pick the harness by what you changed:
 
 Experiments — including the ones that lost — are recorded in [CLAUDE.md](CLAUDE.md) under "measured dead ends". **A negative result is worth as much as a feature, and only if it's written down.**
 
-Deterministic and LLM experiments differ, and no LLM experiment has been run here yet; the constraints are in [docs/CHECKPOINTS.md](docs/CHECKPOINTS.md).
+Deterministic and LLM experiments differ, and no LLM experiment has been run here yet — see [docs/EXPERIMENT_WORKFLOW.md](docs/EXPERIMENT_WORKFLOW.md) and [docs/LLM_EXPERIMENT_WORKFLOW.md](docs/LLM_EXPERIMENT_WORKFLOW.md).
 
 ## Repository layout
 

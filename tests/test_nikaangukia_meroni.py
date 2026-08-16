@@ -78,10 +78,27 @@ class TestChooseCrop(unittest.TestCase):
         # Strawberries look tempting on price alone, but the market is
         # genuinely flooded - three times the baseline stock of 10,000 -
         # so a cheaper crop trading at normal supply should win instead.
+        #
+        # choose_crop() scores on estimate_future_price() (pricing.py),
+        # which derives price purely from inventory - `prices` below is
+        # unused by choose_crop() now and kept only for readability/parity
+        # with should_sell()'s market_state shape. Every plantable crop
+        # needs an explicit inventory entry: CARROT/TOMATO/MELON are also
+        # put deep in glut (not just left absent) so this stays a clean
+        # two-crop comparison instead of accidentally being decided by
+        # one of them trading at normal supply (see the "prefers the
+        # highest value crop" test below for why that would matter -
+        # MELON alone beats WHEAT at parity).
         farm = {"money": 1000}
         market_state = self._market(
             prices={"STRAWBERRY": 400, "WHEAT": 30},
-            inventory={"STRAWBERRY": 30000, "WHEAT": 10000},
+            inventory={
+                "STRAWBERRY": 30000,
+                "WHEAT": 10000,
+                "CARROT": 200000,
+                "TOMATO": 200000,
+                "MELON": 200000,
+            },
         )
         private = {"seeds": {}}
 
@@ -105,12 +122,21 @@ class TestChooseCrop(unittest.TestCase):
         self.assertEqual(choose_crop(farm, market_state, private, day=0), "MELON")
 
     def test_a_glut_still_loses_to_a_scarce_crop_of_similar_value(self):
-        # Same two crops, but melon is now heavily oversupplied: the glut
-        # discount should hand it back to wheat.
+        # Same two crops, but melon is now heavily oversupplied: the
+        # forecast should hand it back to wheat. CARROT/TOMATO/STRAWBERRY
+        # are also put deep in glut (see the comment in
+        # test_avoids_oversupplied_high_price_crop above) so this stays a
+        # clean melon-vs-wheat comparison.
         farm = {"money": 1000}
         market_state = self._market(
             prices={"MELON": 250, "WHEAT": 25},
-            inventory={"MELON": 100000, "WHEAT": 10000},
+            inventory={
+                "MELON": 100000,
+                "WHEAT": 10000,
+                "CARROT": 200000,
+                "TOMATO": 200000,
+                "STRAWBERRY": 200000,
+            },
         )
         private = {"seeds": {}}
 
@@ -149,6 +175,131 @@ class TestChooseCrop(unittest.TestCase):
         private = {"seeds": {"WHEAT": 2}}
 
         self.assertEqual(choose_crop(farm, market_state, private, day=27), "WHEAT")
+
+
+class TestForwardPricingIntegration(unittest.TestCase):
+    """
+    Forward-pricing experiment (docs/EXPERIMENT_WORKFLOW.md): choose_crop()
+    now scores crops on pricing.py's estimate_future_price() instead of
+    spot price, and decide_market_actions() sizes SELL orders with
+    pricing.py's recommend_sell_quantity() instead of a blind per-turn cap.
+    pricing.py's own formula/simulator correctness is covered by
+    tests/test_pricing.py - these tests only cover main.py's *integration*
+    of it: does the agent's actual decision change the way the hypothesis
+    predicts it should.
+    """
+
+    def _melon_pipeline_farm(self, n_melon_tiles, money=1000):
+        # count_pipeline_supply() reads planted tiles off farm["tiles"];
+        # each MELON PLANT tile contributes its max_yield (6) to the
+        # pipeline regardless of ripeness - see main.py's docstring there.
+        tiles = [[None] * 10 for _ in range(10)]
+        planted = 0
+        for y in range(10):
+            for x in range(10):
+                if planted >= n_melon_tiles:
+                    break
+                tiles[y][x] = {"kind": "PLANT", "crop": "MELON"}
+                planted += 1
+            if planted >= n_melon_tiles:
+                break
+        return {"money": money, "tiles": tiles}
+
+    def test_future_price_estimate_is_lower_than_spot_once_pipeline_lands(self):
+        # Direct check on the estimate itself (item 1: future-price
+        # estimation integration), not just the downstream crop choice.
+        # MELON at baseline inventory (10,000) prices at its $250 base
+        # today; a 240-unit pipeline landing before MELON's own
+        # first_yield_day (10 days = 240 turns) crashes that forecast hard.
+        import pricing
+
+        spot = pricing.market_price("MELON", 10000)
+        forecast = pricing.estimate_future_price(
+            "MELON", 10000, turns_ahead=240, our_pipeline_supply=240
+        )
+        self.assertEqual(spot, 250)
+        self.assertLess(forecast["future_price"], spot)
+
+    def test_avoids_a_crop_whose_own_pipeline_will_collapse_its_price(self):
+        # Item 2 (ranking) + item 4 (future < current edge case), through
+        # the actual agent decision. MELON is intrinsically the better
+        # crop at normal supply (see TestChooseCrop, above) - but 40 tiles
+        # already growing MELON is enough pipeline supply (240 units) to
+        # collapse its forecast price below WHEAT's by the time either
+        # could be harvested, so WHEAT should win instead. The other three
+        # crops are put in a deep glut so this stays a clean two-crop
+        # comparison (see TestChooseCrop's fixtures for why that matters).
+        market_state = {
+            "prices": {},
+            "inventory": {
+                "MELON": 10000,
+                "WHEAT": 10000,
+                "CARROT": 200000,
+                "TOMATO": 200000,
+                "STRAWBERRY": 200000,
+            },
+        }
+        private = {"seeds": {}, "shed": {}}
+
+        farm_no_pipeline = self._melon_pipeline_farm(0)
+        self.assertEqual(
+            choose_crop(farm_no_pipeline, market_state, private, day=0), "MELON"
+        )
+
+        farm_heavy_pipeline = self._melon_pipeline_farm(40)
+        self.assertEqual(
+            choose_crop(farm_heavy_pipeline, market_state, private, day=0), "WHEAT"
+        )
+
+    def test_sell_quantity_shrinks_below_the_cap_when_price_would_cross_threshold(self):
+        # Item 3: selling quantity recommendations. STRAWBERRY's threshold
+        # is $90 and its per-turn cap is 10 (main.py's real constants, not
+        # overridden here). At market inventory 10,010 the *first* unit
+        # still quotes above threshold ($101, so should_sell()'s gate is
+        # unchanged and still says yes) but the price path crosses under
+        # $90 by the 7th unit - recommend_sell_quantity() should stop at 6,
+        # where the old blind min(sell_quantity, cap) would have sold all 10.
+        private = {"shed": {"STRAWBERRY": 20}, "seeds": {}}
+        market_state = {
+            "prices": {"STRAWBERRY": 101},
+            "inventory": {"STRAWBERRY": 10010},
+        }
+
+        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
+
+        self.assertIn(["SELL", "STRAWBERRY", 6], actions)
+        self.assertNotIn(["SELL", "STRAWBERRY", 10], actions)
+
+    def test_liquidation_still_sells_the_full_cap_regardless_of_price(self):
+        # Safety constraint that must survive the change: from
+        # LIQUIDATION_START_DAY, unsold stock scores nothing, so we still
+        # sell disregarding price - same market state as the test above,
+        # but on a liquidating day the full per-turn cap (10) should go
+        # through rather than the price-throttled 6.
+        private = {"shed": {"STRAWBERRY": 20}, "seeds": {}}
+        market_state = {
+            "prices": {"STRAWBERRY": 101},
+            "inventory": {"STRAWBERRY": 10010},
+        }
+
+        actions = decide_market_actions(
+            {"money": 0}, private, market_state, day=LIQUIDATION_START_DAY
+        )
+
+        self.assertIn(["SELL", "STRAWBERRY", 10], actions)
+
+    def test_no_sale_when_market_is_already_at_or_above_the_glut_threshold(self):
+        # Item 5: edge case where inventory is already deep in glut (price
+        # at the $1 floor) on a non-liquidating day. should_sell()'s gate
+        # already blocks this (unchanged), and recommend_sell_quantity()
+        # must independently agree there is nothing worth selling this
+        # turn rather than falling back to the cap.
+        private = {"shed": {"MELON": 30}, "seeds": {}}
+        market_state = {"prices": {"MELON": 1}, "inventory": {"MELON": 50000}}
+
+        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
+
+        self.assertEqual(actions, [])
 
 
 class TestHasPlantableSeed(unittest.TestCase):
