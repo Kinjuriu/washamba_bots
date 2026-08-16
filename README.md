@@ -47,6 +47,17 @@ print([s.status for s in env.steps[-1]])   # must be ['DONE', 'DONE']
 
 Full competition rules, game mechanics, pricing formulas, and observation/action schemas are compiled in **[`docs/kaggriculture_context.md`](docs/kaggriculture_context.md)** — read it before changing any game logic. `CLAUDE.md` has the condensed version for AI coding agents working in this repo.
 
+## Experimentation and benchmarking
+
+Before making a strategic change, read **[docs/EXPERIMENT_WORKFLOW.md](docs/EXPERIMENT_WORKFLOW.md)** — the OBSERVE → ... → KAGGLE SUBMISSION sequence every change goes through, and why a Kaggle rating alone never settles whether a change worked.
+
+- **[docs/CHECKPOINTS.md](docs/CHECKPOINTS.md)** — what a reproducible checkpoint must record, and the current V1 checkpoint (crop economics + goose, commit `0265554`).
+- **[docs/EXPERIMENT_WORKFLOW.md](docs/EXPERIMENT_WORKFLOW.md)** — the evaluation sequence, the one-variable-at-a-time rule, and what to measure per mechanism.
+- **[docs/LLM_EXPERIMENT_WORKFLOW.md](docs/LLM_EXPERIMENT_WORKFLOW.md)** — control/treatment protocol for future LLM-based strategy experiments (no LLM code exists yet; this is process written ahead of it).
+- **[experiments/selfplay_bench.py](experiments/selfplay_bench.py)** — the self-play benchmark; the number that predicts the ladder, not the built-in opponent table above.
+- **[notebooks/washamba_bots_experiments_v0.ipynb](notebooks/washamba_bots_experiments_v0.ipynb)** — evaluation methodology and behavioural diagnostics (action histograms, farm health over time, market response) worked through end to end.
+- **[Issue #4](https://github.com/Kinjuriu/washamba_bots/issues/4)** — live team coordination: submission scheduling, current standing, open work.
+
 ## Agent anatomy
 
 At its simplest, `melon_maxxer(obs)` reads the current state and chooses between market and farm decisions. The market branch buys seed or sells produce; the farm branch moves, plants, waters, or harvests.
