@@ -41,8 +41,37 @@ Before claiming a strategy change works:
 .venv/Scripts/python.exe experiments/selfplay_bench.py   # the honest number
 ```
 
-Report **mean, stdev and win-rate**, not a best score. If the delta is inside
-the stdev, say "within noise" — do not call it a win.
+Report **mean, stdev and win-rate**, not a best score.
+
+**But do not judge a change by that stdev.** Comparing a mean against the
+across-seed spread is the wrong test when both versions ran the *same*
+seeds. That spread (~2,000) mostly measures how much seasons differ from
+each other — kinder weeds, luckier shop unlocks — and it is common to both
+arms, so it cancels. Judging against it is far too strict and hides real
+gains.
+
+Use a **paired comparison** instead: run both versions on seed N, subtract,
+and look at the spread of the *differences*.
+
+```bash
+git show main:main.py > /tmp/base_main.py
+.venv/Scripts/python.exe experiments/paired_compare.py /tmp/base_main.py main.py
+```
+
+It is not a small correction. The fertilizer change, same episodes both ways:
+
+| view | reading | verdict |
+|---|---|---|
+| across-seed | +1,764 vs stdev 2,206 | "within noise" |
+| **paired** | +1,764 vs stderr 320, t=5.5, **12/12 seeds** | decisive |
+
+**Read the win count first.** Better on 12 of 12 seeds needs no statistics;
+better on 7 of 12 is not rescued by any t-value. Only pair against `pass`
+or `starter` — `random` has its own uncontrolled RNG, so the same seed does
+not reproduce the same episode and the pairing is invalid.
+
+If a change is genuinely inconclusive, say "within noise" — do not call it
+a win.
 
 **Built-in opponents inflate everything.** `pass`, `random` and `starter`
 never sell, so the market stays pristine and our prices never face a
