@@ -152,18 +152,24 @@ have told you.
 If two people want to submit the same day, the one with benchmark numbers
 goes first.
 
-### We must be a merged Kaggle team
+### Everyone contributing must be on the Kaggle team
 
 **Private sharing of competition code outside your team is a rules
-violation** (`docs/kaggriculture_context.md:53`) — this repo counts. Everyone
-contributing here must be entered *and* merged into the same Kaggle team.
+violation** (`docs/kaggriculture_context.md:53`) — this repo counts. Anyone
+who contributes here has to be entered *and* on the same Kaggle team.
 
-**The team merger and entry deadline is Sept 23, 2026**, a week before final
-submissions close. It cannot be done late. Until we're merged we are separate
-competitors sharing code privately, which is the thing the rule prohibits.
+**Verified Aug 16, 2026:** team `washamba_bots` (id 16675684) has four
+members — `billygmwangi`, `futurecentaur`, `peterkibetspidey`,
+`stephanenjoki`. We're compliant today.
 
-Verify with `kaggle competitions list --group entered` (expect
-`userHasEntered: True`) and confirm the team roster on the competition page.
+It matters again if someone new joins. **The team merger and entry deadline
+is Sept 23, 2026**, a week before final submissions close, and it cannot be
+done late — so a contributor added in late September cannot be added to the
+team afterwards. Get them on the roster before they push code.
+
+Check the roster in the leaderboard export
+(`kaggle competitions leaderboard kaggriculture --download`, the
+`TeamMemberUserNames` column) rather than trusting memory.
 
 Final scoring is a single Bradley-Terry tournament roughly two weeks after
 the Sept 30 deadline — deliberately, to damp hot streaks. Late-season
