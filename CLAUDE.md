@@ -76,9 +76,17 @@ Melon collapses quadratically — unit 50 fetches $225, unit 150 fetches $25, ev
 
 **Use `head_to_head.py` for anything that changes selling.** Built-in opponents never sell, so market-timing changes look free against them; only a contested order book can price them. Seats are not symmetric — identical code gives seat 0 a few hundred less — so the harness plays both seats and averages. Always include the baseline against itself as a control; it must come out at ~0.
 
-**`FERTILIZER` can be traded, and we are already doing it by accident.** `BUY_PRODUCT` accepts only `WHEAT` and `FERTILIZER`, and fertilizer's curve is gentle and symmetric — `linear` both directions, target 0.40 each way — while the town consumes stock daily, so its price drifts **up** over the season. From `LIQUIDATION_START_DAY` the sell loop stops exempting fertilizer, so the agent buys and sells it on the same days. That looks exactly like the churn bug we fixed in PR #5, and it is not: one measured season spent ~10,767 buying 111 units and received ~13,284 selling 137, **netting +2,517**.
+**There is no fertilizer arbitrage — the round trip is structurally break-even.** This was briefly recorded here as a +2,517 profit. That was wrong, and the way it was wrong is worth keeping.
 
-It was "fixed" once — buying blocked during liquidation — and that lost **-529 head to head, winning 1 of 16 matches**, so the fix was reverted (`af2a7e4`). There is a `DO NOT "fix" this` comment on the buy rule in `main.py`. **The open question is whether doing it deliberately is worth much more**: the current behaviour buys one unit a turn only because `wanted > held` happens to stay true while liquidation drains the shed. Nobody has tried sizing it on purpose.
+From `LIQUIDATION_START_DAY` the sell loop stops exempting fertilizer, so the agent buys and sells it on the same days: one season spent ~10,767 on 111 units and received ~13,284 for 137. The gap looks like trading profit. It isn't — **buy and sell average exactly $97.0**, the round trip on the 111 bought units nets **-$4**, and the whole +2,517 is the **26 units the goose produced free**. Decomposing by unit rather than eyeballing the totals is what shows it.
+
+It cannot work, for a reason visible in `MARKET_PARAMS`: fertilizer is `linear` both ways with target 0.40, so `price = 100 - 0.2 x excess` — **every unit we trade moves the price $0.20 against us**. Sell price is quoted pre-sell and buy price post-buy, which makes a same-day round trip pay and receive the identical number. Profit would need price drift between buying and selling, and there is none: across a whole season inventory moves 10,000 → 10,019, and even in self-play the price only ranges **93-100**. A 35-unit position moves the price by the entire seasonal range.
+
+Measured, not just argued. A deliberate buy-the-dip / sell-the-recovery rule (buy ≤97 in batches of 4 up to 40 held, release ≥99) bought 573 units at an average of **97.8** and sold 591 at **97.0** — buying high and selling low, exactly as the price impact predicts — and lost **-1,486 head to head, winning 0 of 16 matches.**
+
+**Do not remove the incidental buying either.** Blocking it during liquidation also lost, **-529, winning 1 of 16** (`af2a7e4` reverted that fix). Current behaviour is a local optimum in both directions; the mechanism behind the -529 is not established, and a plausible story for it is not evidence.
+
+Generalises: **in a market this thin, your own order is the price move.** Before assuming a spread is harvestable, check it against the price impact of the position you would need to take.
 
 **Measured dead ends — don't re-run these without changing something first.** All lost on the full batch:
 

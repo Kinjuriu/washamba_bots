@@ -1098,19 +1098,25 @@ def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
     # supplies it free, so in practice this only tops up when the crops
     # want more than the animal produced.
     #
-    # DO NOT "fix" this to stop buying once liquidation starts. It looks
-    # like churn - from LIQUIDATION_START_DAY the sell loop stops exempting
-    # FERTILIZER, so we buy and sell the same product on the same day, 111
-    # units bought and 137 sold on one measured season. It was tried, and it
-    # loses: -529 head to head, winning 1 of 16 matches.
+    # Leave this rule alone in BOTH directions - it has been pushed each way
+    # and both lost.
     #
-    # The round trip is profitable, not wasteful. FERTILIZER is one of only
-    # two products BUY_PRODUCT accepts at all, its price curve is gentle and
-    # symmetric (linear both sides, target 0.40 each way), and the town
-    # consumes stock daily so the price drifts *up* across the season. Buying
-    # a unit and selling it later nets money: ~10,767 spent against ~13,284
-    # received, **+2,517 on one season**. We arrived at that by accident;
-    # see CLAUDE.md before trying to do it deliberately.
+    # It looks like churn: from LIQUIDATION_START_DAY the sell loop stops
+    # exempting FERTILIZER, so we buy and sell the same product on the same
+    # day (111 bought, 137 sold in one measured season). Blocking the buy
+    # during liquidation lost -529 head to head, winning 1 of 16 matches.
+    #
+    # It also looks like arbitrage, and it is not. Buy and sell both average
+    # $97.0; the round trip on those 111 units nets -$4. The apparent profit
+    # is the 26 units the Goose produced free. Fertilizer is linear both ways
+    # with target 0.40, so price = 100 - 0.2 x excess and every unit we trade
+    # moves the price $0.20 against us, while sell price is quoted pre-sell
+    # and buy price post-buy - a same-day round trip pays and receives the
+    # same number by construction. Trading it deliberately (buy <=97 in
+    # batches, release >=99) bought 573 units at 97.8 and sold 591 at 97.0,
+    # losing -1,486 head to head, winning 0 of 16.
+    #
+    # See CLAUDE.md, "There is no fertilizer arbitrage".
     if day <= FERTILIZER_LAST_USEFUL_DAY:
         held = shed.get("FERTILIZER", 0) + sum(
             (carried or {}).get("FERTILIZER", 0)
