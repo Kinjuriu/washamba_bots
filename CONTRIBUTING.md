@@ -7,6 +7,12 @@ went wrong on this repo — nothing is here as generic good practice.
 contract). This file is the short version of **how we work** so we stop
 re-losing the same days.
 
+> **Status: proposed, not yet adopted.** Two items below bind the whole team
+> and need an explicit yes before they're real — the PR benchmark gate, and
+> naming a **submission owner** (currently unassigned, and it guards the
+> scarcest thing we have). Everything else is a description of how this repo
+> actually behaves; argue with those on the evidence.
+
 ## The one rule
 
 **This repo punishes plausible reasoning. Almost everything that breaks here
@@ -52,6 +58,12 @@ watering, count `WATER`. Use `experiments/replay_diagnostics.py`.
 discarded"; on the current build it is 31%. Always state *which commit* a
 number was measured on, and re-measure before acting on someone else's.
 
+**Count the effect, not the attempt.** The engine silently converts a `PLANT`
+request to `PASS` when a turn's demand for a crop exceeds held seeds, so an
+action histogram counts attempts that never happened. Reading it raw made a
+36% *rise* in plants landed look like a 35% drop. Ask what the engine
+actually applied.
+
 ## Before you open a PR
 
 ```bash
@@ -67,9 +79,9 @@ print([s.status for s in env.steps[-1]])   # must be ['DONE', 'DONE']
 "
 ```
 
-Then the seeded batch above. A PR that changes agent behaviour without
-benchmark numbers in the description will be sent back — not out of process
-fetishism, but because we cannot tell it from a regression.
+Then the seeded batch above. **(Proposed)** a PR that changes agent behaviour
+without benchmark numbers in the description gets sent back — not out of
+process fetishism, but because we genuinely cannot tell it from a regression.
 
 ## What a PR description must contain
 
@@ -120,8 +132,9 @@ fetishism, but because we cannot tell it from a regression.
 matchmaking and final scoring.** An uncoordinated upload can evict a better
 agent from the active pair and burn quota we can't get back.
 
-Post in the team channel before submitting. One person owns the submission
-for a given day.
+Post in the team channel before submitting. **(Proposed)** one named person
+owns the submission for a given day — we have not agreed who, and an
+unassigned rule is one nobody follows. Pick a name and put it here.
 
 Final scoring is a single Bradley-Terry tournament roughly two weeks after
 the Sept 30 deadline — deliberately, to damp hot streaks. Late-season

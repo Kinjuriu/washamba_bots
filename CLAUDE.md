@@ -50,7 +50,14 @@ Adding `DIG` moved every metric at once: **SELL orders 3.9 → 22.9**, **end-of-
 
 Still unimplemented: `FERTILIZE` (see PR #5), `BUY_LAND`, cow/sheep (`ACTIVE_ANIMALS`), and shed transfers beyond the fertilizer/animal path.
 
-**Known open question:** `PLANT` requests fell 214 → 138 on seed 0 when feeding went daily, unexplained and single-seed. Separately, the engine drops **all** `PLANT` requests for a crop when a turn's demand exceeds held seeds (`kaggriculture.py:920-931`) — not just the excess, so five units picking melon with one melon seed plants nothing and burns five turns. Measured at 31% of requests blocked on seed 0 (43 of 138), roughly 1% of season unit-turns. An older review reported 93%; that figure does not describe this build.
+**Count plants that *land*, not `PLANT` actions issued.** The engine drops **all** `PLANT` requests for a crop when a turn's demand exceeds held seeds (`kaggriculture.py:920-931`) — not just the excess — so five units picking melon while holding one melon seed plants nothing and burns five turns. This makes the raw `PLANT` count in an action histogram actively misleading. Seed 0 vs `starter`:
+
+| build | requested | blocked | **landed** |
+|---|---|---|---|
+| `a0e9703` | 214 | 144 (67%) | **70** |
+| `ebc8212` | 138 | 43 (31%) | **95** |
+
+The daily-feed change *looked* like a 35% drop in planting and was in fact a 36% **rise** in plants landed. Still on the table: a per-turn seed budget shared across units, so a crop is only chosen while uncommitted seed remains — worth ~43 unit-turns a season now, down from 144. (An older review put the block rate at 93%; that was a different build.)
 
 **Measured dead ends — don't re-run these without changing something first.** Both were plausible and both lost, twice each, on the full 12-seed batch:
 
