@@ -1,3 +1,7 @@
 {
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
+  // No "python.defaultInterpreterPath" on purpose: the team is split across
+  // macOS (.venv/bin/python) and Windows (.venv/Scripts/python.exe), and a
+  // hardcoded path silently breaks the other OS - VS Code falls back to the
+  // system Python and imports stop resolving. The Python extension
+  // auto-discovers .venv/ in the workspace root on both platforms.
 }

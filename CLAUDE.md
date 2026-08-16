@@ -6,23 +6,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An agent for the Kaggle **Kaggriculture** simulation competition: two agents each manage a virtual farm over a 30-day season (720 turns, 24/day) and compete for the highest bank balance. There is no static train/test set — everything is scored via live episodes against other agents plus a final Bradley-Terry tournament.
 
-**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). `hands` is always returned empty. `tests/` carries a 34-case stdlib-`unittest` suite for its helpers. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has two working exploration notebooks.
+**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). One shared `choose_unit_action` ladder drives the main farmer **and every hired hand**, with a per-turn claim set so units spread out instead of converging on the same tile. `tests/` carries a 49-case stdlib-`unittest` suite for its helpers. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has two working exploration notebooks.
 
 **Current baseline — mean final bank over 12 seeded 720-turn seasons per opponent:**
 
 | vs | mean | stdev | min | max | wins |
 |---|---|---|---|---|---|
-| `pass` | 5635 | ±744 | 4514 | 7045 | 12/12 |
-| `random` | 5264 | ±410 | 4815 | 6209 | 12/12 |
-| `starter` | 5555 | ±1128 | 4734 | 8757 | 12/12 |
+| `pass` | 6864 | ±756 | 5758 | 8802 | 12/12 |
+| `random` | 7357 | ±1749 | 4674 | 10385 | 12/12 |
+| `starter` | 6609 | ±1826 | 4807 | 10449 | 12/12 |
 
-Two later fixes moved the **floor** far more than the mean, which is where the real gain is: a **season-maturity gate** (`choose_crop` refuses crops whose `first_yield_day` can't land before day 29 — the agent used to bleed cash buying tomato seed it could never harvest) and a **shed-overflow valve** (force-sell at 90/100 items, since overflow is silently discarded). Minimums rose ~1,200 across every opponent and `starter` went 11/12 → 12/12.
+**Hiring is the single highest-ROI mechanic in the game, by a wide margin.** The n-th hire of a day costs `farmHandCostMult × fib(n)` with the counter resetting each morning, so four hands cost **$1+$1+$2+$3 = $7/day — about $210 for the whole season.** That bought roughly **+1,400 mean bank** (`pass` 5635 → 6864, `random` 5264 → 7357, `starter` 5555 → 6609). Hands are cleared every night, so re-hire each morning (`HIRE_BEFORE_HOUR`); a hand bought at hour 20 costs the same and does a fraction of the work.
+
+The reason it pays so well is the same one behind the weed cascade below: **a single farmer's upkeep capacity is what caps income.** More units means more tiles watered and dug, so the farm stops decaying — a full season now ends with ~0 weeds instead of 23.
+
+Two earlier fixes moved the **floor** rather than the mean: a **season-maturity gate** (`choose_crop` refuses crops whose `first_yield_day` can't land before day 29 — the agent used to bleed cash buying tomato seed it could never harvest) and a **shed-overflow valve** (force-sell at 90/100 items, since overflow is silently discarded).
 
 **The weed cascade — fixed, and worth remembering.** The previous baseline lost to `pass` (an opponent that does nothing and banks $3000) on ~2/12 seeds, finishing *below* its own starting money. Root cause: one farmer planted more tiles than it could water, plants weeded out, and because the agent never emitted **`DIG`**, every weeded tile stayed dead for the rest of the season. The farm decayed to 23/25 weeds and sales starved to 3.9 `SELL` orders per season — zero on the losing seeds.
 
 Adding `DIG` moved every metric at once: **SELL orders 3.9 → 22.9**, **end-of-season weeds 23.0 → 2.1**, and the sub-$3000 downside disappeared. The lesson generalizes: **tile upkeep capacity, not sell-price tuning, is what gates this agent's income.** Before optimizing thresholds, check how many tiles are alive at season end.
 
-Still unimplemented (deliberately): animals, `FEED`/`CARE`, hired hands (`HIRE`), `FERTILIZE`, `BUY_LAND`, and shed transfers (`DROP`/`PICKUP`). Remaining known gap: still loses ~1/12 to `starter`.
+Still unimplemented: animals, `FEED`/`CARE`, `FERTILIZE`, `BUY_LAND`, and shed transfers (`DROP`/`PICKUP`). `BUY_LAND` is the obvious next lever now that the crew can actually maintain more tiles than the NW quadrant holds.
 
 ## Sources of truth, in priority order
 
@@ -44,15 +48,18 @@ The env also ships a second environment, **`kaggriculture_beginner`**. It is ref
 
 ## Setup and commands
 
-The environment is already built at `.venv/` (Python 3.12.3, provisioned by `uv`). `pyenv` is not installed on this machine and the README's `pyenv` + `.venv/bin/activate` instructions do not work here — on Windows it's `.venv/Scripts/`.
+The environment is already built at `.venv/` (Python 3.13.7, provisioned by `uv`). `pyenv` is not installed on this machine and the README's `pyenv` + `.venv/bin/activate` instructions do not work here — on Windows it's `.venv/Scripts/`.
+
+For notebooks, select the **`Python 3.13 (washamba_bots)`** Jupyter kernel. Register it with `.venv/Scripts/python.exe -m ipykernel install --user --name washamba-bots --display-name "Python 3.13 (washamba_bots)"`. This matters: a kernelspec whose `argv[0]` is the bare word `python` (rather than an absolute path) launches whatever is first on `PATH` — which is how a notebook ends up on system Python reporting `No module named kaggle_environments` while the venv sits there working. For the same reason, use `%pip install` in notebooks, never `!pip install`: `%pip` targets the running kernel, `!pip` shells out to `PATH`.
+
+**The team is split across macOS and Windows — never commit an OS-specific interpreter path.** Binaries live in `.venv/bin/` on macOS and `.venv/Scripts/` on Windows, so a hardcoded path breaks the other half of the team *silently*: VS Code falls back to the system Python, and every `import kaggle_environments` fails with "could not be resolved" while the venv sits there working fine. This already happened once via `.vscode/settings.json`. Let the Python extension auto-discover `.venv/`, and keep committed tooling path-agnostic (`sys.executable`, not a literal path).
 
 ```bash
 # Recreate from scratch if needed
-uv venv --python 3.12.3 .venv
+uv venv --python 3.13.7 .venv
 uv pip install --python .venv/Scripts/python.exe \
-  kaggle-environments==1.32.7 kaggle==2.2.4 \
-  numpy==2.4.6 pandas==3.0.5 matplotlib==3.11.1 seaborn==0.13.2 \
-  jupyterlab==4.6.3 ipykernel==7.3.0
+  "kaggle-environments>=1.32.6" kaggle \
+  numpy pandas matplotlib seaborn jupyterlab ipykernel
 
 # Run the agent (built-in opponents: "pass", "random", "starter")
 .venv/Scripts/python.exe -c "
@@ -90,7 +97,9 @@ Tests are stdlib `unittest` — **pytest is not installed and the suite doesn't 
 
 Unit tests only cover helpers in isolation. **The real verification for a strategy change is a seeded batch, never a single game.** Run-to-run spread is huge — the same `main.py` vs `random` matchup scored 5228 and 3776 on two unseeded runs, and stdev is ~±600 across every opponent. A single episode cannot tell an improvement from luck, and a one-off loss to `starter` means nothing.
 
-Pass `seed` in the configuration to make episodes **fully deterministic** (verified: the same seed reproduces an identical final bank twice). Compare a change against the same seed set:
+Pass `seed` in the configuration to make episodes reproducible — but **only against `pass` and `starter`**. Verified: on a fixed seed, those two reproduce an identical final bank exactly, while `random` does not (5169 vs 5120 on the same seed). `seed` controls environment stochasticity — weed spawns, shop unlocks — not the built-in `random` agent's own RNG. The drift is ~1%, far inside its ±410 stdev, so the `random` column is still usable; just **A/B strategy changes against `pass`/`starter`**, where a difference is signal rather than opponent noise.
+
+Compare a change against the same seed set:
 
 ```bash
 .venv/Scripts/python.exe experiments/seeded_batch.py   # mean/stdev/win-rate vs all 3 built-ins
