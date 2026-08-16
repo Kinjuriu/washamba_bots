@@ -12,9 +12,13 @@ Run with:
 import unittest
 
 from main import (
+    MAX_HANDS_PER_DAY,
+    MAX_MARKET_ORDERS_PER_TURN,
     MAX_SELL_PER_TURN,
     choose_crop,
     choose_farmer_action,
+    choose_unit_action,
+    decide_hire_orders,
     decide_market_actions,
     has_plantable_seed,
     is_harvestable,
@@ -431,6 +435,187 @@ class TestPartialObservationHandling(unittest.TestCase):
         }
         result = nikaangukia_meroni(obs)
         self.assertEqual(result["farmer"], ["HARVEST"])
+
+
+def _ripe_wheat():
+    """A WHEAT plant old enough that HARVEST actually works."""
+    return {
+        "kind": "PLANT",
+        "crop": "WHEAT",
+        "planted_day": 0,
+        "watered_today": True,
+        "consecutive_unwatered": 0,
+        "yield_units": 3,
+    }
+
+
+class TestHireDecision(unittest.TestCase):
+    def _farm(self, tiles, money=3000, hands=None):
+        hands = hands or []
+        return {
+            "money": money,
+            "tiles": tiles,
+            "farmer": [0, 0],
+            "hands": [list(h) for h in hands],
+            "unlocked_quadrants": ["NW"],
+            "hires_today": len(hands),
+        }
+
+    def _work_tiles(self, n):
+        """A row of n weeds - every one is a tile that needs a unit's attention."""
+        return [[{"kind": "WEED"} for _ in range(n)]]
+
+    def test_no_hire_when_there_is_nothing_to_do(self):
+        # An empty tile with no seed in hand is not work - don't pay for hands
+        # that would just stand around.
+        farm = self._farm(tiles=[[None]])
+        self.assertEqual(decide_hire_orders(farm, 1, day=5, hour=0, seeds={}), [])
+
+    def test_hires_when_there_is_plenty_of_work(self):
+        farm = self._farm(tiles=self._work_tiles(12))
+        orders = decide_hire_orders(farm, 12, day=5, hour=0, seeds={})
+        self.assertTrue(orders)
+        self.assertEqual(orders[0], ["HIRE"])
+
+    def test_does_not_hire_late_in_the_day(self):
+        # Hands vanish at the end of the day, so hiring at hour 20 buys
+        # almost no work for the same price as hiring at hour 0.
+        farm = self._farm(tiles=self._work_tiles(12))
+        self.assertEqual(decide_hire_orders(farm, 12, day=5, hour=20, seeds={}), [])
+
+    def test_respects_the_daily_cap(self):
+        # Hire cost is Fibonacci within a day, so it climbs fast - cap it.
+        farm = self._farm(tiles=self._work_tiles(100))
+        orders = decide_hire_orders(farm, 100, day=5, hour=0, seeds={})
+        self.assertLessEqual(len(orders), MAX_HANDS_PER_DAY)
+
+    def test_does_not_hire_when_short_on_money(self):
+        farm = self._farm(tiles=self._work_tiles(12), money=0)
+        self.assertEqual(decide_hire_orders(farm, 12, day=5, hour=0, seeds={}), [])
+
+    def test_stops_hiring_once_enough_hands_are_already_working(self):
+        farm = self._farm(
+            tiles=self._work_tiles(12),
+            hands=[(4, 4)] * MAX_HANDS_PER_DAY,
+        )
+        self.assertEqual(decide_hire_orders(farm, 12, day=5, hour=0, seeds={}), [])
+
+
+class TestHandCoordination(unittest.TestCase):
+    def _state(self, tiles, board_size, hands=None):
+        hands = hands or []
+        return {
+            "farm": {
+                "money": 3000,
+                "tiles": tiles,
+                "farmer": [0, 0],
+                "hands": [list(h) for h in hands],
+                "unlocked_quadrants": ["NW"],
+                "hires_today": len(hands),
+            },
+            "private": {"shed": {}, "seeds": {}},
+            "market_state": {"prices": {}, "inventory": {}},
+            "board_size": board_size,
+            "day": 5,
+        }
+
+    def test_two_units_do_not_walk_to_the_same_tile(self):
+        # Two ripe crops, two units standing together between them. Without
+        # claiming, both would walk to the same crop and one turn is wasted.
+        tiles = [[_ripe_wheat(), None, _ripe_wheat()]]
+        state = self._state(tiles, board_size=3)
+
+        claimed = set()
+        first = choose_unit_action(state, 1, 0, claimed)
+        second = choose_unit_action(state, 1, 0, claimed)
+
+        self.assertEqual(len(claimed), 2, "each unit should reserve its own tile")
+        self.assertNotEqual(first, second)
+        self.assertEqual({tuple(first), tuple(second)}, {("WEST",), ("EAST",)})
+
+    def test_a_unit_claims_the_tile_it_acts_on(self):
+        # A unit harvesting where it stands must reserve that tile so a
+        # second unit doesn't walk over to harvest the same thing.
+        tiles = [[_ripe_wheat()]]
+        state = self._state(tiles, board_size=1)
+
+        claimed = set()
+        self.assertEqual(choose_unit_action(state, 0, 0, claimed), ["HARVEST"])
+        self.assertIn((0, 0), claimed)
+
+    def test_agent_returns_one_action_per_hired_hand(self):
+        obs = {
+            "player": 0,
+            "day": 5,
+            "hour": 6,
+            "farms": [
+                {
+                    "money": 3000,
+                    "tiles": [[_ripe_wheat(), _ripe_wheat(), None]],
+                    "farmer": [0, 0],
+                    "hands": [[1, 0], [2, 0]],
+                    "unlocked_quadrants": ["NW"],
+                    "hires_today": 2,
+                }
+            ],
+            "market": {"prices": {}, "inventory": {}},
+            "private": {"shed": {}, "seeds": {}, "inventories": [{}, {}, {}]},
+        }
+        result = nikaangukia_meroni(obs)
+        self.assertEqual(len(result["hands"]), 2)
+        for action in result["hands"]:
+            self.assertIsInstance(action, list)
+            self.assertTrue(action)
+
+    def test_hands_are_empty_when_none_are_hired(self):
+        state_obs = {
+            "player": 0,
+            "day": 5,
+            "hour": 6,
+            "farms": [
+                {
+                    "money": 3000,
+                    "tiles": [[None]],
+                    "farmer": [0, 0],
+                    "hands": [],
+                    "unlocked_quadrants": ["NW"],
+                    "hires_today": 0,
+                }
+            ],
+            "market": {"prices": {}, "inventory": {}},
+            "private": {"shed": {}, "seeds": {}, "inventories": [{}]},
+        }
+        self.assertEqual(nikaangukia_meroni(state_obs)["hands"], [])
+
+
+class TestMarketOrderCap(unittest.TestCase):
+    def test_never_exceeds_the_per_turn_order_limit(self):
+        # The engine silently drops orders past maxMarketOrdersPerTurn, so
+        # going over the cap loses actions with no error to catch.
+        shed = {p: 40 for p in ["WHEAT", "CARROT", "TOMATO", "STRAWBERRY",
+                                "MELON", "EGG", "MILK", "WOOL", "FERTILIZER"]}
+        obs = {
+            "player": 0,
+            "day": 5,
+            "hour": 0,
+            "farms": [
+                {
+                    "money": 3000,
+                    "tiles": [[{"kind": "WEED"} for _ in range(12)]],
+                    "farmer": [0, 0],
+                    "hands": [],
+                    "unlocked_quadrants": ["NW"],
+                    "hires_today": 0,
+                }
+            ],
+            "market": {
+                "prices": {p: 500 for p in shed},
+                "inventory": {p: 10000 for p in shed},
+            },
+            "private": {"shed": shed, "seeds": {}, "inventories": [{}]},
+        }
+        result = nikaangukia_meroni(obs)
+        self.assertLessEqual(len(result["market"]), MAX_MARKET_ORDERS_PER_TURN)
 
 
 if __name__ == "__main__":

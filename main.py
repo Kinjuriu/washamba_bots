@@ -100,6 +100,32 @@ SHED_FORCE_SELL_THRESHOLD = 90
 # seed purchase, so a bad crop pick can't wipe out our bank balance.
 SEED_SPEND_CAP_FRACTION = 0.5
 
+# Farm hands. The n-th hire of a day costs farmHandCostMult * fib(n) with
+# fib indexed 1, 1, 2, 3, 5, 8, ... (kaggriculture.py:_fib / _hire_cost), and
+# the counter resets every morning - so the first hand of the day costs $1
+# and four hands cost $7 total. That is trivial against a ~$5,000 bank, and
+# a single farmer's upkeep capacity (watering and digging) is what actually
+# caps this agent's income: plant more tiles than one unit can water and the
+# surplus weeds out. Hands are the cheapest way to raise that ceiling.
+MAX_HANDS_PER_DAY = 4
+
+# Hands are cleared at the end of every day and must be re-hired each
+# morning, so hire in the first few turns - a hand bought at hour 20 costs
+# the same as one bought at hour 0 but does a fraction of the work.
+HIRE_BEFORE_HOUR = 3
+
+# Roughly how many tiles needing attention justify one more hand. Hiring
+# more units than there is work for just pays for idle walking.
+WORK_TILES_PER_HAND = 4
+
+# Don't spend our last coins on labour - seed money matters more.
+MIN_MONEY_TO_HIRE = 150
+
+# The engine processes at most this many market orders per player per turn
+# and silently drops the rest (kaggriculture.json: maxMarketOrdersPerTurn),
+# so going over the cap loses orders with no error to catch.
+MAX_MARKET_ORDERS_PER_TURN = 10
+
 
 # ---------------------------------------------------------------------
 # Observation readers
@@ -121,20 +147,27 @@ def get_player_farm(obs):
     return farms[player]
 
 
+def get_tile_at(farm, x, y):
+    """
+    Return the tile dict/None/"LOCKED" at (x, y), or None if that's off the
+    board. Note tiles are row-major - tiles[y][x] - while unit positions are
+    [x, y]; mixing the two up is the classic silent bug in this game.
+    """
+    tiles = farm.get("tiles") if farm else None
+    if not tiles or y < 0 or y >= len(tiles):
+        return None
+    row = tiles[y]
+    if x < 0 or x >= len(row):
+        return None
+    return row[x]
+
+
 def get_current_tile(farm):
     """Return the tile dict/None/"LOCKED" the farmer is currently standing on."""
-    tiles = farm.get("tiles") if farm else None
     farmer_pos = farm.get("farmer") if farm else None
-    if not tiles or not farmer_pos or len(farmer_pos) != 2:
+    if not farmer_pos or len(farmer_pos) != 2:
         return None
-
-    fx, fy = farmer_pos
-    if fy < 0 or fy >= len(tiles):
-        return None
-    row = tiles[fy]
-    if fx < 0 or fx >= len(row):
-        return None
-    return row[fx]
+    return get_tile_at(farm, farmer_pos[0], farmer_pos[1])
 
 
 def get_market_state(obs):
@@ -163,6 +196,7 @@ def extract_state(obs):
         "market_state": get_market_state(obs),
         "board_size": len(tiles) if tiles else 0,
         "day": obs.get("day", 0),
+        "hour": obs.get("hour", 0),
     }
 
 
@@ -242,10 +276,14 @@ def has_plantable_seed(seeds, day):
     return False
 
 
-def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None):
+def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None, exclude=None):
     """
     Scan the whole farm grid and return the (x, y) of the closest tile
     matching `task`, or None if there isn't one.
+
+    `exclude` is a set of (x, y) tiles another unit has already claimed
+    this turn. Without it, every hand would pick the same nearest target
+    and they'd all walk to one tile while the rest of the farm rotted.
 
     task options:
       "harvest"      - a plant tile that's ready to pick right now.
@@ -259,6 +297,7 @@ def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None):
                         tile we could plant.
     """
     seeds = seeds or {}
+    exclude = exclude or set()
     tiles = farm.get("tiles") or []
     have_any_seed = has_plantable_seed(seeds, day)
 
@@ -268,6 +307,8 @@ def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None):
     for y in range(board_size):
         row = tiles[y] if y < len(tiles) else []
         for x in range(len(row)):
+            if (x, y) in exclude:
+                continue
             tile = row[x]
             is_match = False
 
@@ -308,6 +349,63 @@ def _closer_target(fx, fy, target_a, target_b):
     dist_a = abs(target_a[0] - fx) + abs(target_a[1] - fy)
     dist_b = abs(target_b[0] - fx) + abs(target_b[1] - fy)
     return target_a if dist_a <= dist_b else target_b
+
+
+# ---------------------------------------------------------------------
+# Labour
+# ---------------------------------------------------------------------
+
+def count_pending_work(farm, board_size, day, seeds=None):
+    """
+    How many tiles currently need a unit standing on them: a ripe crop to
+    pick, a thirsty crop to water, a weed to dig, or plantable ground we
+    hold a usable seed for.
+
+    This is the demand side of the hiring decision - hire against real
+    work, not against a fixed schedule.
+    """
+    seeds = seeds or {}
+    tiles = farm.get("tiles") or []
+    have_any_seed = has_plantable_seed(seeds, day)
+
+    work = 0
+    for y in range(board_size):
+        row = tiles[y] if y < len(tiles) else []
+        for x in range(len(row)):
+            tile = row[x]
+            if isinstance(tile, dict):
+                kind = tile.get("kind")
+                if kind == "PLANT":
+                    if is_harvestable(tile, day) or not tile.get("watered_today", True):
+                        work += 1
+                elif kind == "WEED":
+                    work += 1
+            elif tile is None and have_any_seed:
+                work += 1
+    return work
+
+
+def decide_hire_orders(farm, board_size, day, hour, seeds=None):
+    """
+    Decide how many farm hands to hire this turn, as ["HIRE"] market orders.
+
+    Hands vanish at the end of every day, so this only fires in the first
+    few turns of a day: same price, far more work out of them. The count is
+    driven by how much work is actually waiting, capped by MAX_HANDS_PER_DAY
+    because the cost sequence is Fibonacci within a day.
+    """
+    if hour >= HIRE_BEFORE_HOUR:
+        return []
+    if remaining_season_days(day) < 0:
+        return []
+    if farm.get("money", 0) < MIN_MONEY_TO_HIRE:
+        return []
+
+    work = count_pending_work(farm, board_size, day, seeds)
+    wanted = min(MAX_HANDS_PER_DAY, work // WORK_TILES_PER_HAND)
+    already_working = len(farm.get("hands") or [])
+
+    return [["HIRE"]] * max(0, wanted - already_working)
 
 
 # ---------------------------------------------------------------------
@@ -468,74 +566,112 @@ def decide_market_actions(farm, private, market_state, day):
 # Farmer decision
 # ---------------------------------------------------------------------
 
-def choose_farmer_action(state):
+def choose_unit_action(state, ux, uy, claimed=None):
     """
-    Decide the single action for our main farmer this turn, following
-    the fixed priority order described at the top of this file.
+    Decide the single action for one unit - the main farmer or a hired
+    hand - standing at (ux, uy), following the fixed priority order
+    described at the top of this file.
+
+    `claimed` is the set of (x, y) tiles other units have already taken
+    this turn, and whatever this unit settles on is added to it. Without
+    that bookkeeping every hand would independently pick the same nearest
+    target and the whole crew would walk to one tile while the rest of
+    the farm went to weeds - which defeats the point of hiring them.
     """
+    claimed = claimed if claimed is not None else set()
+
     farm = state["farm"]
+    if not farm:
+        return ["PASS"]
+
+    board_size = state["board_size"]
+    day = state["day"]
+    private = state["private"]
+    seeds = private.get("seeds", {})
+    tile = get_tile_at(farm, ux, uy)
+
+    def act_here(action):
+        """Take an action on our own tile, and reserve it against other units."""
+        claimed.add((ux, uy))
+        return action
+
+    def walk_to(target):
+        """Step toward a target and reserve it, so no one else heads there."""
+        direction = step_toward(ux, uy, target[0], target[1])
+        if not direction:
+            return None
+        claimed.add((target[0], target[1]))
+        return [direction]
+
+    # 1. Harvest a ripe crop under our feet.
+    if isinstance(tile, dict) and tile.get("kind") == "PLANT" and is_harvestable(tile, day):
+        return act_here(["HARVEST"])
+
+    # 2. Water a crop under our feet that hasn't been watered today.
+    if isinstance(tile, dict) and tile.get("kind") == "PLANT" and not tile.get("watered_today", True):
+        return act_here(["WATER"])
+
+    # 3. Something urgent elsewhere (a ripe crop, or a crop about to turn
+    #    into a weed) beats anything else right now - preventing a new weed
+    #    is worth more than reclaiming an old one.
+    harvest_target = find_nearest_target(
+        farm, board_size, ux, uy, "harvest", day, exclude=claimed
+    )
+    water_target = find_nearest_target(
+        farm, board_size, ux, uy, "water_urgent", day, exclude=claimed
+    )
+    urgent_target = _closer_target(ux, uy, harvest_target, water_target)
+    if urgent_target:
+        moved = walk_to(urgent_target)
+        if moved:
+            return moved
+
+    # 4. Reclaim a weed under our feet - free, and turns dead land back into
+    #    something we can plant again instead of losing it for the rest of
+    #    the season.
+    if isinstance(tile, dict) and tile.get("kind") == "WEED":
+        return act_here(["DIG"])
+
+    # 5. Plant here if the tile is empty and unlocked, and we hold a seed.
+    if tile is None:
+        crop = choose_crop(farm, state["market_state"], private, day)
+        if crop and seeds.get(crop, 0) > 0:
+            return act_here(["PLANT", crop])
+
+    # 6. Reclaim the nearest weed elsewhere - dead land is a permanent loss
+    #    until it's dug back to plantable ground, so don't just leave it.
+    weed_target = find_nearest_target(
+        farm, board_size, ux, uy, "weed", day, exclude=claimed
+    )
+    if weed_target:
+        moved = walk_to(weed_target)
+        if moved:
+            return moved
+
+    # 7. Nothing to do right here - walk toward the closest useful tile.
+    fallback_target = find_nearest_target(
+        farm, board_size, ux, uy, "any", day, seeds, exclude=claimed
+    )
+    if fallback_target and fallback_target != (ux, uy):
+        moved = walk_to(fallback_target)
+        if moved:
+            return moved
+
+    # 8. Genuinely nothing useful to do.
+    return ["PASS"]
+
+
+def choose_farmer_action(state, claimed=None):
+    """Our main farmer's action - the shared unit logic, anchored at the farmer."""
+    farm = state.get("farm")
     if not farm:
         return ["PASS"]
 
     farmer_pos = farm.get("farmer")
     if not farmer_pos or len(farmer_pos) != 2:
         return ["PASS"]
-    fx, fy = farmer_pos
 
-    board_size = state["board_size"]
-    day = state["day"]
-    private = state["private"]
-    seeds = private.get("seeds", {})
-    tile = get_current_tile(farm)
-
-    # 1. Harvest a ripe crop under our feet.
-    if isinstance(tile, dict) and tile.get("kind") == "PLANT" and is_harvestable(tile, day):
-        return ["HARVEST"]
-
-    # 2. Water a crop under our feet that hasn't been watered today.
-    if isinstance(tile, dict) and tile.get("kind") == "PLANT" and not tile.get("watered_today", True):
-        return ["WATER"]
-
-    # 3. Something urgent elsewhere (a ripe crop, or a crop about to turn
-    #    into a weed) beats anything else right now - preventing a new weed
-    #    is worth more than reclaiming an old one.
-    harvest_target = find_nearest_target(farm, board_size, fx, fy, "harvest", day)
-    water_target = find_nearest_target(farm, board_size, fx, fy, "water_urgent", day)
-    urgent_target = _closer_target(fx, fy, harvest_target, water_target)
-    if urgent_target:
-        direction = step_toward(fx, fy, urgent_target[0], urgent_target[1])
-        if direction:
-            return [direction]
-
-    # 4. Reclaim a weed under our feet - free, and turns dead land back into
-    #    something we can plant again instead of losing it for the rest of
-    #    the season.
-    if isinstance(tile, dict) and tile.get("kind") == "WEED":
-        return ["DIG"]
-
-    # 5. Plant here if the tile is empty and unlocked, and we hold a seed.
-    if tile is None:
-        crop = choose_crop(farm, state["market_state"], private, day)
-        if crop and seeds.get(crop, 0) > 0:
-            return ["PLANT", crop]
-
-    # 6. Reclaim the nearest weed elsewhere - dead land is a permanent loss
-    #    until it's dug back to plantable ground, so don't just leave it.
-    weed_target = find_nearest_target(farm, board_size, fx, fy, "weed", day)
-    if weed_target:
-        direction = step_toward(fx, fy, weed_target[0], weed_target[1])
-        if direction:
-            return [direction]
-
-    # 7. Nothing to do right here - walk toward the closest useful tile.
-    fallback_target = find_nearest_target(farm, board_size, fx, fy, "any", day, seeds)
-    if fallback_target and fallback_target != (fx, fy):
-        direction = step_toward(fx, fy, fallback_target[0], fallback_target[1])
-        if direction:
-            return [direction]
-
-    # 8. Genuinely nothing useful to do.
-    return ["PASS"]
+    return choose_unit_action(state, farmer_pos[0], farmer_pos[1], claimed)
 
 
 # ---------------------------------------------------------------------
@@ -556,10 +692,32 @@ def nikaangukia_meroni(obs):
         if not farm:
             return {"farmer": ["PASS"], "hands": [], "market": []}
 
+        board_size = state["board_size"]
+        day = state["day"]
+        hour = state["hour"]
+        private = state["private"]
+        seeds = private.get("seeds", {})
+
+        # One shared claim set across every unit this turn, so the farmer and
+        # each hand pick different tiles instead of piling onto the same one.
+        claimed = set()
+        farmer_action = choose_farmer_action(state, claimed)
+        hands_actions = [
+            choose_unit_action(state, hand[0], hand[1], claimed)
+            for hand in (farm.get("hands") or [])
+            if isinstance(hand, (list, tuple)) and len(hand) == 2
+        ]
+
+        # Hires go first: they're a few dollars each and multiply how much
+        # work the crew gets through, so they're the last orders we'd want
+        # silently dropped if we ever brush the per-turn cap.
+        market = decide_hire_orders(farm, board_size, day, hour, seeds)
+        market += decide_market_actions(farm, private, state["market_state"], day)
+
         return {
-            "farmer": choose_farmer_action(state),
-            "hands": [],  # v0 doesn't hire any farm hands yet
-            "market": decide_market_actions(farm, state["private"], state["market_state"], state["day"]),
+            "farmer": farmer_action,
+            "hands": hands_actions,
+            "market": market[:MAX_MARKET_ORDERS_PER_TURN],
         }
     except Exception:
         # Last line of defense: an agent that crashes forfeits the match,
