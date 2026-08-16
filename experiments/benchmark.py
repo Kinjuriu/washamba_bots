@@ -10,7 +10,7 @@ only *runs* episodes and reports statistics.
 
 Agents compared
 ----------------
-1. nikaangukia_meroni_v0  - our agent, imported unmodified from main.py.
+1. nikaangukia_meroni_v1  - our agent, imported unmodified from main.py.
 2. random                 - the environment's built-in "random" agent,
                              referenced by name exactly as shown in the
                              official Kaggriculture starter notebook
@@ -35,7 +35,7 @@ NOT invent this - it's read directly from the configuration the same
 way `kaggle_environments` already documents/uses it internally.
 
 We verified this empirically two ways:
-  - Two fully deterministic agents (e.g. nikaangukia_meroni_v0 vs
+  - Two fully deterministic agents (e.g. nikaangukia_meroni_v1 vs
     melon_maxxer) with the same seed produce bit-identical final
     rewards run after run. Seeding works as intended.
   - The environment's own built-in "random" agent (kaggriculture.py::
@@ -350,19 +350,19 @@ def print_matchup_report(summary, nikaangukia_name=None):
     else:
         print("Average score difference: N/A (not enough completed games)")
 
-    # Win rate for nikaangukia_meroni_v0, only when it's actually one of
+    # Win rate for nikaangukia_meroni_v1, only when it's actually one of
     # the two agents in this matchup.
     if nikaangukia_name == summary["name_0"]:
         win_rate = compute_win_rate(summary["scores_0"], summary["scores_1"])
     elif nikaangukia_name == summary["name_1"]:
         win_rate = compute_win_rate(summary["scores_1"], summary["scores_0"])
     else:
-        win_rate = "N/A (nikaangukia_meroni_v0 is not in this matchup)"
+        win_rate = "N/A (nikaangukia_meroni_v1 is not in this matchup)"
 
     if isinstance(win_rate, float):
         print(f"Win rate ({nikaangukia_name}): {win_rate:.0%}")
     else:
-        print(f"Win rate (nikaangukia_meroni_v0): {win_rate}")
+        print(f"Win rate (nikaangukia_meroni_v1): {win_rate}")
 
     print()
     print("=" * 60)
@@ -374,8 +374,8 @@ def main():
         # (name_0, agent_0, name_1, agent_1, seed_start)
         # Distinct seed blocks per matchup so nothing overlaps, while
         # each matchup's own games stay reproducible.
-        ("nikaangukia_meroni_v0", nikaangukia_meroni, "random", "random", 1000),
-        ("nikaangukia_meroni_v0", nikaangukia_meroni, "melon_maxxer", melon_maxxer, 2000),
+        ("nikaangukia_meroni_v1", nikaangukia_meroni, "random", "random", 1000),
+        ("nikaangukia_meroni_v1", nikaangukia_meroni, "melon_maxxer", melon_maxxer, 2000),
         ("melon_maxxer", melon_maxxer, "random", "random", 3000),
     ]
 
@@ -390,7 +390,7 @@ def main():
 
     for name_0, agent_0, name_1, agent_1, seed_start in matchups:
         summary = run_matchup(name_0, agent_0, name_1, agent_1, seed_start)
-        print_matchup_report(summary, nikaangukia_name="nikaangukia_meroni_v0")
+        print_matchup_report(summary, nikaangukia_name="nikaangukia_meroni_v1")
 
 
 if __name__ == "__main__":

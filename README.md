@@ -2,20 +2,22 @@
 
 An autonomous agent for [Kaggriculture](https://kaggle.com/competitions/kaggriculture), a Kaggle simulation competition: two agents each run a virtual farm for a 30-day season (720 turns) and compete head-to-head for the highest bank balance.
 
+**New to the repo? Read [CONTRIBUTING.md](CONTRIBUTING.md) first** — how we evaluate a change, what a PR needs, and the list of things here that fail *silently*. `CLAUDE.md` is the deep reference for game mechanics and engine gotchas.
+
 ## Team status
 
 > **Before you submit anything to Kaggle, check with the team.** We get **5 submissions/day** and **only the latest 2 stay active** for matchmaking and final scoring — an extra upload silently deactivates work that is still collecting ladder signal.
 
-**Where we stand:** our best converged submission scored **289.3**. The top 20 on the leaderboard sit around **2,937–3,211**. We are not competitive yet.
+**Where we stand:** our live submission oscillates around **450–560** and is still settling. The top 20 on the leaderboard sit around **2,937–3,211**. We are not competitive yet.
 
-**Local baseline** (`main.py`, mean final bank over 12 seeded 720-turn seasons):
+**Local baseline** (`main.py` at `ebc8212`, crop economics + goose, 12 seeded 720-turn seasons):
 
 | vs | mean | wins |
 |---|---|---|
-| `pass` | 35,752 | 12/12 |
-| `random` | 35,325 | 12/12 |
-| `starter` | 35,519 | 12/12 |
-| **self-play** | **~22,900/side** | — |
+| `pass` | 41,969 | 12/12 |
+| `random` | 42,812 | 12/12 |
+| `starter` | 43,105 | 12/12 |
+| **self-play** | **27,246/side** | — |
 
 **Read the self-play number, not the others.** `pass`, `random` and `starter` sell nothing, so they leave every market untouched and flatter us badly — that gap is why a 33,000 local score became 289.3 on the ladder. Self-play is the cheapest honest proxy for a real opponent competing in the same market.
 
@@ -48,6 +50,8 @@ Full competition rules, game mechanics, pricing formulas, and observation/action
 ## Agent anatomy
 
 At its simplest, `melon_maxxer(obs)` reads the current state and chooses between market and farm decisions. The market branch buys seed or sells produce; the farm branch moves, plants, waters, or harvests.
+
+Our agent, `nikaangukia_meroni(obs)`, follows the same shape but does more on each branch: the market branch buys seeds and animals, protects the feed reserve, sells produce and hires hands; the farm branch moves, plants, waters, digs weeds, feeds, cares, collects fertilizer, harvests, and places animals.
 
 ```mermaid
 flowchart TD
