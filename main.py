@@ -33,9 +33,13 @@ their turns on the same tile:
 
 It also does simple, threshold-based market decisions: sell shed goods
 when the price is good (capped per turn for premium goods so a big
-harvest doesn't crash its own price), buy one seed at a time when we
-need one and can afford it, hire farm hands early each day against how
-much work is actually pending, and buy one GOOSE at a time (see
+harvest doesn't crash its own price), restock seed in one batched order
+once a crop's stock is fully exhausted and we can afford it (see
+SEED_REBUY_TRIGGER/seed_restock_quantity - buying one at a time on every
+turn stock dipped below the cap used to trigger a full-price purchase
+every single turn once planting demand was fixed, crashing the bank),
+hire farm hands early each day against how much work is actually
+pending, and buy one GOOSE at a time (see
 ACTIVE_ANIMALS) plus a small wheat safety net for feeding it. Everything
 still in the shed from LIQUIDATION_START_DAY on is sold regardless of
 price - inventory scores nothing once the season ends.
@@ -517,6 +521,35 @@ MAX_SEED_STOCKPILE = 3
 # Never spend more than this fraction of our current cash on a single
 # seed purchase, so a bad crop pick can't wipe out our bank balance.
 SEED_SPEND_CAP_FRACTION = 0.5
+
+# Only trigger a seed restock once a crop's held stock drops to (or below)
+# this many - i.e. fully exhausted, not merely "below MAX_SEED_STOCKPILE".
+#
+# This one is load-bearing, not cosmetic. Once the shared per-turn PLANT
+# budget below closes the seed-overcommit bug (units no longer collide on
+# one held seed and get their PLANT silently dropped by the engine), a
+# seed actually gets consumed almost every turn a unit stands on empty
+# ground with one held. The old trigger - restock the instant held stock
+# dipped under MAX_SEED_STOCKPILE - then re-fires *every single turn*:
+# buy 1, a unit consumes it, buy 1 again next turn, forever, for as long
+# as there's empty land and a seed-worthy crop. For MELON (~$80/seed) that
+# is an ~$80/turn drain, and a controlled trace confirmed it crashed the
+# bank from ~$2,160 to ~$25 by day 3-4, which starved the wheat safety net
+# (BUY_PRODUCT silently no-ops below its price - kaggriculture.py:663) and
+# killed the sheep by day 7 on every seed tested. Waiting until the crop is
+# fully dry before restocking, then topping back up to MAX_SEED_STOCKPILE
+# in one batched order (see seed_restock_quantity), buys the same total
+# seed volume at roughly a third of the purchase frequency.
+SEED_REBUY_TRIGGER = 0
+
+# Never let a seed purchase - or the tail end of a restock batch - push the
+# bank below this floor. This is the second half of the same fix: even a
+# batched, infrequent restock could still be timed badly enough to leave
+# nothing for the next wheat purchase. $100 comfortably covers several
+# turns of feeding even at a bad wheat price, so the wheat safety net in
+# decide_animal_market_actions never finds the cash drawer empty because
+# seed buying got there first.
+MIN_CASH_RESERVE_FOR_SEED_BUYING = 100
 
 # ---------------------------------------------------------------------
 # Fertilizer
@@ -1394,30 +1427,57 @@ def should_sell(product, quantity, market_state):
     return price >= threshold
 
 
-def should_buy_seed(crop, farm, private):
+def seed_restock_quantity(crop, farm, private):
     """
-    True if it's sensible to buy one more seed of `crop` right now:
-    we're not already stockpiling it, we can afford it, and it won't
-    eat an unreasonable chunk of our cash.
+    How many units of `crop` seed to buy right now as a single BUY_SEED
+    order, or 0 to buy none.
+
+    Two gates, both explained in full at SEED_REBUY_TRIGGER /
+    MIN_CASH_RESERVE_FOR_SEED_BUYING above:
+
+      1. Only fires once we're fully out of the crop's seed (not merely
+         under MAX_SEED_STOCKPILE) - this is the cadence fix. A single
+         BUY_SEED order can carry a quantity (kaggriculture.py:602-603,
+         673-678 process it one unit at a time within the turn, same
+         mechanic the wheat BUY_PRODUCT batch already uses), so this tops
+         the stockpile all the way back up to MAX_SEED_STOCKPILE in one
+         order instead of dribbling out a fresh full-price purchase every
+         single turn stock is consumed.
+      2. Each unit in the batch is checked against SEED_SPEND_CAP_FRACTION
+         and MIN_CASH_RESERVE_FOR_SEED_BUYING against the running balance
+         *as if* the earlier units in this same batch had already been
+         bought - so a batch can never spend more than we can actually
+         afford, and never leaves the wheat safety net's cash drawer
+         empty.
     """
     seeds = private.get("seeds", {})
-    if seeds.get(crop, 0) >= MAX_SEED_STOCKPILE:
-        return False
+    held = seeds.get(crop, 0)
+    if held > SEED_REBUY_TRIGGER:
+        return 0
 
     crop_info = CROPS.get(crop)
     if not crop_info:
-        return False
+        return 0
     seed_cost = crop_info.get("seed")
-    if seed_cost is None:
-        return False
+    if not seed_cost:
+        return 0
 
     money = farm.get("money", 0)
-    if seed_cost > money:
-        return False
-    if seed_cost > money * SEED_SPEND_CAP_FRACTION:
-        return False  # would eat too much of our cash reserve
+    wanted = MAX_SEED_STOCKPILE - held
 
-    return True
+    quantity = 0
+    while quantity < wanted:
+        if seed_cost > money:
+            break
+        if seed_cost > money * SEED_SPEND_CAP_FRACTION:
+            break  # would eat too much of our (running) cash reserve
+        remaining_after = money - seed_cost
+        if remaining_after < MIN_CASH_RESERVE_FOR_SEED_BUYING:
+            break  # would starve the wheat safety net
+        money = remaining_after
+        quantity += 1
+
+    return quantity
 
 
 def decide_market_actions(
@@ -1532,8 +1592,10 @@ def decide_market_actions(
         farm, market_state, private, day, unlocked_shops=unlocked_shops,
         start_step=start_step, opponent_pipeline=opponent_pipeline,
     )
-    if preferred_crop and should_buy_seed(preferred_crop, farm, private):
-        actions.append(["BUY_SEED", preferred_crop, 1])
+    if preferred_crop:
+        seed_quantity = seed_restock_quantity(preferred_crop, farm, private)
+        if seed_quantity > 0:
+            actions.append(["BUY_SEED", preferred_crop, seed_quantity])
 
     # Fertilizer, but only against ongoing crops we actually have in the
     # ground - it's the one product a unit has to fetch from the shed by
@@ -1585,7 +1647,8 @@ def decide_market_actions(
 # ---------------------------------------------------------------------
 
 def choose_unit_action(
-    state, ux, uy, unit_idx, claimed=None, pending_builds=None, feed_claimed=None
+    state, ux, uy, unit_idx, claimed=None, pending_builds=None, feed_claimed=None,
+    plant_budget=None,
 ):
     """
     Decide the single action for one unit - the main farmer or a hired
@@ -1607,6 +1670,17 @@ def choose_unit_action(
     Every unit sees the same pre-turn board, so without this a farmer plus
     several hands could each independently see "no coop built yet" and all
     build one in the same turn, blowing straight through MAX_ANIMALS.
+
+    `plant_budget` is a shared {crop: remaining_seed} dict, decremented as
+    each unit commits to a PLANT this turn - the seed-overcommit fix. Every
+    unit sees the same pre-turn `seeds` count, so without a shared budget,
+    several units standing on empty tiles in the same turn could each
+    independently decide to plant the same understocked crop; the engine
+    then drops ALL of that turn's PLANT requests for the crop, not just the
+    excess, once demand exceeds held seed (kaggriculture.py:920-931) - so
+    every involved unit's turn is wasted, not just the surplus ones.
+    Defaults to a fresh copy of `seeds` when not supplied, so a single
+    standalone call (e.g. in a test) behaves exactly as before.
     """
     claimed = claimed if claimed is not None else set()
     pending_builds = pending_builds if pending_builds is not None else [0]
@@ -1620,6 +1694,7 @@ def choose_unit_action(
     day = state["day"]
     private = state["private"]
     seeds = private.get("seeds", {})
+    plant_budget = plant_budget if plant_budget is not None else dict(seeds)
     inv = unit_inventory(private, unit_idx)
     tile = get_tile_at(farm, ux, uy)
 
@@ -1806,7 +1881,8 @@ def choose_unit_action(
             start_step=state.get("step"),
             opponent_pipeline=state.get("opponent_pipeline"),
         )
-        if crop and seeds.get(crop, 0) > 0:
+        if crop and plant_budget.get(crop, 0) > 0:
+            plant_budget[crop] -= 1
             return act_here(["PLANT", crop])
 
     # 10. Fertilizer logistics. Fertilizer reaches the shed either by
@@ -1861,7 +1937,9 @@ def choose_unit_action(
     return ["PASS"]
 
 
-def choose_farmer_action(state, claimed=None, pending_builds=None, feed_claimed=None):
+def choose_farmer_action(
+    state, claimed=None, pending_builds=None, feed_claimed=None, plant_budget=None
+):
     """Our main farmer's action - the shared unit logic, anchored at the farmer."""
     farm = state.get("farm")
     if not farm:
@@ -1872,7 +1950,8 @@ def choose_farmer_action(state, claimed=None, pending_builds=None, feed_claimed=
         return ["PASS"]
 
     return choose_unit_action(
-        state, farmer_pos[0], farmer_pos[1], 0, claimed, pending_builds, feed_claimed
+        state, farmer_pos[0], farmer_pos[1], 0, claimed, pending_builds, feed_claimed,
+        plant_budget,
     )
 
 
@@ -1902,15 +1981,23 @@ def nikaangukia_meroni(obs):
 
         # One shared claim set across every unit this turn, so the farmer and
         # each hand pick different tiles instead of piling onto the same one.
-        # pending_builds is the same idea for coop/pasture construction - see
-        # choose_unit_action's docstring.
+        # pending_builds is the same idea for coop/pasture construction, and
+        # plant_budget is the same idea for PLANT: a shared {crop: seeds
+        # left} counter, decremented as each unit commits to a planting, so
+        # at most as many units plant a crop this turn as we hold seed for -
+        # see choose_unit_action's docstring for why an uncoordinated PLANT
+        # decision wastes every involved unit's turn, not just the surplus.
         claimed = set()
         pending_builds = [0]
         feed_claimed = set()
-        farmer_action = choose_farmer_action(state, claimed, pending_builds, feed_claimed)
+        plant_budget = dict(seeds)
+        farmer_action = choose_farmer_action(
+            state, claimed, pending_builds, feed_claimed, plant_budget
+        )
         hands_actions = [
             choose_unit_action(
-                state, hand[0], hand[1], idx + 1, claimed, pending_builds, feed_claimed
+                state, hand[0], hand[1], idx + 1, claimed, pending_builds, feed_claimed,
+                plant_budget,
             )
             for idx, hand in enumerate(farm.get("hands") or [])
             if isinstance(hand, (list, tuple)) and len(hand) == 2
