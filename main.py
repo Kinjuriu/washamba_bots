@@ -9,22 +9,25 @@ and any hired hands - shares one reactive, rule-based priority list, and
 they coordinate through a per-turn claim set so two units never spend
 their turns on the same tile:
 
-  1. Harvests a ripe crop or animal under its feet.
-  2. Waters a crop, or feeds/cares for an animal, under its feet (feed
-     always wins over care - a missed feeding is a permanent loss, care
-     is just a bonus).
-  3. Places a carried animal on the empty coop/pasture under its feet.
-  4. Runs shed errands: collects a bought animal waiting for its home, or
-     wheat needed to go feed a starving animal elsewhere.
-  5. Moves toward urgent tasks elsewhere (saving a crop or animal from
-     being lost) before anything else.
-  6. Carries a picked-up animal toward its coop/pasture if not there yet.
-  7. Digs a weed under its feet for free, reclaiming dead land.
-  8. Builds a coop (if still growing the animal side of the farm) or
+  1. Feeds an animal under its feet - ahead of even a ready harvest. A
+     missed feeding is a permanent loss (the animal escapes for good),
+     and it silently costs the CARE bank too, which only pays out on a
+     day the animal was also fed.
+  2. Harvests a ripe crop, or an animal whose held yield is near its cap
+     (collecting its fertilizer first, since that is a separate output).
+  3. Waters a crop, or cares for an already-fed animal, under its feet.
+  4. Places a carried animal on the empty coop/pasture under its feet.
+  5. Runs shed errands: collects a bought animal waiting for its home, or
+     several days of wheat to go feed an animal elsewhere.
+  6. Moves toward urgent work elsewhere (an animal to feed, a ripe crop,
+     a crop about to weed out) before anything below.
+  7. Carries a picked-up animal toward its coop/pasture if not there yet.
+  8. Digs a weed under its feet for free, reclaiming dead land.
+  9. Builds a coop (if still growing the animal side of the farm) or
      plants a sensible crop when standing on empty ground.
-  9. Otherwise walks toward the next useful tile (preferring a weed to
-     reclaim over aimless wandering).
-  10. PASSes if there is genuinely nothing useful to do.
+  10. Reclaims the nearest weed elsewhere - dead land is a permanent loss.
+  11. Otherwise walks toward the closest useful tile.
+  12. PASSes if there is genuinely nothing useful to do.
 
 It also does simple, threshold-based market decisions: sell shed goods
 when the price is good (capped per turn for premium goods so a big
@@ -1144,7 +1147,7 @@ def choose_unit_action(
         if moved:
             return moved
 
-    # 6. Carrying an animal we haven't placed yet - go find it a home.
+    # 7. Carrying an animal we haven't placed yet - go find it a home.
     if animal_in_hand:
         structure_target = find_nearest_target(
             farm, board_size, ux, uy, "empty_structure", day, exclude=claimed
@@ -1154,13 +1157,13 @@ def choose_unit_action(
             if moved:
                 return moved
 
-    # 7. Reclaim a weed under our feet - free, and turns dead land back into
+    # 8. Reclaim a weed under our feet - free, and turns dead land back into
     #    something we can plant again instead of losing it for the rest of
     #    the season.
     if isinstance(tile, dict) and tile.get("kind") == "WEED":
         return act_here(["DIG"])
 
-    # 8. Empty ground under our feet: build a coop if we're still growing
+    # 9. Empty ground under our feet: build a coop if we're still growing
     #    the animal side of the farm and don't already have one waiting for
     #    a tenant (V1 assumes a single active species - see ACTIVE_ANIMALS),
     #    otherwise plant a crop.
@@ -1173,7 +1176,7 @@ def choose_unit_action(
         if crop and seeds.get(crop, 0) > 0:
             return act_here(["PLANT", crop])
 
-    # 9. Reclaim the nearest weed elsewhere - dead land is a permanent loss
+    # 10. Reclaim the nearest weed elsewhere - dead land is a permanent loss
     #    until it's dug back to plantable ground, so don't just leave it.
     weed_target = find_nearest_target(
         farm, board_size, ux, uy, "weed", day, exclude=claimed
@@ -1183,7 +1186,7 @@ def choose_unit_action(
         if moved:
             return moved
 
-    # 10. Nothing to do right here - walk toward the closest useful tile.
+    # 11. Nothing to do right here - walk toward the closest useful tile.
     fallback_target = find_nearest_target(
         farm, board_size, ux, uy, "any", day, seeds, exclude=claimed
     )
@@ -1192,7 +1195,7 @@ def choose_unit_action(
         if moved:
             return moved
 
-    # 11. Genuinely nothing useful to do.
+    # 12. Genuinely nothing useful to do.
     return ["PASS"]
 
 
