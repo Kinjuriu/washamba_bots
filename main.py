@@ -25,9 +25,11 @@ their turns on the same tile:
   8. Digs a weed under its feet for free, reclaiming dead land.
   9. Builds a coop (if still growing the animal side of the farm) or
      plants a sensible crop when standing on empty ground.
-  10. Reclaims the nearest weed elsewhere - dead land is a permanent loss.
-  11. Otherwise walks toward the closest useful tile.
-  12. PASSes if there is genuinely nothing useful to do.
+  10. Runs the fertilizer errand - collects a batch from the shed and
+     carries it to an ongoing crop that is inside its payout window.
+  11. Reclaims the nearest weed elsewhere - dead land is a permanent loss.
+  12. Otherwise walks toward the closest useful tile.
+  13. PASSes if there is genuinely nothing useful to do.
 
 It also does simple, threshold-based market decisions: sell shed goods
 when the price is good (capped per turn for premium goods so a big
@@ -194,6 +196,41 @@ MAX_SEED_STOCKPILE = 3
 SEED_SPEND_CAP_FRACTION = 0.5
 
 # ---------------------------------------------------------------------
+# Fertilizer
+# ---------------------------------------------------------------------
+
+# FERTILIZE marks a plant for `day`, `day+1` and `day+2`, and the bonus is
+# paid only on days the plant is *also* watered - `_daily_refresh_plants`
+# gates it on `was_watered`. It is a multiplier on watering, never a
+# substitute for it.
+#
+# Only ongoing crops can use it at all. `_daily_refresh_plants` skips
+# one-time crops outright (`if not cd["ongoing"]: continue`), so a unit of
+# fertilizer spent on wheat, carrot or melon is simply thrown away. That
+# leaves the two ongoing crops, where each covered production tick banks
+# +2 instead of +1:
+#
+#   TOMATO      interval 1 -> the 3-day cover catches 3 ticks
+#   STRAWBERRY  interval 2 -> catches 2 ticks
+FERTILIZABLE_CROPS = ("TOMATO", "STRAWBERRY")
+
+# Bought fertilizer lands in the shed, but FERTILIZE spends from the acting
+# unit's own inventory - so a unit has to stand shed-adjacent and PICKUP
+# before it can fertilise anything. Carry a few at a time so one trip serves
+# several plants instead of one.
+FERTILIZER_CARRY_BATCH = 3
+
+# Don't buy fertilizer we have no plant to use it on, and keep a lid on the
+# stock so it doesn't crowd the shed or the cash. The Goose also produces
+# fertilizer for free via COLLECT_FERTILIZER, so this cap is mostly a brake
+# on buying what the animal already supplies.
+MAX_FERTILIZER_STOCK = 6
+
+# Fertilizer bought this late can't catch enough production ticks to repay
+# itself before the season ends.
+FERTILIZER_LAST_USEFUL_DAY = 24
+
+# ---------------------------------------------------------------------
 # Labour
 # ---------------------------------------------------------------------
 
@@ -336,6 +373,68 @@ def shed_access_tiles(board_size):
 
 def is_shed_adjacent(x, y, board_size):
     return (x, y) in shed_access_tiles(board_size)
+
+
+def wants_fertilizer(tile, day):
+    """
+    True if fertilising this plant right now would actually pay.
+
+    Only ongoing crops qualify (see FERTILIZABLE_CROPS), and only inside the
+    stretch where the three-day cover still catches production ticks.
+    Fertilizer applied outside that window is thrown away.
+
+    The window edges come straight out of `_daily_refresh_plants`, which
+    computes `days_since_first = (day + 1) - planted_day - first_yield_day`
+    and produces while that is a non-negative multiple of `interval` with
+    `days_since_first // interval + 1 <= max_yield`. Rewriting in terms of
+    the age this function has (`age = day - planted_day`) puts the final
+    tick at `first_yield_day - 1 + interval * (max_yield - 1)`.
+
+    That `- 1` matters: without it the agent buys and applies a unit a day
+    after the last tick it could possibly pay for.
+    """
+    if not (isinstance(tile, dict) and tile.get("kind") == "PLANT"):
+        return False
+
+    crop = tile.get("crop")
+    if crop not in FERTILIZABLE_CROPS:
+        return False
+
+    if tile.get("fertilized_until_day", -1) >= day:
+        return False  # already covered today
+
+    crop_info = CROPS.get(crop) or {}
+    first_yield_day = crop_info.get("first_yield_day")
+    if first_yield_day is None:
+        return False
+
+    interval = crop_info.get("interval") or 1
+    max_yield = crop_info.get("max_yield") or 1
+    last_tick_age = first_yield_day - 1 + interval * (max_yield - 1)
+
+    age = day - tile.get("planted_day", day)
+    # Cover starts today and runs two more days, so applying just ahead of
+    # the first tick still catches it.
+    return (first_yield_day - 3) <= age <= last_tick_age
+
+
+def find_fertilizer_target(farm, board_size, ux, uy, day, exclude=None):
+    """Nearest plant worth fertilising, or None."""
+    exclude = exclude or set()
+    tiles = farm.get("tiles") or []
+
+    best_target = None
+    best_distance = None
+    for y in range(board_size):
+        row = tiles[y] if y < len(tiles) else []
+        for x in range(len(row)):
+            if (x, y) in exclude or not wants_fertilizer(row[x], day):
+                continue
+            distance = abs(x - ux) + abs(y - uy)
+            if best_distance is None or distance < best_distance:
+                best_distance = distance
+                best_target = (x, y)
+    return best_target
 
 
 def nearest_shed_tile(fx, fy, board_size):
@@ -920,6 +1019,16 @@ def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
     liquidating = day >= LIQUIDATION_START_DAY
 
     for product, quantity in shed.items():
+        # Fertilizer is an input, not produce - and with a Goose on the farm
+        # it arrives free via COLLECT_FERTILIZER. Its price clears the default
+        # sell threshold comfortably, so without this guard the agent dumps
+        # every unit the animal makes (and buys more, then sells those too:
+        # 715 units round-tripped in one measured season with zero reaching a
+        # plant). Hold it for the crops and only liquidate at season end,
+        # when leftover stock scores nothing anyway.
+        if product == "FERTILIZER" and not liquidating:
+            continue
+
         # Hold back the wheat earmarked for feeding. Wheat is animal feed,
         # and an animal that misses two consecutive days escapes for good -
         # so selling the feed can permanently destroy a 300-cost asset for
@@ -945,6 +1054,18 @@ def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
     shed_total = sum(shed.values())
     if shed_total >= SHED_FORCE_SELL_THRESHOLD:
         for product, quantity in shed.items():
+            # Same exclusion as the main sell loop - the overflow valve
+            # must not become the back door that dumps the fertilizer.
+            # Fertilizer is an input, not produce - and with a Goose on the farm
+            # it arrives free via COLLECT_FERTILIZER. Its price clears the default
+            # sell threshold comfortably, so without this guard the agent dumps
+            # every unit the animal makes (and buys more, then sells those too:
+            # 715 units round-tripped in one measured season with zero reaching a
+            # plant). Hold it for the crops and only liquidate at season end,
+            # when leftover stock scores nothing anyway.
+            if product == "FERTILIZER" and not liquidating:
+                continue
+
             if product in already_selling or quantity <= 0:
                 continue
             sell_quantity = quantity
@@ -959,6 +1080,28 @@ def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
     preferred_crop = choose_crop(farm, market_state, private, day)
     if preferred_crop and should_buy_seed(preferred_crop, farm, private):
         actions.append(["BUY_SEED", preferred_crop, 1])
+
+    # Fertilizer, but only against ongoing crops we actually have in the
+    # ground - it's the one product a unit has to fetch from the shed by
+    # hand, so buying speculatively wastes both money and turns. A Goose
+    # supplies it free, so in practice this only tops up when the crops
+    # want more than the animal produced.
+    if day <= FERTILIZER_LAST_USEFUL_DAY:
+        held = shed.get("FERTILIZER", 0) + sum(
+            (carried or {}).get("FERTILIZER", 0)
+            for carried in (private.get("inventories") or [])
+            if isinstance(carried, dict)
+        )
+        if held < MAX_FERTILIZER_STOCK:
+            fertilizer_price = market_state.get("prices", {}).get("FERTILIZER", 0)
+            wanted = sum(
+                1
+                for row in (farm.get("tiles") or [])
+                for tile in row
+                if wants_fertilizer(tile, day)
+            )
+            if wanted > held and fertilizer_price and farm.get("money", 0) >= fertilizer_price * 2:
+                actions.append(["BUY_PRODUCT", "FERTILIZER", 1])
 
     return actions
 
@@ -1076,6 +1219,14 @@ def choose_unit_action(
         if not tile.get("cared_today"):
             return act_here(["CARE"])
 
+    # 3b. Fertilise the ongoing crop under our feet, if we're carrying any.
+    #     Free in movement terms - we are already standing here - and worth
+    #     several hundred on a tomato or strawberry. Ranked below watering
+    #     because the bonus only pays on days the plant is watered anyway,
+    #     so watering first is strictly better when we can only do one.
+    if inv.get("FERTILIZER", 0) > 0 and wants_fertilizer(tile, day):
+        return act_here(["FERTILIZE"])
+
     # 4. Place a carried animal on the empty structure under our feet.
     animal_in_hand = carried_animal(inv)
     if animal_in_hand and isinstance(tile, dict) and "animal" not in tile:
@@ -1176,7 +1327,36 @@ def choose_unit_action(
         if crop and seeds.get(crop, 0) > 0:
             return act_here(["PLANT", crop])
 
-    # 10. Reclaim the nearest weed elsewhere - dead land is a permanent loss
+    # 10. Fertilizer logistics. Fertilizer reaches the shed either by
+    #     purchase or free from the Goose, but FERTILIZE spends from the
+    #     unit's own inventory - so this is a collect-then-deliver errand.
+    #     Deliberately ranked below every crop-upkeep step above: a plant
+    #     that dies unwatered costs far more than a fertilizer bonus is
+    #     worth, and the bonus only pays on watered days regardless.
+    shed_fertilizer = (private.get("shed") or {}).get("FERTILIZER", 0)
+
+    if inv.get("FERTILIZER", 0) > 0:
+        fertilize_target = find_fertilizer_target(
+            farm, board_size, ux, uy, day, exclude=claimed
+        )
+        if fertilize_target:
+            moved = walk_to(fertilize_target)
+            if moved:
+                return moved
+
+    elif shed_fertilizer > 0 and find_fertilizer_target(
+        farm, board_size, ux, uy, day, exclude=claimed
+    ):
+        # Collect a batch so one trip serves several plants.
+        if is_shed_adjacent(ux, uy, board_size):
+            return act_here(
+                ["PICKUP", "FERTILIZER", min(shed_fertilizer, FERTILIZER_CARRY_BATCH)]
+            )
+        moved = walk_to(nearest_shed_tile(ux, uy, board_size))
+        if moved:
+            return moved
+
+    # 11. Reclaim the nearest weed elsewhere - dead land is a permanent loss
     #    until it's dug back to plantable ground, so don't just leave it.
     weed_target = find_nearest_target(
         farm, board_size, ux, uy, "weed", day, exclude=claimed
@@ -1186,7 +1366,7 @@ def choose_unit_action(
         if moved:
             return moved
 
-    # 11. Nothing to do right here - walk toward the closest useful tile.
+    # 12. Nothing to do right here - walk toward the closest useful tile.
     fallback_target = find_nearest_target(
         farm, board_size, ux, uy, "any", day, seeds, exclude=claimed
     )
@@ -1195,7 +1375,7 @@ def choose_unit_action(
         if moved:
             return moved
 
-    # 12. Genuinely nothing useful to do.
+    # 13. Genuinely nothing useful to do.
     return ["PASS"]
 
 
