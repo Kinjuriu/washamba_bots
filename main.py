@@ -48,6 +48,25 @@ except ImportError:
     # will still harvest/water/sell/PASS safely.
     CROPS = {}
 
+# Baseline market stock per product (the engine's I0, 10,000 for every
+# product at time of writing). Crop scoring needs it to tell a real glut
+# from the normal starting inventory.
+try:
+    from kaggle_environments.envs.kaggriculture.kaggriculture import MARKET_PARAMS
+
+    MARKET_BASELINE_STOCK = {
+        product: params.get("I0")
+        for product, params in MARKET_PARAMS.items()
+    }
+except ImportError:
+    MARKET_BASELINE_STOCK = {}
+
+DEFAULT_BASELINE_STOCK = 10000
+
+# Floor on the glut discount, so even a badly oversupplied crop keeps some
+# score rather than dropping out of consideration entirely.
+MIN_GLUT_DISCOUNT = 0.1
+
 
 # The only crops the environment actually defines seed metadata for.
 # (EGG / MILK / WOOL / FERTILIZER are products, not plantable crops -
@@ -107,16 +126,30 @@ SEED_SPEND_CAP_FRACTION = 0.5
 # a single farmer's upkeep capacity (watering and digging) is what actually
 # caps this agent's income: plant more tiles than one unit can water and the
 # surplus weeds out. Hands are the cheapest way to raise that ceiling.
-MAX_HANDS_PER_DAY = 4
+# Cumulative day cost by crew size: 4 hands $7, 6 hands $20, 8 hands $54.
+# Even eight is under $1,700 for a full season, which is small against the
+# extra tiles they keep alive.
+MAX_HANDS_PER_DAY = 8
 
 # Hands are cleared at the end of every day and must be re-hired each
 # morning, so hire in the first few turns - a hand bought at hour 20 costs
 # the same as one bought at hour 0 but does a fraction of the work.
-HIRE_BEFORE_HOUR = 3
+HIRE_BEFORE_HOUR = 4
 
-# Roughly how many tiles needing attention justify one more hand. Hiring
-# more units than there is work for just pays for idle walking.
-WORK_TILES_PER_HAND = 4
+# HIRE competes with SELL/BUY_SEED for the 10 market orders we get each
+# turn, and surplus orders are dropped silently. Spread the morning's hiring
+# across the first few turns instead of emitting the whole crew at once and
+# pushing the day's sales off the end of the list.
+MAX_HIRES_PER_TURN = 3
+
+# Roughly how many tiles needing attention justify one more hand. This is
+# the ratio that actually sets crew size; MAX_HANDS_PER_DAY is only a
+# ceiling for when we own more land. Measured on the opening 25-tile
+# quadrant: a ratio of 4 (about 6 hands) is clearly worse than a ratio of 6
+# (about 4 hands) - roughly 1,300 to 2,600 bank worse per season. Surplus
+# units do not idle politely, they plant tiles the crew then cannot water
+# and spend seed money doing it.
+WORK_TILES_PER_HAND = 6
 
 # Don't spend our last coins on labour - seed money matters more.
 MIN_MONEY_TO_HIRE = 150
@@ -125,6 +158,7 @@ MIN_MONEY_TO_HIRE = 150
 # and silently drops the rest (kaggriculture.json: maxMarketOrdersPerTurn),
 # so going over the cap loses orders with no error to catch.
 MAX_MARKET_ORDERS_PER_TURN = 10
+
 
 
 # ---------------------------------------------------------------------
@@ -404,8 +438,9 @@ def decide_hire_orders(farm, board_size, day, hour, seeds=None):
     work = count_pending_work(farm, board_size, day, seeds)
     wanted = min(MAX_HANDS_PER_DAY, work // WORK_TILES_PER_HAND)
     already_working = len(farm.get("hands") or [])
+    shortfall = max(0, wanted - already_working)
 
-    return [["HIRE"]] * max(0, wanted - already_working)
+    return [["HIRE"]] * min(shortfall, MAX_HIRES_PER_TURN)
 
 
 # ---------------------------------------------------------------------
@@ -469,9 +504,24 @@ def choose_crop(farm, market_state, private, day):
 
         price = prices.get(crop, 0)
         stock = inventory.get(crop, 0)
-        oversupply_penalty = stock * price
 
-        score = (price * expected_yield - oversupply_penalty) / growth_days
+        # Glut discount, measured *relative* to the market's baseline stock
+        # rather than as a raw unit count. Every product starts at an
+        # inventory of 10,000, so an absolute penalty term is not a tie
+        # breaker - it is the whole score. The previous form,
+        # (price*yield - stock*price)/days, collapsed to about
+        # -price*10000/days, which ranks crops by cheapness: it planted
+        # WHEAT (37.5 value per tile-day) and scored MELON (125.0, the best
+        # crop in the game by 2.6x) dead last, so melon was never planted.
+        #
+        # The quoted price already encodes supply - the engine derives it
+        # from inventory - so this only needs to discount a genuine glut,
+        # and never to outweigh revenue.
+        baseline = MARKET_BASELINE_STOCK.get(crop) or DEFAULT_BASELINE_STOCK
+        glut = max(0.0, stock / baseline - 1.0) if baseline else 0.0
+        glut_discount = max(1.0 - glut, MIN_GLUT_DISCOUNT)
+
+        score = price * expected_yield * glut_discount / growth_days
 
         if best_score is None or score > best_score:
             best_score = score

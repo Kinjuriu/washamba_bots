@@ -56,17 +56,45 @@ class TestChooseCrop(unittest.TestCase):
 
     def test_avoids_oversupplied_high_price_crop(self):
         # Strawberries look tempting on price alone, but the market is
-        # already flooded with them - a cheaper, undersupplied crop
-        # should win instead.
+        # genuinely flooded - three times the baseline stock of 10,000 -
+        # so a cheaper crop trading at normal supply should win instead.
         farm = {"money": 1000}
         market_state = self._market(
             prices={"STRAWBERRY": 400, "WHEAT": 30},
-            inventory={"STRAWBERRY": 200, "WHEAT": 0},
+            inventory={"STRAWBERRY": 30000, "WHEAT": 10000},
         )
         private = {"seeds": {}}
 
         chosen = choose_crop(farm, market_state, private, day=0)
         self.assertEqual(chosen, "WHEAT")
+
+    def test_prefers_the_highest_value_crop_at_normal_supply(self):
+        # Regression guard. Every product starts at an inventory of 10,000,
+        # and the original scoring subtracted stock*price outright - which
+        # collapsed to roughly -price*10000/days and therefore ranked crops
+        # by cheapness. MELON is the best crop in the game at 125 value per
+        # tile-day against WHEAT's 37.5, yet it scored dead last and was
+        # never planted. At equal, normal supply the expensive crop must win.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"MELON": 250, "WHEAT": 25},
+            inventory={"MELON": 10000, "WHEAT": 10000},
+        )
+        private = {"seeds": {}}
+
+        self.assertEqual(choose_crop(farm, market_state, private, day=0), "MELON")
+
+    def test_a_glut_still_loses_to_a_scarce_crop_of_similar_value(self):
+        # Same two crops, but melon is now heavily oversupplied: the glut
+        # discount should hand it back to wheat.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"MELON": 250, "WHEAT": 25},
+            inventory={"MELON": 100000, "WHEAT": 10000},
+        )
+        private = {"seeds": {}}
+
+        self.assertEqual(choose_crop(farm, market_state, private, day=0), "WHEAT")
 
     def test_returns_none_when_nothing_is_affordable_or_held(self):
         farm = {"money": 0}
