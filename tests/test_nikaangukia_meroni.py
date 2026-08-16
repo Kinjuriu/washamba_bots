@@ -12,6 +12,7 @@ Run with:
 import unittest
 
 from main import (
+    LIQUIDATION_START_DAY,
     MAX_HANDS_PER_DAY,
     MAX_MARKET_ORDERS_PER_TURN,
     MAX_SELL_PER_TURN,
@@ -56,17 +57,45 @@ class TestChooseCrop(unittest.TestCase):
 
     def test_avoids_oversupplied_high_price_crop(self):
         # Strawberries look tempting on price alone, but the market is
-        # already flooded with them - a cheaper, undersupplied crop
-        # should win instead.
+        # genuinely flooded - three times the baseline stock of 10,000 -
+        # so a cheaper crop trading at normal supply should win instead.
         farm = {"money": 1000}
         market_state = self._market(
             prices={"STRAWBERRY": 400, "WHEAT": 30},
-            inventory={"STRAWBERRY": 200, "WHEAT": 0},
+            inventory={"STRAWBERRY": 30000, "WHEAT": 10000},
         )
         private = {"seeds": {}}
 
         chosen = choose_crop(farm, market_state, private, day=0)
         self.assertEqual(chosen, "WHEAT")
+
+    def test_prefers_the_highest_value_crop_at_normal_supply(self):
+        # Regression guard. Every product starts at an inventory of 10,000,
+        # and the original scoring subtracted stock*price outright - which
+        # collapsed to roughly -price*10000/days and therefore ranked crops
+        # by cheapness. MELON is the best crop in the game at 125 value per
+        # tile-day against WHEAT's 37.5, yet it scored dead last and was
+        # never planted. At equal, normal supply the expensive crop must win.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"MELON": 250, "WHEAT": 25},
+            inventory={"MELON": 10000, "WHEAT": 10000},
+        )
+        private = {"seeds": {}}
+
+        self.assertEqual(choose_crop(farm, market_state, private, day=0), "MELON")
+
+    def test_a_glut_still_loses_to_a_scarce_crop_of_similar_value(self):
+        # Same two crops, but melon is now heavily oversupplied: the glut
+        # discount should hand it back to wheat.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"MELON": 250, "WHEAT": 25},
+            inventory={"MELON": 100000, "WHEAT": 10000},
+        )
+        private = {"seeds": {}}
+
+        self.assertEqual(choose_crop(farm, market_state, private, day=0), "WHEAT")
 
     def test_returns_none_when_nothing_is_affordable_or_held(self):
         farm = {"money": 0}
@@ -586,6 +615,49 @@ class TestHandCoordination(unittest.TestCase):
             "private": {"shed": {}, "seeds": {}, "inventories": [{}]},
         }
         self.assertEqual(nikaangukia_meroni(state_obs)["hands"], [])
+
+
+class TestEndOfSeasonLiquidation(unittest.TestCase):
+    def _market(self, prices):
+        return {"prices": prices, "inventory": {}}
+
+    def test_holds_a_below_threshold_price_in_midseason(self):
+        # Mid-season there is still time for the price to recover.
+        private = {"shed": {"MELON": 40}, "seeds": {}}
+        actions = decide_market_actions(
+            {"money": 0}, private, self._market({"MELON": 100}), day=12
+        )
+        self.assertEqual([a for a in actions if a[0] == "SELL"], [])
+
+    def test_sells_below_threshold_once_the_season_is_ending(self):
+        # Same price, but now the season runs out before any recovery can
+        # arrive. Stock left in the shed at the end scores nothing, so a
+        # cheap sale beats holding out for a price that will never come.
+        private = {"shed": {"MELON": 40}, "seeds": {}}
+        actions = decide_market_actions(
+            {"money": 0}, private, self._market({"MELON": 100}),
+            day=LIQUIDATION_START_DAY,
+        )
+        self.assertIn(["SELL", "MELON", MAX_SELL_PER_TURN["MELON"]], actions)
+
+    def test_liquidation_still_paces_premium_goods(self):
+        # Liquidating is not the same as dumping: the per-turn cap still
+        # applies so the final days don't crater the price in one order.
+        private = {"shed": {"MELON": 90}, "seeds": {}}
+        actions = decide_market_actions(
+            {"money": 0}, private, self._market({"MELON": 250}),
+            day=LIQUIDATION_START_DAY + 2,
+        )
+        melon_sales = [a for a in actions if a[:2] == ["SELL", "MELON"]]
+        self.assertEqual(melon_sales, [["SELL", "MELON", MAX_SELL_PER_TURN["MELON"]]])
+
+    def test_does_not_emit_sales_for_an_empty_shed(self):
+        private = {"shed": {"MELON": 0, "WHEAT": 0}, "seeds": {}}
+        actions = decide_market_actions(
+            {"money": 0}, private, self._market({"MELON": 250}),
+            day=LIQUIDATION_START_DAY,
+        )
+        self.assertEqual([a for a in actions if a[0] == "SELL"], [])
 
 
 class TestMarketOrderCap(unittest.TestCase):

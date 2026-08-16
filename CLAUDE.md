@@ -6,27 +6,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An agent for the Kaggle **Kaggriculture** simulation competition: two agents each manage a virtual farm over a 30-day season (720 turns, 24/day) and compete for the highest bank balance. There is no static train/test set — everything is scored via live episodes against other agents plus a final Bradley-Terry tournament.
 
-**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). One shared `choose_unit_action` ladder drives the main farmer **and every hired hand**, with a per-turn claim set so units spread out instead of converging on the same tile. `tests/` carries a 49-case stdlib-`unittest` suite for its helpers. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has two working exploration notebooks.
+**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). One shared `choose_unit_action` ladder drives the main farmer **and every hired hand**, with a per-turn claim set so units spread out instead of converging on the same tile. `tests/` carries a 55-case stdlib-`unittest` suite for its helpers. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has one working experiments notebook.
 
 **Current baseline — mean final bank over 12 seeded 720-turn seasons per opponent:**
 
 | vs | mean | stdev | min | max | wins |
 |---|---|---|---|---|---|
-| `pass` | 6864 | ±756 | 5758 | 8802 | 12/12 |
-| `random` | 7357 | ±1749 | 4674 | 10385 | 12/12 |
-| `starter` | 6609 | ±1826 | 4807 | 10449 | 12/12 |
+| `pass` | 33261 | ±1250 | 31544 | 35906 | 12/12 |
+| `random` | 32852 | ±981 | 31322 | 34112 | 12/12 |
+| `starter` | 33356 | ±1617 | 31814 | 37720 | 12/12 |
+
+**The single biggest win was a scoring bug, not a strategy.** `choose_crop` subtracted an absolute oversupply term: `(price*yield - stock*price)/days`. Every product starts with market inventory of 10,000, so that term was not a tie-breaker — it *was* the score, collapsing to roughly `-price*10000/days`, which ranks crops by **cheapness**. Melon is the strongest crop in the game at 125.0 value per tile-day (wheat 37.5) and it scored dead last, so the agent planted wheat all season and never once planted a melon. Discounting glut *relative to the engine's `I0` baseline* took the mean from ~7,000 to ~28,800. Generalise it: **when a score mixes a revenue term with a penalty term, check their magnitudes against real game data, not just their signs.**
+
+**Unsold inventory scores nothing** — only bank balance counts at turn 720. The shed used to finish pegged at its 100-item cap holding 95 melons, because price had drifted below a fixed sell threshold and the agent waited for a recovery the season had no time to deliver. Selling regardless of price from `LIQUIDATION_START_DAY` added ~4,400 and *narrowed* the spread, since the loss it removes concentrates in the worst seeds.
 
 **Hiring is the single highest-ROI mechanic in the game, by a wide margin.** The n-th hire of a day costs `farmHandCostMult × fib(n)` with the counter resetting each morning, so four hands cost **$1+$1+$2+$3 = $7/day — about $210 for the whole season.** That bought roughly **+1,400 mean bank** (`pass` 5635 → 6864, `random` 5264 → 7357, `starter` 5555 → 6609). Hands are cleared every night, so re-hire each morning (`HIRE_BEFORE_HOUR`); a hand bought at hour 20 costs the same and does a fraction of the work.
 
 The reason it pays so well is the same one behind the weed cascade below: **a single farmer's upkeep capacity is what caps income.** More units means more tiles watered and dug, so the farm stops decaying — a full season now ends with ~0 weeds instead of 23.
 
-Two earlier fixes moved the **floor** rather than the mean: a **season-maturity gate** (`choose_crop` refuses crops whose `first_yield_day` can't land before day 29 — the agent used to bleed cash buying tomato seed it could never harvest) and a **shed-overflow valve** (force-sell at 90/100 items, since overflow is silently discarded).
+Two earlier fixes moved the **floor** rather than the mean: a **season-maturity gate** (`choose_crop` refuses crops whose `first_yield_day` can't land before day 29 — the agent used to bleed cash buying tomato seed it could never harvest) and a **shed-overflow valve** (force-sell once the shed passes `SHED_FORCE_SELL_THRESHOLD`, since overflow past 100 items is silently discarded).
 
 **The weed cascade — fixed, and worth remembering.** The previous baseline lost to `pass` (an opponent that does nothing and banks $3000) on ~2/12 seeds, finishing *below* its own starting money. Root cause: one farmer planted more tiles than it could water, plants weeded out, and because the agent never emitted **`DIG`**, every weeded tile stayed dead for the rest of the season. The farm decayed to 23/25 weeds and sales starved to 3.9 `SELL` orders per season — zero on the losing seeds.
 
 Adding `DIG` moved every metric at once: **SELL orders 3.9 → 22.9**, **end-of-season weeds 23.0 → 2.1**, and the sub-$3000 downside disappeared. The lesson generalizes: **tile upkeep capacity, not sell-price tuning, is what gates this agent's income.** Before optimizing thresholds, check how many tiles are alive at season end.
 
-Still unimplemented: animals, `FEED`/`CARE`, `FERTILIZE`, `BUY_LAND`, and shed transfers (`DROP`/`PICKUP`). `BUY_LAND` is the obvious next lever now that the crew can actually maintain more tiles than the NW quadrant holds.
+Still unimplemented: animals, `FEED`/`CARE`, `FERTILIZE`, and shed transfers (`DROP`/`PICKUP`).
+
+**Measured dead ends — don't re-run these without changing something first.** Both were plausible and both lost, twice each, on the full 12-seed batch:
+
+- **`BUY_LAND` is a loss, even when rich.** Tested at a ~7k bank (mean roughly halved, win rate 12/12 → 6/12) and again at a ~29k bank where the $1k/$2k/$4k quadrants are pocket change (still ~2,000–2,900 worse). More ground spreads a fixed crew thinner, and melon needs sustained watering to reach full yield. **The crew, not the acreage, is the ceiling** — revisit only alongside a genuine upkeep increase.
+- **A denser crew is a loss.** `WORK_TILES_PER_HAND` of 4 (about 6 hands) instead of 6 (about 4 hands) cost 1,300–3,400 depending on the era it was tested in. Surplus units don't idle politely: they plant tiles the crew then can't water, and spend seed money doing it.
 
 ## Sources of truth, in priority order
 

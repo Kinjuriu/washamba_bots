@@ -48,6 +48,43 @@ except ImportError:
     # will still harvest/water/sell/PASS safely.
     CROPS = {}
 
+# Baseline market stock per product (the engine's I0, 10,000 for every
+# product at time of writing). Crop scoring needs it to tell a real glut
+# from the normal starting inventory.
+try:
+    from kaggle_environments.envs.kaggriculture.kaggriculture import MARKET_PARAMS
+
+    MARKET_BASELINE_STOCK = {
+        product: params.get("I0")
+        for product, params in MARKET_PARAMS.items()
+    }
+except ImportError:
+    MARKET_BASELINE_STOCK = {}
+
+DEFAULT_BASELINE_STOCK = 10000
+
+# How many units a product's market absorbs before its price falls apart
+# (the engine's per-resource T). This varies hugely and is the difference
+# between a crop being worth growing in bulk or not: at T units above the
+# baseline, WHEAT still fetches $20 of its $25 base, while MELON goes from
+# $250 to $1 and STRAWBERRY from $120 to $1.
+try:
+    from kaggle_environments.envs.kaggriculture.kaggriculture import MARKET_PARAMS as _MP
+
+    MARKET_ABSORPTION = {product: params.get("T") for product, params in _MP.items()}
+except ImportError:
+    MARKET_ABSORPTION = {}
+
+DEFAULT_ABSORPTION = 300
+
+# How hard our own incoming supply discounts a crop. Higher means the agent
+# diversifies sooner rather than pouring an entire season into one market.
+SELF_SUPPLY_EXPONENT = 2.0
+
+# Floor on the glut discount, so even a badly oversupplied crop keeps some
+# score rather than dropping out of consideration entirely.
+MIN_GLUT_DISCOUNT = 0.1
+
 
 # The only crops the environment actually defines seed metadata for.
 # (EGG / MILK / WOOL / FERTILIZER are products, not plantable crops -
@@ -94,7 +131,17 @@ SEASON_DAYS = 30
 # threshold, right up until it overflows and evaporates for free. Once the
 # shed gets this full, force a sale regardless of price - a mediocre sale
 # beats a guaranteed $0.
-SHED_FORCE_SELL_THRESHOLD = 90
+SHED_FORCE_SELL_THRESHOLD = 70
+
+# Anything still sitting in the shed when the season ends is worth exactly
+# nothing - there is no scoring credit for inventory, only for bank balance.
+# Measured on a real season: the shed sat at its 100-item cap on day 28
+# holding 95 melons, because the price had drifted below the sell threshold
+# and the agent kept waiting for a recovery that the season had no time
+# left to deliver. From this day on, sell everything regardless of price.
+# Still spread across turns via MAX_SELL_PER_TURN so the last few days
+# don't dump the whole stock into one price-crashing order.
+LIQUIDATION_START_DAY = 25
 
 # Never spend more than this fraction of our current cash on a single
 # seed purchase, so a bad crop pick can't wipe out our bank balance.
@@ -107,16 +154,30 @@ SEED_SPEND_CAP_FRACTION = 0.5
 # a single farmer's upkeep capacity (watering and digging) is what actually
 # caps this agent's income: plant more tiles than one unit can water and the
 # surplus weeds out. Hands are the cheapest way to raise that ceiling.
-MAX_HANDS_PER_DAY = 4
+# Cumulative day cost by crew size: 4 hands $7, 6 hands $20, 8 hands $54.
+# Even eight is under $1,700 for a full season, which is small against the
+# extra tiles they keep alive.
+MAX_HANDS_PER_DAY = 8
 
 # Hands are cleared at the end of every day and must be re-hired each
 # morning, so hire in the first few turns - a hand bought at hour 20 costs
 # the same as one bought at hour 0 but does a fraction of the work.
-HIRE_BEFORE_HOUR = 3
+HIRE_BEFORE_HOUR = 4
 
-# Roughly how many tiles needing attention justify one more hand. Hiring
-# more units than there is work for just pays for idle walking.
-WORK_TILES_PER_HAND = 4
+# HIRE competes with SELL/BUY_SEED for the 10 market orders we get each
+# turn, and surplus orders are dropped silently. Spread the morning's hiring
+# across the first few turns instead of emitting the whole crew at once and
+# pushing the day's sales off the end of the list.
+MAX_HIRES_PER_TURN = 3
+
+# Roughly how many tiles needing attention justify one more hand. This is
+# the ratio that actually sets crew size; MAX_HANDS_PER_DAY is only a
+# ceiling for when we own more land. Measured on the opening 25-tile
+# quadrant: a ratio of 4 (about 6 hands) is clearly worse than a ratio of 6
+# (about 4 hands) - roughly 1,300 to 2,600 bank worse per season. Surplus
+# units do not idle politely, they plant tiles the crew then cannot water
+# and spend seed money doing it.
+WORK_TILES_PER_HAND = 6
 
 # Don't spend our last coins on labour - seed money matters more.
 MIN_MONEY_TO_HIRE = 150
@@ -125,6 +186,7 @@ MIN_MONEY_TO_HIRE = 150
 # and silently drops the rest (kaggriculture.json: maxMarketOrdersPerTurn),
 # so going over the cap loses orders with no error to catch.
 MAX_MARKET_ORDERS_PER_TURN = 10
+
 
 
 # ---------------------------------------------------------------------
@@ -404,13 +466,40 @@ def decide_hire_orders(farm, board_size, day, hour, seeds=None):
     work = count_pending_work(farm, board_size, day, seeds)
     wanted = min(MAX_HANDS_PER_DAY, work // WORK_TILES_PER_HAND)
     already_working = len(farm.get("hands") or [])
+    shortfall = max(0, wanted - already_working)
 
-    return [["HIRE"]] * max(0, wanted - already_working)
+    return [["HIRE"]] * min(shortfall, MAX_HIRES_PER_TURN)
 
 
 # ---------------------------------------------------------------------
 # Crop selection
 # ---------------------------------------------------------------------
+
+def count_pipeline_supply(farm, private):
+    """
+    Units of each crop we are already committed to selling: everything
+    growing on our own tiles, plus whatever is already in the shed.
+
+    This is the supply that will hit the market *because of us*, and it is
+    the number the planting decision has to respect. Spot price says what a
+    unit fetches today; it says nothing about what it will fetch after our
+    own harvest lands.
+    """
+    supply = {}
+
+    for product, quantity in (private.get("shed") or {}).items():
+        if quantity:
+            supply[product] = supply.get(product, 0) + quantity
+
+    for row in (farm.get("tiles") or []):
+        for tile in row:
+            if isinstance(tile, dict) and tile.get("kind") == "PLANT":
+                crop = tile.get("crop")
+                crop_info = CROPS.get(crop) or {}
+                supply[crop] = supply.get(crop, 0) + (crop_info.get("max_yield") or 1)
+
+    return supply
+
 
 def choose_crop(farm, market_state, private, day):
     """
@@ -444,6 +533,7 @@ def choose_crop(farm, market_state, private, day):
     inventory = market_state.get("inventory", {})
     seeds = private.get("seeds", {})
     remaining_days = remaining_season_days(day)
+    pipeline = count_pipeline_supply(farm, private)
 
     best_crop = None
     best_score = None
@@ -469,9 +559,40 @@ def choose_crop(farm, market_state, private, day):
 
         price = prices.get(crop, 0)
         stock = inventory.get(crop, 0)
-        oversupply_penalty = stock * price
 
-        score = (price * expected_yield - oversupply_penalty) / growth_days
+        # Glut discount, measured *relative* to the market's baseline stock
+        # rather than as a raw unit count. Every product starts at an
+        # inventory of 10,000, so an absolute penalty term is not a tie
+        # breaker - it is the whole score. The previous form,
+        # (price*yield - stock*price)/days, collapsed to about
+        # -price*10000/days, which ranks crops by cheapness: it planted
+        # WHEAT (37.5 value per tile-day) and scored MELON (125.0, the best
+        # crop in the game by 2.6x) dead last, so melon was never planted.
+        #
+        # The quoted price already encodes supply - the engine derives it
+        # from inventory - so this only needs to discount a genuine glut,
+        # and never to outweigh revenue.
+        baseline = MARKET_BASELINE_STOCK.get(crop) or DEFAULT_BASELINE_STOCK
+        glut = max(0.0, stock / baseline - 1.0) if baseline else 0.0
+        glut_discount = max(1.0 - glut, MIN_GLUT_DISCOUNT)
+
+        # Our own incoming supply. Spot price is what a unit fetches today,
+        # but a melon planted now sells 12 days from now - after our own
+        # harvest has hit the market. Measured: growing melon on most tiles
+        # drives the melon price from $250 to about $4 by season end with no
+        # opponent involved at all, so the back half of every harvest sells
+        # for nearly nothing.
+        #
+        # Weight that pressure by how much punishment the specific market
+        # takes: at T units above baseline WHEAT still fetches $20 of $25,
+        # while MELON goes to $1. So this pushes volume toward crops that
+        # absorb it and keeps the fragile, high-value ones scarce enough to
+        # stay valuable.
+        absorption = MARKET_ABSORPTION.get(crop) or DEFAULT_ABSORPTION
+        pressure = pipeline.get(crop, 0) / absorption if absorption else 0.0
+        self_supply_discount = 1.0 / (1.0 + pressure) ** SELF_SUPPLY_EXPONENT
+
+        score = price * expected_yield * glut_discount * self_supply_discount / growth_days
 
         if best_score is None or score > best_score:
             best_score = score
@@ -536,8 +657,12 @@ def decide_market_actions(farm, private, market_state, day):
     # per product (see MAX_SELL_PER_TURN) so a big harvest of a premium good
     # doesn't dump the whole stack into one price-crashing order.
     shed = private.get("shed", {})
+    liquidating = day >= LIQUIDATION_START_DAY
+
     for product, quantity in shed.items():
-        if should_sell(product, quantity, market_state):
+        # Near the end of the season, price thresholds stop mattering:
+        # unsold stock scores nothing, so any sale beats holding out.
+        if quantity > 0 and (liquidating or should_sell(product, quantity, market_state)):
             cap = MAX_SELL_PER_TURN.get(product, quantity)
             actions.append(["SELL", product, min(quantity, cap)])
             already_selling.add(product)
