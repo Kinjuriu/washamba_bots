@@ -2,6 +2,47 @@
 
 An autonomous agent for [Kaggriculture](https://kaggle.com/competitions/kaggriculture), a Kaggle simulation competition: two agents each run a virtual farm for a 30-day season (720 turns) and compete head-to-head for the highest bank balance.
 
+## Team status
+
+> **Before you submit anything to Kaggle, check with the team.** We get **5 submissions/day** and **only the latest 2 stay active** for matchmaking and final scoring — an extra upload silently deactivates work that is still collecting ladder signal.
+
+**Where we stand:** our best converged submission scored **289.3**. The top 20 on the leaderboard sit around **2,937–3,211**. We are not competitive yet.
+
+**Local baseline** (`main.py`, mean final bank over 12 seeded 720-turn seasons):
+
+| vs | mean | wins |
+|---|---|---|
+| `pass` | 35,752 | 12/12 |
+| `random` | 35,325 | 12/12 |
+| `starter` | 35,519 | 12/12 |
+| **self-play** | **~22,900/side** | — |
+
+**Read the self-play number, not the others.** `pass`, `random` and `starter` sell nothing, so they leave every market untouched and flatter us badly — that gap is why a 33,000 local score became 289.3 on the ladder. Self-play is the cheapest honest proxy for a real opponent competing in the same market.
+
+### How to evaluate a change
+
+Never on a single episode — run-to-run spread on an identical agent exceeds 1,400 bank.
+
+```bash
+.venv/Scripts/python.exe -m unittest discover -s tests   # 55 tests
+.venv/Scripts/python.exe experiments/seeded_batch.py     # mean / stdev / win-rate
+```
+
+A/B against `pass` and `starter`: a fixed `seed` makes the environment deterministic but does **not** control the built-in `random` agent's own RNG.
+
+Before any submission, run the self-play gate — Kaggle validates every upload with an agent-vs-itself episode, and a crash there rejects it regardless of strategy:
+
+```bash
+.venv/Scripts/python.exe -c "
+from kaggle_environments import make
+env = make('kaggriculture', configuration={'episodeSteps': 720, 'seed': 0})
+env.run(['main.py', 'main.py'])
+print([s.status for s in env.steps[-1]])   # must be ['DONE', 'DONE']
+"
+```
+
+`CLAUDE.md` carries the full engineering detail: measured dead ends (`BUY_LAND` and denser crews both lose money — twice-tested), silent-failure gotchas, and the agent I/O contract.
+
 Full competition rules, game mechanics, pricing formulas, and observation/action schemas are compiled in **[`docs/kaggriculture_context.md`](docs/kaggriculture_context.md)** — read it before changing any game logic. `CLAUDE.md` has the condensed version for AI coding agents working in this repo.
 
 ## Agent anatomy
@@ -73,20 +114,22 @@ flowchart TD
 
 ```text
 washamba_bots/
-├── main.py                 # Actual competition agent entrypoint
-├── agent/
-│   ├── __init__.py
-│   ├── state.py
-│   ├── strategy.py
-│   ├── economy.py
-│   ├── movement.py
-│   └── planner.py
-├── experiments/             # Baselines and experiments
-├── notebooks/               # Exploration notebooks
-├── tests/
-├── README.md
-└── requirements.txt
+├── main.py                  # The agent. This single file IS the submission.
+├── tests/                   # 55 stdlib-unittest cases for main.py's helpers
+├── experiments/             # Evaluation tooling
+│   ├── seeded_batch.py      #   mean / stdev / win-rate vs the built-ins
+│   ├── benchmark.py         #   adds melon_maxxer from the official notebook
+│   ├── replay_diagnostics.py#   action histogram + end-of-farm state
+│   └── market_probe.py
+├── notebooks/               # Experiments notebook (charts, diagnostics)
+├── docs/                    # Compiled competition reference
+├── CLAUDE.md                # Engineering notes: gotchas, dead ends, contracts
+└── README.md
 ```
+
+`main.py` is deliberately a single file — the competition accepts one `main.py` at the repo root, and keeping it self-contained avoids packaging a tarball. There is no `agent/` package; the earlier multi-module layout was never built.
+
+**One entrypoint rule worth knowing before you edit `main.py`:** the framework picks **the last callable in the module namespace**, not a function named `agent`. A helper function or class defined *below* the agent silently becomes the submission — the episode still reports `DONE`, every action is discarded, and the agent finishes on exactly its starting $3,000. The file ends with `agent = nikaangukia_meroni`; keep that line last.
 
 ## Project architecture
 
@@ -179,15 +222,31 @@ flowchart TD
 
 ## Setup
 
+We use [`uv`](https://docs.astral.sh/uv/) — it manages the interpreter itself, so no `pyenv` needed:
+
 ```bash
-pyenv install --skip-existing 3.12.3
-pyenv exec python -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip setuptools wheel
-python -m pip install -r requirements.txt
+uv venv --python 3.13.7 .venv
+uv pip install --python .venv/Scripts/python.exe \
+  "kaggle-environments>=1.32.6" kaggle \
+  numpy pandas matplotlib seaborn jupyterlab ipykernel
 ```
 
-The repository's `.python-version` selects Python 3.12.3 when pyenv is active. In VS Code, select `.venv/bin/python` as the Python interpreter and notebook kernel.
+On macOS the interpreter is `.venv/bin/python` instead of `.venv/Scripts/python.exe`. **Don't commit either path** — the team is split across macOS and Windows, and a hardcoded interpreter path silently breaks the other half: VS Code falls back to the system Python and every `import kaggle_environments` fails while the venv sits there working. The Python extension auto-discovers `.venv` on both platforms.
+
+`kaggle-environments>=1.32.6` is not optional. Competition staff shipped a mid-season balance patch (Town Center demand, shop sampling with replacement); anything older simulates different rules. The official starter notebook still pins `>=1.32.2` — don't copy that.
+
+`requirements.txt` is a broad 190-package `pip freeze` from a wider ML workspace, not this agent's dependency set. Installing it wholesale isn't required.
+
+### Notebooks
+
+Select the **`Python 3.13 (washamba_bots)`** kernel. Register it once:
+
+```bash
+.venv/Scripts/python.exe -m ipykernel install --user \
+  --name washamba-bots --display-name "Python 3.13 (washamba_bots)"
+```
+
+A kernelspec whose launch command is the bare word `python` rather than an absolute path will start whatever is first on `PATH` — which is how a notebook ends up on the system Python reporting `No module named kaggle_environments`. For the same reason use `%pip install` in notebooks, never `!pip install`: `%pip` targets the running kernel, `!pip` shells out to `PATH`.
 
 Generate a Kaggle API token at kaggle.com/settings/api and save it to `~/.kaggle/access_token` (or `kaggle auth login`, or set `KAGGLE_API_TOKEN`).
 
