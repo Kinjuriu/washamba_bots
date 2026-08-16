@@ -61,7 +61,26 @@ Still unimplemented: `FERTILIZE` (see PR #5), `BUY_LAND`, cow/sheep (`ACTIVE_ANI
 
 The daily-feed change *looked* like a 35% drop in planting and was in fact a 36% **rise** in plants landed. Still on the table: a per-turn seed budget shared across units, so a crop is only chosen while uncommitted seed remains — worth ~43 unit-turns a season now, down from 144. (An older review put the block rate at 93%; that was a different build.)
 
-**Measured dead ends — don't re-run these without changing something first.** Both were plausible and both lost, twice each, on the full 12-seed batch:
+**Each market's decay shape decides how much it can absorb — this is not in the docs and it drives everything.** Above the `I0` baseline, `price = base - above_target * base / shape(T,T) * shape(excess, T)`. The *shape* matters more than the base price. Total revenue extractable before a market hits the $1 floor, computed from `MARKET_PARAMS`:
+
+| market | shape | units to floor | total $ | $/unit |
+|---|---|---|---|---|
+| EGG | log | 2000+ | 77,171 | 39 |
+| WHEAT | log | 2000+ | 39,018 | 20 |
+| MELON | **sq** | **158** | 26,236 | 166 |
+| TOMATO | sqrt | 529 | 11,069 | 21 |
+| CARROT | sqrt | 842 | 10,646 | 13 |
+| STRAWBERRY | **linear** | **62** | 3,690 | 60 |
+
+Melon collapses quadratically — unit 50 fetches $225, unit 150 fetches $25, everything past 158 is $1. **But do not conclude melon should be throttled: the town consumes inventory daily, so a market recovers between sales and the static numbers above are a floor, not a budget.** Three attempts to act on this table directly all lost (below). Treat it as an explanation of *why spreading sales over time works*, not as a quota.
+
+**Use `head_to_head.py` for anything that changes selling.** Built-in opponents never sell, so market-timing changes look free against them; only a contested order book can price them. Seats are not symmetric — identical code gives seat 0 a few hundred less — so the harness plays both seats and averages. Always include the baseline against itself as a control; it must come out at ~0.
+
+**Measured dead ends — don't re-run these without changing something first.** All lost on the full batch:
+
+- **More animals is a loss, and the old explanation was wrong.** `MAX_ANIMALS` at 2/3/4/6 scored 38,413 / 33,983 / 33,617 / 21,749 against 43,099 for one goose (seed 0 vs `starter`). Eggs rise with every goose (52 → 188) and money falls anyway: each coop costs a crop tile *and* a share of the crew's upkeep turns. The earlier note blamed "escape failures" and that theory died with the daily-feeding fix — this was re-tested afterwards and still loses, so the cause is tile-and-turn opportunity cost, not husbandry.
+- **Diversifying away from melon is a large loss.** Raising `SELF_SUPPLY_EXPONENT` from 2.0 to 3.0/4.0/6.0 scored **-6,883 / -5,594 / -9,858** head-to-head against the current agent, losing every match. Melon concentration survives its own price crash.
+- **Selling melon in smaller slices is a large loss.** `MAX_SELL_PER_TURN["MELON"]` from 15 to 6: **-5,958, 0/8 matches.**
 
 - **`BUY_LAND` is a loss, even when rich.** Tested at a ~7k bank (mean roughly halved, win rate 12/12 → 6/12) and again at a ~29k bank where the $1k/$2k/$4k quadrants are pocket change (still ~2,000–2,900 worse). More ground spreads a fixed crew thinner, and melon needs sustained watering to reach full yield. **The crew, not the acreage, is the ceiling** — revisit only alongside a genuine upkeep increase.
 - **A denser crew is a loss.** `WORK_TILES_PER_HAND` of 4 (about 6 hands) instead of 6 (about 4 hands) cost 1,300–3,400 depending on the era it was tested in. Surplus units don't idle politely: they plant tiles the crew then can't water, and spend seed money doing it.
