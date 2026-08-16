@@ -1097,6 +1097,20 @@ def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
     # hand, so buying speculatively wastes both money and turns. A Goose
     # supplies it free, so in practice this only tops up when the crops
     # want more than the animal produced.
+    #
+    # DO NOT "fix" this to stop buying once liquidation starts. It looks
+    # like churn - from LIQUIDATION_START_DAY the sell loop stops exempting
+    # FERTILIZER, so we buy and sell the same product on the same day, 111
+    # units bought and 137 sold on one measured season. It was tried, and it
+    # loses: -529 head to head, winning 1 of 16 matches.
+    #
+    # The round trip is profitable, not wasteful. FERTILIZER is one of only
+    # two products BUY_PRODUCT accepts at all, its price curve is gentle and
+    # symmetric (linear both sides, target 0.40 each way), and the town
+    # consumes stock daily so the price drifts *up* across the season. Buying
+    # a unit and selling it later nets money: ~10,767 spent against ~13,284
+    # received, **+2,517 on one season**. We arrived at that by accident;
+    # see CLAUDE.md before trying to do it deliberately.
     if day <= FERTILIZER_LAST_USEFUL_DAY:
         held = shed.get("FERTILIZER", 0) + sum(
             (carried or {}).get("FERTILIZER", 0)

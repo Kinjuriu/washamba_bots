@@ -76,6 +76,10 @@ Melon collapses quadratically — unit 50 fetches $225, unit 150 fetches $25, ev
 
 **Use `head_to_head.py` for anything that changes selling.** Built-in opponents never sell, so market-timing changes look free against them; only a contested order book can price them. Seats are not symmetric — identical code gives seat 0 a few hundred less — so the harness plays both seats and averages. Always include the baseline against itself as a control; it must come out at ~0.
 
+**`FERTILIZER` can be traded, and we are already doing it by accident.** `BUY_PRODUCT` accepts only `WHEAT` and `FERTILIZER`, and fertilizer's curve is gentle and symmetric — `linear` both directions, target 0.40 each way — while the town consumes stock daily, so its price drifts **up** over the season. From `LIQUIDATION_START_DAY` the sell loop stops exempting fertilizer, so the agent buys and sells it on the same days. That looks exactly like the churn bug we fixed in PR #5, and it is not: one measured season spent ~10,767 buying 111 units and received ~13,284 selling 137, **netting +2,517**.
+
+It was "fixed" once — buying blocked during liquidation — and that lost **-529 head to head, winning 1 of 16 matches**, so the fix was reverted (`af2a7e4`). There is a `DO NOT "fix" this` comment on the buy rule in `main.py`. **The open question is whether doing it deliberately is worth much more**: the current behaviour buys one unit a turn only because `wanted > held` happens to stay true while liquidation drains the shed. Nobody has tried sizing it on purpose.
+
 **Measured dead ends — don't re-run these without changing something first.** All lost on the full batch:
 
 - **More animals is a loss, and the old explanation was wrong.** `MAX_ANIMALS` at 2/3/4/6 scored 38,413 / 33,983 / 33,617 / 21,749 against 43,099 for one goose (seed 0 vs `starter`). Eggs rise with every goose (52 → 188) and money falls anyway: each coop costs a crop tile *and* a share of the crew's upkeep turns. The earlier note blamed "escape failures" and that theory died with the daily-feeding fix — this was re-tested afterwards and still loses, so the cause is tile-and-turn opportunity cost, not husbandry.
