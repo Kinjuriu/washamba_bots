@@ -63,6 +63,24 @@ except ImportError:
 
 DEFAULT_BASELINE_STOCK = 10000
 
+# How many units a product's market absorbs before its price falls apart
+# (the engine's per-resource T). This varies hugely and is the difference
+# between a crop being worth growing in bulk or not: at T units above the
+# baseline, WHEAT still fetches $20 of its $25 base, while MELON goes from
+# $250 to $1 and STRAWBERRY from $120 to $1.
+try:
+    from kaggle_environments.envs.kaggriculture.kaggriculture import MARKET_PARAMS as _MP
+
+    MARKET_ABSORPTION = {product: params.get("T") for product, params in _MP.items()}
+except ImportError:
+    MARKET_ABSORPTION = {}
+
+DEFAULT_ABSORPTION = 300
+
+# How hard our own incoming supply discounts a crop. Higher means the agent
+# diversifies sooner rather than pouring an entire season into one market.
+SELF_SUPPLY_EXPONENT = 2.0
+
 # Floor on the glut discount, so even a badly oversupplied crop keeps some
 # score rather than dropping out of consideration entirely.
 MIN_GLUT_DISCOUNT = 0.1
@@ -457,6 +475,32 @@ def decide_hire_orders(farm, board_size, day, hour, seeds=None):
 # Crop selection
 # ---------------------------------------------------------------------
 
+def count_pipeline_supply(farm, private):
+    """
+    Units of each crop we are already committed to selling: everything
+    growing on our own tiles, plus whatever is already in the shed.
+
+    This is the supply that will hit the market *because of us*, and it is
+    the number the planting decision has to respect. Spot price says what a
+    unit fetches today; it says nothing about what it will fetch after our
+    own harvest lands.
+    """
+    supply = {}
+
+    for product, quantity in (private.get("shed") or {}).items():
+        if quantity:
+            supply[product] = supply.get(product, 0) + quantity
+
+    for row in (farm.get("tiles") or []):
+        for tile in row:
+            if isinstance(tile, dict) and tile.get("kind") == "PLANT":
+                crop = tile.get("crop")
+                crop_info = CROPS.get(crop) or {}
+                supply[crop] = supply.get(crop, 0) + (crop_info.get("max_yield") or 1)
+
+    return supply
+
+
 def choose_crop(farm, market_state, private, day):
     """
     Pick the crop we'd most like to plant next, or None if nothing makes
@@ -489,6 +533,7 @@ def choose_crop(farm, market_state, private, day):
     inventory = market_state.get("inventory", {})
     seeds = private.get("seeds", {})
     remaining_days = remaining_season_days(day)
+    pipeline = count_pipeline_supply(farm, private)
 
     best_crop = None
     best_score = None
@@ -531,7 +576,23 @@ def choose_crop(farm, market_state, private, day):
         glut = max(0.0, stock / baseline - 1.0) if baseline else 0.0
         glut_discount = max(1.0 - glut, MIN_GLUT_DISCOUNT)
 
-        score = price * expected_yield * glut_discount / growth_days
+        # Our own incoming supply. Spot price is what a unit fetches today,
+        # but a melon planted now sells 12 days from now - after our own
+        # harvest has hit the market. Measured: growing melon on most tiles
+        # drives the melon price from $250 to about $4 by season end with no
+        # opponent involved at all, so the back half of every harvest sells
+        # for nearly nothing.
+        #
+        # Weight that pressure by how much punishment the specific market
+        # takes: at T units above baseline WHEAT still fetches $20 of $25,
+        # while MELON goes to $1. So this pushes volume toward crops that
+        # absorb it and keeps the fragile, high-value ones scarce enough to
+        # stay valuable.
+        absorption = MARKET_ABSORPTION.get(crop) or DEFAULT_ABSORPTION
+        pressure = pipeline.get(crop, 0) / absorption if absorption else 0.0
+        self_supply_discount = 1.0 / (1.0 + pressure) ** SELF_SUPPLY_EXPONENT
+
+        score = price * expected_yield * glut_discount * self_supply_discount / growth_days
 
         if best_score is None or score > best_score:
             best_score = score
