@@ -17,8 +17,10 @@ from main import (
     MAX_HANDS_PER_DAY,
     MAX_MARKET_ORDERS_PER_TURN,
     MAX_SELL_PER_TURN,
+    SEASON_DAYS,
     WHEAT_CARRY_BATCH,
     carried_animal,
+    choose_animal_to_build,
     choose_crop,
     choose_farmer_action,
     choose_unit_action,
@@ -33,7 +35,6 @@ from main import (
     nikaangukia_meroni,
     scan_animal_structures,
     shed_access_tiles,
-    should_build_structure,
     should_sell,
     step_toward,
 )
@@ -728,7 +729,7 @@ class TestAnimalCounting(unittest.TestCase):
         self.assertEqual(count_owned_animals(farm, private, 1), 3)
 
 
-class TestShouldBuildStructure(unittest.TestCase):
+class TestChooseAnimalToBuild(unittest.TestCase):
     def _farm(self, tiles, money):
         return {"money": money, "tiles": tiles, "farmer": [0, 0], "hands": []}
 
@@ -736,22 +737,30 @@ class TestShouldBuildStructure(unittest.TestCase):
         # GOOSE costs 300; ANIMAL_SPEND_CAP_FRACTION=0.5 means we need
         # money >= 600 before committing to one.
         farm = self._farm([[None]], money=1000)
-        self.assertTrue(should_build_structure(farm, 1))
+        self.assertEqual(choose_animal_to_build(farm, 1, day=0), "GOOSE")
 
     def test_does_not_build_when_unaffordable(self):
         farm = self._farm([[None]], money=100)
-        self.assertFalse(should_build_structure(farm, 1))
+        self.assertIsNone(choose_animal_to_build(farm, 1, day=0))
 
     def test_does_not_build_when_a_structure_is_already_unfilled(self):
         # One empty coop is already waiting for an animal - don't tie up a
         # second tile before that one's even filled.
         farm = self._farm([[None, {"kind": "COOP"}]], money=10000)
-        self.assertFalse(should_build_structure(farm, 1))
+        self.assertIsNone(choose_animal_to_build(farm, 1, day=0))
 
     def test_does_not_build_past_the_cap(self):
         tiles = [[_unfed_goose_coop() for _ in range(MAX_ANIMALS)] + [None]]
         farm = self._farm(tiles, money=10000)
-        self.assertFalse(should_build_structure(farm, 1))
+        self.assertIsNone(choose_animal_to_build(farm, 1, day=0))
+
+    def test_refuses_a_species_that_cannot_mature_before_season_end(self):
+        # GOOSE's first_yield_day is 4 - on the second-to-last day there
+        # isn't time left to reach even a first harvest, so building for it
+        # now would tie up a tile and cash for a guaranteed dead loss, the
+        # same way choose_crop() refuses a too-slow crop.
+        farm = self._farm([[None]], money=10000)
+        self.assertIsNone(choose_animal_to_build(farm, 1, day=SEASON_DAYS - 2))
 
 
 class TestDecideAnimalMarketActions(unittest.TestCase):
@@ -761,27 +770,33 @@ class TestDecideAnimalMarketActions(unittest.TestCase):
     def test_buys_an_animal_when_affordable_and_under_cap(self):
         farm = self._farm([[None]], money=1000)
         private = {"shed": {}, "inventories": [{}]}
-        actions = decide_animal_market_actions(farm, private, 1)
+        actions = decide_animal_market_actions(farm, private, 1, day=0)
         self.assertIn(["BUY_ANIMAL", "GOOSE", 1], actions)
 
     def test_does_not_buy_past_the_cap(self):
         tiles = [[_unfed_goose_coop() for _ in range(MAX_ANIMALS)]]
         farm = self._farm(tiles, money=10000)
         private = {"shed": {}, "inventories": [{}]}
-        actions = decide_animal_market_actions(farm, private, 1)
+        actions = decide_animal_market_actions(farm, private, 1, day=0)
+        self.assertNotIn(["BUY_ANIMAL", "GOOSE", 1], actions)
+
+    def test_does_not_buy_a_species_that_cannot_mature_before_season_end(self):
+        farm = self._farm([[None]], money=1000)
+        private = {"shed": {}, "inventories": [{}]}
+        actions = decide_animal_market_actions(farm, private, 1, day=SEASON_DAYS - 2)
         self.assertNotIn(["BUY_ANIMAL", "GOOSE", 1], actions)
 
     def test_buys_wheat_when_reserve_is_empty_and_an_animal_is_placed(self):
         farm = self._farm([[_unfed_goose_coop()]], money=1000)
         private = {"shed": {}, "inventories": [{}]}
-        actions = decide_animal_market_actions(farm, private, 1)
+        actions = decide_animal_market_actions(farm, private, 1, day=0)
         self.assertIn(["BUY_PRODUCT", "WHEAT", 1], actions)
 
     def test_does_not_buy_wheat_when_no_animal_is_placed_yet(self):
         # Nothing needs feeding yet - no reason to stockpile wheat for it.
         farm = self._farm([[None]], money=1000)
         private = {"shed": {}, "inventories": [{}]}
-        actions = decide_animal_market_actions(farm, private, 1)
+        actions = decide_animal_market_actions(farm, private, 1, day=0)
         self.assertNotIn(["BUY_PRODUCT", "WHEAT", 1], actions)
 
 
