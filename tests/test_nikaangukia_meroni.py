@@ -70,7 +70,9 @@ class TestChooseCrop(unittest.TestCase):
         farm = {"money": 1000}
         market_state = self._market(
             prices={"STRAWBERRY": 400, "WHEAT": 30},
-            inventory={"STRAWBERRY": 200, "WHEAT": 0},
+            # Compare against the engine's 10,000-unit baseline; a small
+            # absolute inventory is not a glut.
+            inventory={"STRAWBERRY": 30000, "WHEAT": 10000},
         )
         private = {"seeds": {}}
 
