@@ -111,9 +111,14 @@ Pass `seed` in the configuration to make episodes reproducible — but **only ag
 Compare a change against the same seed set:
 
 ```bash
-.venv/Scripts/python.exe experiments/seeded_batch.py   # mean/stdev/win-rate vs all 3 built-ins
-.venv/Scripts/python.exe experiments/benchmark.py      # adds melon_maxxer from the official notebook
+.venv/Scripts/python.exe experiments/seeded_batch.py     # mean/stdev/win-rate vs all 3 built-ins
+.venv/Scripts/python.exe experiments/benchmark.py        # adds melon_maxxer from the official notebook
+.venv/Scripts/python.exe experiments/selfplay_bench.py 6 # agent vs itself - the honest number
 ```
+
+**`selfplay_bench.py` is the one that predicts ladder movement.** The three built-in opponents sell *nothing*, so they leave every market at its starting inventory and our produce always clears high — which is how a 33,000 local score converged to 289 on the real ladder. Use `seeded_batch.py` as a regression check, and self-play to judge whether a change is actually good.
+
+These runs take 3-10 minutes and emit thousands of lines of environment-registration noise, so **don't run them in the main thread** — dispatch them to a Sonnet subagent. The `delegate` skill (`.claude/skills/delegate/`) has the routing table and a brief checklist that keeps a delegated run from failing on the wrong interpreter or a missing baseline.
 
 At ~7s per season, 12 seeds × 3 opponents is about 4 minutes. Report mean and win-rate, not a single score. `experiments/replay_diagnostics.py` breaks a single episode down by action histogram and end-of-farm state — that's what found the weed cascade. Replay JSONs it dumps are multi-MB and gitignored.
 
