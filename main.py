@@ -461,7 +461,7 @@ def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None, exclude
                           now.
       "water_urgent"   - a plant tile that already missed a watering and
                           will turn into a weed if it's missed again today.
-      "feed_urgent"    - an animal tile that already missed a feeding and
+      "feed"    - an animal tile that already missed a feeding and
                           will escape for good if it's missed again today.
       "weed"           - a dead tile that can be dug back into plantable
                           ground.
@@ -502,11 +502,10 @@ def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None, exclude
             elif isinstance(tile, dict) and "animal" in tile:
                 is_ripe = tile.get("yield_units", 0) > 0
                 needs_feed = not tile.get("fed_today", True)
-                missed_before = tile.get("consecutive_unfed", 0) >= 1
 
                 if task == "harvest" and is_ripe:
                     is_match = True
-                elif task == "feed_urgent" and needs_feed and missed_before:
+                elif task == "feed" and needs_feed:
                     is_match = True
 
             elif isinstance(tile, dict) and tile.get("kind") == "WEED" and task == "weed":
@@ -1092,14 +1091,10 @@ def choose_unit_action(
                     if shed.get(animal, 0) > 0:
                         return act_here(["PICKUP", animal, 1])
         if inv.get("WHEAT", 0) <= 0 and shed.get("WHEAT", 0) > 0:
-            if find_nearest_target(farm, board_size, ux, uy, "feed_urgent", day, exclude=claimed):
+            if find_nearest_target(farm, board_size, ux, uy, "feed", day, exclude=claimed):
                 # Collect several days of feed in one trip. Feeding needs
                 # wheat in the acting unit's own inventory, so picking up a
-                # single grain means a fresh shed round-trip for every meal -
-                # measured at only 15 FEED actions across a 30-day season,
-                # which both risks the animal (two consecutive unfed days and
-                # it escapes for good) and wastes the CARE bonus, since care
-                # only banks on days the animal was also fed.
+                # single grain means a fresh shed round-trip for every meal.
                 return act_here(
                     ["PICKUP", "WHEAT", min(shed.get("WHEAT", 0), WHEAT_CARRY_BATCH)]
                 )
@@ -1111,10 +1106,19 @@ def choose_unit_action(
     #    detour to the shed instead of arriving empty-handed (only if the
     #    shed actually has wheat - otherwise there's nothing to do about it
     #    this turn).
-    # Feed rescue is a separate reservation class. A crop worker without
-    # Wheat must not claim the Goose tile for HARVEST/WATER movement before a
+    # Feed is a daily errand, not a rescue. An earlier version only walked to
+    # an animal that had ALREADY missed a day, which self-oscillates: feeding
+    # resets consecutive_unfed, so the next day never looks urgent and the
+    # animal is fed every OTHER day - 15 meals in a 30-day season, measured.
+    # That left the Goose permanently one blocked turn from escaping for good,
+    # and threw away most of the CARE bank, which only accrues on days the
+    # animal was also fed and is discarded unpaid if its production day is not
+    # (see _daily_refresh_animals in the engine).
+    #
+    # Feed is also a separate reservation class. A crop worker without Wheat
+    # must not claim the Goose tile for HARVEST/WATER movement before a
     # different unit carrying Wheat has a chance to reach it.
-    feed_target = find_nearest_target(farm, board_size, ux, uy, "feed_urgent", day, exclude=set())
+    feed_target = find_nearest_target(farm, board_size, ux, uy, "feed", day, exclude=set())
     if feed_target in feed_claimed:
         feed_target = None
     if feed_target:
