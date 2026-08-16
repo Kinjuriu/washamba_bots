@@ -147,6 +147,40 @@ LIQUIDATION_START_DAY = 25
 # seed purchase, so a bad crop pick can't wipe out our bank balance.
 SEED_SPEND_CAP_FRACTION = 0.5
 
+# Fertilizer. FERTILIZE marks a plant for `day`, `day+1`, `day+2` and only
+# pays out on days the plant is also watered (kaggriculture.py: the bonus is
+# gated on was_watered). What it's worth differs completely by crop type:
+#
+#   ONGOING crops bank +2 instead of +1 on every production tick inside the
+#   window, so one $100 unit is worth roughly:
+#     TOMATO      interval 1 -> catches 3 ticks -> +3 units
+#     STRAWBERRY  interval 2 -> catches 2 ticks -> +2 units
+#   Both trade well above base when nobody floods them, so this is the
+#   strongest use of a fertilizer unit by a wide margin.
+#
+#   ONE-TIME crops only add to a yield that is already capped at max_yield:
+#     WHEAT   +2 units (~$50-100 against a $100 unit - marginal)
+#     CARROT  +1 unit  (a loss)
+#     MELON   +0       - watering alone already reaches the cap of 6 exactly
+#                        at first_yield_day, so fertilising it buys nothing
+#
+# So we only ever fertilise ongoing crops.
+FERTILIZABLE_CROPS = ("TOMATO", "STRAWBERRY")
+
+# Bought fertilizer lands in the shed, but FERTILIZE consumes from the
+# acting unit's own inventory - so a unit has to stand shed-adjacent and
+# PICKUP before it can fertilise anything. Carry a few at a time so one trip
+# serves several plants instead of one.
+FERTILIZER_CARRY_BATCH = 3
+
+# Don't buy fertilizer we have no plant to use it on, and keep a lid on the
+# stock so it doesn't crowd the shed or the cash.
+MAX_FERTILIZER_STOCK = 6
+
+# Fertilizer bought this late can't catch enough production ticks to repay
+# itself before the season ends.
+FERTILIZER_LAST_USEFUL_DAY = 24
+
 # Farm hands. The n-th hire of a day costs farmHandCostMult * fib(n) with
 # fib indexed 1, 1, 2, 3, 5, 8, ... (kaggriculture.py:_fib / _hire_cost), and
 # the counter resets every morning - so the first hand of the day costs $1
@@ -660,6 +694,16 @@ def decide_market_actions(farm, private, market_state, day):
     liquidating = day >= LIQUIDATION_START_DAY
 
     for product, quantity in shed.items():
+        # Fertilizer is an input, not produce. It sits in the shed waiting
+        # for a unit to PICKUP, and its price clears the default sell
+        # threshold comfortably - so without this guard the agent buys it and
+        # immediately sells it straight back, churning market-order slots and
+        # never actually fertilising anything. Measured: 715 units sold in a
+        # single season, with zero reaching a plant. Only dump it at the end,
+        # when leftover stock scores nothing anyway.
+        if product == "FERTILIZER" and not liquidating:
+            continue
+
         # Near the end of the season, price thresholds stop mattering:
         # unsold stock scores nothing, so any sale beats holding out.
         if quantity > 0 and (liquidating or should_sell(product, quantity, market_state)):
@@ -684,6 +728,26 @@ def decide_market_actions(farm, private, market_state, day):
     if preferred_crop and should_buy_seed(preferred_crop, farm, private):
         actions.append(["BUY_SEED", preferred_crop, 1])
 
+    # Fertilizer, but only against ongoing crops we actually have in the
+    # ground - it's the one product where a unit has to fetch it from the
+    # shed by hand, so buying speculatively wastes both money and turns.
+    if day <= FERTILIZER_LAST_USEFUL_DAY:
+        held = shed.get("FERTILIZER", 0) + sum(
+            (carried or {}).get("FERTILIZER", 0)
+            for carried in (private.get("inventories") or [])
+            if isinstance(carried, dict)
+        )
+        if held < MAX_FERTILIZER_STOCK:
+            fertilizer_price = market_state.get("prices", {}).get("FERTILIZER", 0)
+            wanted = sum(
+                1
+                for row in (farm.get("tiles") or [])
+                for tile in row
+                if wants_fertilizer(tile, day)
+            )
+            if wanted > held and fertilizer_price and farm.get("money", 0) >= fertilizer_price * 2:
+                actions.append(["BUY_PRODUCT", "FERTILIZER", 1])
+
     return actions
 
 
@@ -691,7 +755,82 @@ def decide_market_actions(farm, private, market_state, day):
 # Farmer decision
 # ---------------------------------------------------------------------
 
-def choose_unit_action(state, ux, uy, claimed=None):
+def get_unit_inventory(private, unit_index):
+    """What the given unit is carrying. inventories[0] is the main farmer."""
+    inventories = private.get("inventories") or []
+    if 0 <= unit_index < len(inventories):
+        carried = inventories[unit_index]
+        if isinstance(carried, dict):
+            return carried
+    return {}
+
+
+def is_shed_adjacent(x, y, board_size):
+    """
+    The shed is not a tile and never appears in `tiles`. It is reachable
+    from the four centre tiles, and only PICKUP/DROP need that adjacency -
+    market orders work from anywhere.
+    """
+    half = board_size // 2
+    return (x, y) in {
+        (half - 1, half - 1), (half, half - 1),
+        (half - 1, half), (half, half),
+    }
+
+
+def wants_fertilizer(tile, day):
+    """
+    True if fertilising this plant right now would actually pay.
+
+    Only ongoing crops qualify (see FERTILIZABLE_CROPS), and only inside the
+    stretch where the cover - today through day+2 - still catches production
+    ticks. Fertiliser applied outside that window is simply thrown away.
+    """
+    if not (isinstance(tile, dict) and tile.get("kind") == "PLANT"):
+        return False
+
+    crop = tile.get("crop")
+    if crop not in FERTILIZABLE_CROPS:
+        return False
+
+    if tile.get("fertilized_until_day", -1) >= day:
+        return False  # already covered today
+
+    crop_info = CROPS.get(crop) or {}
+    first_yield_day = crop_info.get("first_yield_day")
+    if first_yield_day is None:
+        return False
+
+    interval = crop_info.get("interval") or 1
+    max_yield = crop_info.get("max_yield") or 1
+    last_tick_age = first_yield_day + interval * (max_yield - 1)
+
+    age = day - tile.get("planted_day", day)
+    # Cover starts today and runs two more days, so applying just ahead of
+    # the first tick still catches it.
+    return (first_yield_day - 2) <= age <= last_tick_age
+
+
+def find_fertilizer_target(farm, board_size, ux, uy, day, exclude=None):
+    """Nearest plant worth fertilising, or None."""
+    exclude = exclude or set()
+    tiles = farm.get("tiles") or []
+
+    best_target = None
+    best_distance = None
+    for y in range(board_size):
+        row = tiles[y] if y < len(tiles) else []
+        for x in range(len(row)):
+            if (x, y) in exclude or not wants_fertilizer(row[x], day):
+                continue
+            distance = abs(x - ux) + abs(y - uy)
+            if best_distance is None or distance < best_distance:
+                best_distance = distance
+                best_target = (x, y)
+    return best_target
+
+
+def choose_unit_action(state, ux, uy, claimed=None, unit_index=0):
     """
     Decide the single action for one unit - the main farmer or a hired
     hand - standing at (ux, uy), following the fixed priority order
@@ -736,6 +875,14 @@ def choose_unit_action(state, ux, uy, claimed=None):
     if isinstance(tile, dict) and tile.get("kind") == "PLANT" and not tile.get("watered_today", True):
         return act_here(["WATER"])
 
+    # 2b. Fertilise the ongoing crop under our feet, if we're carrying any.
+    #     Cheap - we're already standing here - and worth several hundred on
+    #     a tomato or strawberry. Ranked below watering because the bonus
+    #     only pays on days the plant is watered anyway.
+    carried = get_unit_inventory(private, unit_index)
+    if carried.get("FERTILIZER", 0) > 0 and wants_fertilizer(tile, day):
+        return act_here(["FERTILIZE"])
+
     # 3. Something urgent elsewhere (a ripe crop, or a crop about to turn
     #    into a weed) beats anything else right now - preventing a new weed
     #    is worth more than reclaiming an old one.
@@ -762,6 +909,33 @@ def choose_unit_action(state, ux, uy, claimed=None):
         crop = choose_crop(farm, state["market_state"], private, day)
         if crop and seeds.get(crop, 0) > 0:
             return act_here(["PLANT", crop])
+
+    # 5b. Fertiliser logistics. Bought fertilizer lands in the shed but
+    #     FERTILIZE spends from the unit's own inventory, so this is a
+    #     collect-then-deliver errand. Ranked below all the crop upkeep
+    #     above: a plant that dies unwatered costs more than a fertiliser
+    #     bonus is worth.
+    shed_fertilizer = (private.get("shed") or {}).get("FERTILIZER", 0)
+    carrying = carried.get("FERTILIZER", 0)
+
+    if carrying > 0:
+        fertilize_target = find_fertilizer_target(
+            farm, board_size, ux, uy, day, exclude=claimed
+        )
+        if fertilize_target:
+            moved = walk_to(fertilize_target)
+            if moved:
+                return moved
+
+    elif shed_fertilizer > 0 and find_fertilizer_target(farm, board_size, ux, uy, day):
+        # Collect a batch so one trip serves several plants.
+        if is_shed_adjacent(ux, uy, board_size):
+            return ["PICKUP", "FERTILIZER", min(shed_fertilizer, FERTILIZER_CARRY_BATCH)]
+
+        half = board_size // 2
+        direction = step_toward(ux, uy, half - 1, half - 1)
+        if direction:
+            return [direction]
 
     # 6. Reclaim the nearest weed elsewhere - dead land is a permanent loss
     #    until it's dug back to plantable ground, so don't just leave it.
@@ -796,7 +970,7 @@ def choose_farmer_action(state, claimed=None):
     if not farmer_pos or len(farmer_pos) != 2:
         return ["PASS"]
 
-    return choose_unit_action(state, farmer_pos[0], farmer_pos[1], claimed)
+    return choose_unit_action(state, farmer_pos[0], farmer_pos[1], claimed, unit_index=0)
 
 
 # ---------------------------------------------------------------------
@@ -828,8 +1002,9 @@ def nikaangukia_meroni(obs):
         claimed = set()
         farmer_action = choose_farmer_action(state, claimed)
         hands_actions = [
-            choose_unit_action(state, hand[0], hand[1], claimed)
-            for hand in (farm.get("hands") or [])
+            # inventories[0] is the main farmer, so hand i is index i + 1.
+            choose_unit_action(state, hand[0], hand[1], claimed, unit_index=index + 1)
+            for index, hand in enumerate(farm.get("hands") or [])
             if isinstance(hand, (list, tuple)) and len(hand) == 2
         ]
 

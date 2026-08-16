@@ -32,6 +32,22 @@ Adding `DIG` moved every metric at once: **SELL orders 3.9 → 22.9**, **end-of-
 
 Still unimplemented: animals, `FEED`/`CARE`, `FERTILIZE`, and shed transfers (`DROP`/`PICKUP`).
 
+**`FERTILIZE` pays on ongoing crops only, and is worth nothing on melon.** Computed from the engine and confirmed by measurement, so don't re-derive it:
+
+| crop | what one $100 fertilizer unit buys |
+|---|---|
+| `TOMATO` (interval 1) | +3 units — cover spans 3 production ticks |
+| `STRAWBERRY` (interval 2) | +2 units |
+| `WHEAT` | +2 units (~$50–100 — marginal) |
+| `CARROT` | +1 unit (a loss) |
+| **`MELON`** | **nothing** — watering alone already reaches the cap of 6 exactly at `first_yield_day`, so the bonus has nowhere to go |
+
+Ongoing crops bank +2 instead of +1 per production tick; one-time crops only top up a total already capped at `max_yield`. The bonus applies **only on days the plant is also watered**.
+
+Two logistics facts that make this awkward: bought fertilizer lands in the **shed**, but `FERTILIZE` spends from the **acting unit's inventory** — so it's a collect-then-deliver errand needing shed adjacency for `PICKUP`. And fertilizer's price clears the default sell threshold, so it must be **excluded from the sell loop** or the agent buys it and immediately sells it back (measured: 715 units round-tripped in one season, none reaching a plant).
+
+**Fertilizer support alone measured as noise** (deltas of +350 to +480 against stdev of 2100–4300, twice). Not because it's wrong — because melon is our main crop and gains zero, while tomato sells 0 units a season. Fertilizer is downstream of a crop-mix decision: it only pays once we actually grow ongoing crops. Pair it with forward pricing rather than shipping it alone.
+
 **Measured dead ends — don't re-run these without changing something first.** Both were plausible and both lost, twice each, on the full 12-seed batch:
 
 - **`BUY_LAND` is a loss, even when rich.** Tested at a ~7k bank (mean roughly halved, win rate 12/12 → 6/12) and again at a ~29k bank where the $1k/$2k/$4k quadrants are pocket change (still ~2,000–2,900 worse). More ground spreads a fixed crew thinner, and melon needs sustained watering to reach full yield. **The crew, not the acreage, is the ceiling** — revisit only alongside a genuine upkeep increase.
