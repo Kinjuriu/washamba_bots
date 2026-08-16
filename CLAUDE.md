@@ -6,15 +6,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An agent for the Kaggle **Kaggriculture** simulation competition: two agents each manage a virtual farm over a 30-day season (720 turns, 24/day) and compete for the highest bank balance. There is no static train/test set — everything is scored via live episodes against other agents plus a final Bradley-Terry tournament.
 
-**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). One shared `choose_unit_action` ladder drives the main farmer **and every hired hand**, with a per-turn claim set so units spread out instead of converging on the same tile. `tests/` carries a 55-case stdlib-`unittest` suite for its helpers. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has one working experiments notebook.
+**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). One shared, inventory-aware `choose_unit_action` ladder drives the main farmer **and every hired hand**, with a per-turn claim set so units spread out instead of converging on the same tile.
 
-**Current baseline — mean final bank over 12 seeded 720-turn seasons per opponent:**
+The animal rollout is deliberately capped at **one goose** (`MAX_ANIMALS`): build a coop, buy/pick up/place the goose, feed and care for it, collect fertilizer, harvest eggs, and hold back a two-unit wheat reserve so selling feed can't starve it. The animal logic is data-driven off the engine's `ANIMALS` table, so cow and sheep need no new code — only a change to `ACTIVE_ANIMALS`.
+
+`tests/` carries a stdlib-`unittest` suite. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has one working experiments notebook.
+
+**Current local benchmark** (crop economics + goose, measured at `ebc8212`). Two separate tables, because they measure different things — **read the self-play one.**
+
+Against the built-ins, 12 seeded 720-turn seasons each. **Inflated: these three never sell**, so the market stays pristine and our prices never meet a competitor.
 
 | vs | mean | stdev | min | max | wins |
 |---|---|---|---|---|---|
-| `pass` | 33261 | ±1250 | 31544 | 35906 | 12/12 |
-| `random` | 32852 | ±981 | 31322 | 34112 | 12/12 |
-| `starter` | 33356 | ±1617 | 31814 | 37720 | 12/12 |
+| `pass` | 41,969 | ±2,206 | 38,524 | 46,198 | 12/12 |
+| `random` | 42,812 | ±1,926 | 40,929 | 45,922 | 12/12 |
+| `starter` | 43,105 | ±1,740 | 40,949 | 46,028 | 12/12 |
+
+Self-play, 6 seeds / 12 agent-results — **the ladder proxy**, and the number to quote:
+
+| | mean | stdev | min | max |
+|---|---|---|---|---|
+| self-play | **27,246** | ±1,604 | 24,763 | 29,894 |
+
+The ~15,000 gap between the two tables is the whole story of why a 33,000 local score became 289.3 on the ladder. Melon finishes near $280 against a built-in and at the **$1 floor** in self-play.
 
 **The single biggest win was a scoring bug, not a strategy.** `choose_crop` subtracted an absolute oversupply term: `(price*yield - stock*price)/days`. Every product starts with market inventory of 10,000, so that term was not a tie-breaker — it *was* the score, collapsing to roughly `-price*10000/days`, which ranks crops by **cheapness**. Melon is the strongest crop in the game at 125.0 value per tile-day (wheat 37.5) and it scored dead last, so the agent planted wheat all season and never once planted a melon. Discounting glut *relative to the engine's `I0` baseline* took the mean from ~7,000 to ~28,800. Generalise it: **when a score mixes a revenue term with a penalty term, check their magnitudes against real game data, not just their signs.**
 
@@ -22,7 +36,7 @@ An agent for the Kaggle **Kaggriculture** simulation competition: two agents eac
 
 **Hiring is the single highest-ROI mechanic in the game, by a wide margin.** The n-th hire of a day costs `farmHandCostMult × fib(n)` with the counter resetting each morning, so four hands cost **$1+$1+$2+$3 = $7/day — about $210 for the whole season.** That bought roughly **+1,400 mean bank** (`pass` 5635 → 6864, `random` 5264 → 7357, `starter` 5555 → 6609). Hands are cleared every night, so re-hire each morning (`HIRE_BEFORE_HOUR`); a hand bought at hour 20 costs the same and does a fraction of the work.
 
-The reason it pays so well is the same one behind the weed cascade below: **a single farmer's upkeep capacity is what caps income.** More units means more tiles watered and dug, so the farm stops decaying — a full season now ends with ~0 weeds instead of 23.
+The reason it pays so well is the same one behind the weed cascade below: **a single farmer's upkeep capacity is what caps income.** More units means more tiles watered and dug, while the one Goose adds a maintained animal revenue stream without the escape failures seen in the four-Goose experiment.
 
 Two earlier fixes moved the **floor** rather than the mean: a **season-maturity gate** (`choose_crop` refuses crops whose `first_yield_day` can't land before day 29 — the agent used to bleed cash buying tomato seed it could never harvest) and a **shed-overflow valve** (force-sell once the shed passes `SHED_FORCE_SELL_THRESHOLD`, since overflow past 100 items is silently discarded).
 
@@ -30,7 +44,20 @@ Two earlier fixes moved the **floor** rather than the mean: a **season-maturity 
 
 Adding `DIG` moved every metric at once: **SELL orders 3.9 → 22.9**, **end-of-season weeds 23.0 → 2.1**, and the sub-$3000 downside disappeared. The lesson generalizes: **tile upkeep capacity, not sell-price tuning, is what gates this agent's income.** Before optimizing thresholds, check how many tiles are alive at season end.
 
-Still unimplemented: animals, `FEED`/`CARE`, `FERTILIZE`, and shed transfers (`DROP`/`PICKUP`).
+**A trigger keyed on a counter that its own action resets will oscillate.** The feed rule fired only when `consecutive_unfed >= 1` — i.e. only once the animal had *already* missed a meal. Feeding resets that counter, so the next day never looked urgent, and the agent settled into feeding every *other* day: exactly 15 meals in a 30-day season, stable and invisible. It cost more than a skipped meal. The Goose sat permanently one blocked turn from escaping for good, and most of the `CARE` bank was discarded — per `_daily_refresh_animals`, the bank only accrues on days the animal was **also fed**, and a production day that isn't fed throws the whole bank away unpaid. Feeding daily took `FEED` 15 → 30 and **EGG sold 26 → 52**. Bank deltas were inside stdev (a wash), so it ships for the risk, not the mean: **0 animal escapes across 48 episodes.** Generalise it: if the condition that triggers an action is the same state the action clears, check the duty cycle you actually get — don't assume it fires whenever it's needed.
+
+**A green suite is not evidence the fix worked.** An earlier attempt at this same low `FEED` count batched wheat pickups, on the theory that a one-grain-per-trip shed round-trip was the bottleneck. Tests passed, the mean moved, and `FEED` stayed at **exactly 15** — the real cause was untouched. Always measure the specific counter the change was supposed to move.
+
+Still unimplemented: `FERTILIZE` (see PR #5), `BUY_LAND`, cow/sheep (`ACTIVE_ANIMALS`), and shed transfers beyond the fertilizer/animal path.
+
+**Count plants that *land*, not `PLANT` actions issued.** The engine drops **all** `PLANT` requests for a crop when a turn's demand exceeds held seeds (`kaggriculture.py:920-931`) — not just the excess — so five units picking melon while holding one melon seed plants nothing and burns five turns. This makes the raw `PLANT` count in an action histogram actively misleading. Seed 0 vs `starter`:
+
+| build | requested | blocked | **landed** |
+|---|---|---|---|
+| `a0e9703` | 214 | 144 (67%) | **70** |
+| `ebc8212` | 138 | 43 (31%) | **95** |
+
+The daily-feed change *looked* like a 35% drop in planting and was in fact a 36% **rise** in plants landed. Still on the table: a per-turn seed budget shared across units, so a crop is only chosen while uncommitted seed remains — worth ~43 unit-turns a season now, down from 144. (An older review put the block rate at 93%; that was a different build.)
 
 **Measured dead ends — don't re-run these without changing something first.** Both were plausible and both lost, twice each, on the full 12-seed batch:
 
@@ -104,18 +131,21 @@ Tests are stdlib `unittest` — **pytest is not installed and the suite doesn't 
 .venv/Scripts/python.exe -m unittest tests.test_nikaangukia_meroni.TestShouldSell -v   # one case
 ```
 
-Unit tests only cover helpers in isolation. **The real verification for a strategy change is a seeded batch, never a single game.** Run-to-run spread is huge — the same `main.py` vs `random` matchup scored 5228 and 3776 on two unseeded runs, and stdev is ~±600 across every opponent. A single episode cannot tell an improvement from luck, and a one-off loss to `starter` means nothing.
+Unit tests only cover helpers in isolation. **The real verification for a strategy change is a seeded batch, never a single game.** Run-to-run spread is huge — the same `main.py` vs `random` matchup scored 5228 and 3776 on two unseeded runs. **Stdev scales with the score**: it was ~±600 at the ~5,000 era and is ~±1,600–2,200 now, so a "+1,000" on one seed is well inside noise. A single episode cannot tell an improvement from luck, and a one-off loss to `starter` means nothing.
 
 Pass `seed` in the configuration to make episodes reproducible — but **only against `pass` and `starter`**. Verified: on a fixed seed, those two reproduce an identical final bank exactly, while `random` does not (5169 vs 5120 on the same seed). `seed` controls environment stochasticity — weed spawns, shop unlocks — not the built-in `random` agent's own RNG. The drift is ~1%, far inside its ±410 stdev, so the `random` column is still usable; just **A/B strategy changes against `pass`/`starter`**, where a difference is signal rather than opponent noise.
 
 Compare a change against the same seed set:
 
 ```bash
-.venv/Scripts/python.exe experiments/seeded_batch.py   # mean/stdev/win-rate vs all 3 built-ins
-.venv/Scripts/python.exe experiments/benchmark.py      # adds melon_maxxer from the official notebook
+.venv/Scripts/python.exe experiments/seeded_batch.py    # mean/stdev/win-rate vs all 3 built-ins
+.venv/Scripts/python.exe experiments/benchmark.py       # adds melon_maxxer from the official notebook
+.venv/Scripts/python.exe experiments/selfplay_bench.py  # both sides run main.py - the honest number
 ```
 
 At ~7s per season, 12 seeds × 3 opponents is about 4 minutes. Report mean and win-rate, not a single score. `experiments/replay_diagnostics.py` breaks a single episode down by action histogram and end-of-farm state — that's what found the weed cascade. Replay JSONs it dumps are multi-MB and gitignored.
+
+**The built-in opponents never sell anything, so every number they produce is inflated.** `pass`, `random` and `starter` leave the market at its pristine starting inventory all season, and our sales never compete with a rival's. Measured on the same agent: ~41,000 against the built-ins versus ~28,000 in self-play. Use the built-in batch to A/B a change (it is cheap and the seeds are fixed), but treat **`selfplay_bench.py` as the number that predicts the ladder** — it is the only local setup where a second trader is crowding the same order book. Its `end price` line is the tell: MELON finishes around $280 against a built-in and near the **$1 floor** in self-play, so any strategy that leans on premium-crop prices looks far better locally than it will score.
 
 Kaggle CLI is authenticated (`~/.kaggle/credentials.json`) as `peterkibetspidey`, and the account is entered in the competition — verify with `kaggle competitions list --group entered` (expect `userHasEntered: True`). Re-auth with `kaggle auth login` if the session expires.
 
