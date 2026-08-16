@@ -307,10 +307,26 @@ ACTIVE_ANIMALS = ["GOOSE"]
 ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a in ANIMALS}
 
 # Cap on total animals we'll commit to (built structures, filled or not).
-# Three Geese are the measured sweet spot: they raised current self-play by
-# about 14% over the one-Goose rollout with zero escapes in validation.
-# Four increased the mean slightly but produced unrecoverable escapes.
-MAX_ANIMALS = 3
+#
+# Stays at 1. Three Geese were measured at +14% self-play on the pre-fertilizer,
+# pre-day-19 agent (PR #10) and that measurement was correct for the agent it
+# was taken on - but the agent moved underneath it. Re-measured on current
+# main, with the fertilizer errand competing for the same unit-turns, three
+# animals lose **-9,787 head to head, winning 0 of 16 matches**, and self-play
+# is flat (27,983 against 28,206).
+#
+# Note the two harnesses disagreeing again, in the direction that matters:
+# self-play changes BOTH sides, so a revenue stream that doesn't compete for
+# a scarce market lifts both banks and looks free. Head to head is what shows
+# the cost, and the cost is real - every coop takes a tile out of crop
+# production and a share of the crew's upkeep capacity, which is the same
+# ceiling BUY_LAND and a denser crew both ran into.
+#
+# The choose_animal_to_build() gate below is kept even though it cannot fire
+# at MAX_ANIMALS = 1 (measured: gate-only is +0 against main, an exact no-op).
+# It is correct, it costs nothing, and it is the thing that makes raising this
+# number safe to try again.
+MAX_ANIMALS = 1
 
 # Never buy an animal that eats more than this fraction of current cash in
 # one shot - same reasoning as SEED_SPEND_CAP_FRACTION.
