@@ -6,19 +6,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An agent for the Kaggle **Kaggriculture** simulation competition: two agents each manage a virtual farm over a 30-day season (720 turns, 24/day) and compete for the highest bank balance. There is no static train/test set — everything is scored via live episodes against other agents plus a final Bradley-Terry tournament.
 
-**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). One shared `choose_unit_action` ladder drives the main farmer **and every hired hand**, with a per-turn claim set so units spread out instead of converging on the same tile. `tests/` carries a 49-case stdlib-`unittest` suite for its helpers. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has two working exploration notebooks.
+**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based V1 agent. One shared, inventory-aware `choose_unit_action` ladder drives the main farmer and hired hands, with separate reservations for normal work, coop construction, and urgent Wheat-fed animal rescue. The current animal rollout is deliberately capped at one Goose: it builds one coop, buys/picks up/places the Goose, feeds and cares for it, collects Fertilizer, harvests Eggs, and protects a two-unit Wheat reserve. `tests/` carries a 75-case stdlib-`unittest` suite. There is no `agent/` package — that part of `README.md` remains aspirational. `experiments/` holds evaluation tooling and `notebooks/` holds exploration notebooks.
 
-**Current baseline — mean final bank over 12 seeded 720-turn seasons per opponent:**
+**Current V1 local benchmark — mean final bank over 12 seeded 720-turn seasons per opponent:**
 
 | vs | mean | stdev | min | max | wins |
 |---|---|---|---|---|---|
-| `pass` | 6864 | ±756 | 5758 | 8802 | 12/12 |
-| `random` | 7357 | ±1749 | 4674 | 10385 | 12/12 |
-| `starter` | 6609 | ±1826 | 4807 | 10449 | 12/12 |
+| `pass` | 11339 | ±2015 | 8148 | 14206 | 12/12 |
+| `random` | 10812 | ±1570 | 9012 | 13831 | 12/12 |
+| `starter` | 10997 | ±1442 | 9082 | 12900 | 12/12 |
 
 **Hiring is the single highest-ROI mechanic in the game, by a wide margin.** The n-th hire of a day costs `farmHandCostMult × fib(n)` with the counter resetting each morning, so four hands cost **$1+$1+$2+$3 = $7/day — about $210 for the whole season.** That bought roughly **+1,400 mean bank** (`pass` 5635 → 6864, `random` 5264 → 7357, `starter` 5555 → 6609). Hands are cleared every night, so re-hire each morning (`HIRE_BEFORE_HOUR`); a hand bought at hour 20 costs the same and does a fraction of the work.
 
-The reason it pays so well is the same one behind the weed cascade below: **a single farmer's upkeep capacity is what caps income.** More units means more tiles watered and dug, so the farm stops decaying — a full season now ends with ~0 weeds instead of 23.
+The reason it pays so well is the same one behind the weed cascade below: **a single farmer's upkeep capacity is what caps income.** More units means more tiles watered and dug, while the one Goose adds a maintained animal revenue stream without the escape failures seen in the four-Goose experiment.
 
 Two earlier fixes moved the **floor** rather than the mean: a **season-maturity gate** (`choose_crop` refuses crops whose `first_yield_day` can't land before day 29 — the agent used to bleed cash buying tomato seed it could never harvest) and a **shed-overflow valve** (force-sell at 90/100 items, since overflow is silently discarded).
 
@@ -26,7 +26,31 @@ Two earlier fixes moved the **floor** rather than the mean: a **season-maturity 
 
 Adding `DIG` moved every metric at once: **SELL orders 3.9 → 22.9**, **end-of-season weeds 23.0 → 2.1**, and the sub-$3000 downside disappeared. The lesson generalizes: **tile upkeep capacity, not sell-price tuning, is what gates this agent's income.** Before optimizing thresholds, check how many tiles are alive at season end.
 
-Still unimplemented: animals, `FEED`/`CARE`, `FERTILIZE`, `BUY_LAND`, and shed transfers (`DROP`/`PICKUP`). `BUY_LAND` is the obvious next lever now that the crew can actually maintain more tiles than the NW quadrant holds.
+Still unimplemented: COW/SHEEP expansion, `FERTILIZE`, and `BUY_LAND`. Shed transfers and Goose `FEED`/`CARE`/`PICKUP`/`PLACE` are implemented. Do not assume more land or more animals will improve the score: validate the labor, feed, and payback economics against frozen opponents first.
+
+## Current replay and leaderboard findings
+
+The team reviewed recent live submissions and replay reports. These are strategic observations, not engine guarantees, and should be re-checked with downloaded replays before being treated as facts:
+
+- The live rating has risen across recent submissions, but the leaderboard is path-dependent and early matchmaking luck can create large rating differences between otherwise identical agents. Treat rating movement as noisy until the agent has accumulated a meaningful number of games.
+- Two reviewed replays showed the farm becoming mostly idle late in the 30-day season. One replay still won because the opponent over-invested in land and labor; another lost by roughly 5% while both farms sat idle. The next high-value experiment is sustained late-season utilization, not automatic expansion.
+- Keep the farm in the initial footprint unless a seeded benchmark proves that extra land or labor pays back. A minimal footprint is not itself a weakness; idle capacity is.
+- Preserve the one-Goose rollout until a larger animal count has demonstrated zero escapes and positive net profit. The first four-Goose experiment produced escapes, while the current one-Goose candidate has passed fixed-seed local gates without escapes.
+- Premium-good liquidation needs within-order price-slippage accounting. A large `SELL` quantity is processed one unit at a time and can crash its own realized price even when the displayed quote looks attractive.
+
+The next candidate gate should include late-season replanting/liquidation, replay regression cases from genuinely different opponents, both player positions, fixed seeds, and a comparison against the frozen current V1—not self-play alone.
+
+### Current local V1 gate
+
+Against the committed pre-animal `HEAD` agent, using seeds 0–19 from both player positions (40 deterministic episodes):
+
+| metric | V1 | committed baseline |
+|---|---:|---:|
+| wins | 40/40 | — |
+| mean final bank | $9,775 | $5,887 |
+| animal escapes observed | 0 | n/a |
+
+This is a local A/B result, not a leaderboard-rating guarantee. Preserve the frozen baseline when testing future changes so a new candidate can be compared against the same code and seed set.
 
 ## Sources of truth, in priority order
 

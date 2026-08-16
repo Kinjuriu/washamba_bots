@@ -6,11 +6,11 @@ Full competition rules, game mechanics, pricing formulas, and observation/action
 
 ## Agent anatomy
 
-At its simplest, `melon_maxxer(obs)` reads the current state and chooses between market and farm decisions. The market branch buys seed or sells produce; the farm branch moves, plants, waters, or harvests.
+`nikaangukia_meroni(obs)` reads the current state and chooses between market and farm decisions. The market branch buys seeds/animals, protects feed reserves, sells produce, and hires hands; the farm branch moves, plants, waters, feeds, cares, collects Fertilizer, harvests, and places animals.
 
 ```mermaid
 flowchart TD
-    agent["melon_maxxer(obs)"]
+    agent["nikaangukia_meroni(obs)"]
 
     agent --> read["READ STATE"]
     agent --> market["MAKE MARKET<br/>DECISIONS"]
@@ -74,16 +74,10 @@ flowchart TD
 ```text
 washamba_bots/
 ├── main.py                 # Actual competition agent entrypoint
-├── agent/
-│   ├── __init__.py
-│   ├── state.py
-│   ├── strategy.py
-│   ├── economy.py
-│   ├── movement.py
-│   └── planner.py
 ├── experiments/             # Baselines and experiments
 ├── notebooks/               # Exploration notebooks
 ├── tests/
+├── CLAUDE.md                # Agent-development context and gates
 ├── README.md
 └── requirements.txt
 ```
@@ -121,7 +115,7 @@ The responsibilities are deliberately separated:
   `nikaangukia_meroni(obs)`.
 - `tests/` verifies individual decisions and protects the agent from regressions.
 - The Kaggle notebook provides a runnable demo and the public methodology writeup.
-- Versioned candidates such as `nikaangukia_meroni_v0`, V1, and V2 move through
+- Versioned candidates such as `nikaangukia_meroni_v1`, V2, and V3 move through
   the validation workflow below before replacing the active agent.
 
 ## Development workflow
@@ -148,11 +142,11 @@ The local simulation loop is the main iteration cycle: make a focused change, ru
 
 ## Validation workflow
 
-Each candidate version (e.g. `nikaangukia_meroni_v0`) goes through the same gate before it's trusted: confirm it runs without erroring, then benchmark it to see how good it actually is. Weaknesses found there feed a targeted market experiment, which in turn decides the next version.
+Each candidate version (e.g. `nikaangukia_meroni_v1`) goes through the same gate before it's trusted: confirm it runs without erroring, then benchmark it against the frozen prior version and genuinely different opponents across fixed seeds and both player positions. Weaknesses found there feed a targeted experiment, which in turn decides the next version.
 
 ```mermaid
 flowchart TD
-    agent["nikaangukia_meroni_v0"] --> works{"DOES IT WORK?"}
+    agent["nikaangukia_meroni_v1"] --> works{"DOES IT WORK?"}
     works -->|YES| quality["HOW GOOD IS IT?"]
 
     quality --> random["Random"]
@@ -186,6 +180,11 @@ source .venv/bin/activate
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install -r requirements.txt
 ```
+
+`requirements.txt` is a broad development-workspace freeze rather than the
+minimal competition runtime. For a lightweight agent environment, install at
+least `kaggle-environments>=1.32.6` and `kaggle`; the additional notebook and
+analysis packages are optional.
 
 The repository's `.python-version` selects Python 3.12.3 when pyenv is active. In VS Code, select `.venv/bin/python` as the Python interpreter and notebook kernel.
 
