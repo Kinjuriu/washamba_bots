@@ -2,6 +2,8 @@
 
 An autonomous agent for [Kaggriculture](https://kaggle.com/competitions/kaggriculture), a Kaggle simulation competition: two agents each run a virtual farm for a 30-day season (720 turns) and compete head-to-head for the highest bank balance.
 
+**New to the repo? Read [CONTRIBUTING.md](CONTRIBUTING.md) first** — how we evaluate a change, what a PR needs, and the list of things here that fail *silently*. `CLAUDE.md` is the deep reference for game mechanics and engine gotchas.
+
 ## Team status
 
 > **Before you submit anything to Kaggle, check with the team.** We get **5 submissions/day** and **only the latest 2 stay active** for matchmaking and final scoring — an extra upload silently deactivates work that is still collecting ladder signal.
