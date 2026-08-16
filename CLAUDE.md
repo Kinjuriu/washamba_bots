@@ -88,14 +88,35 @@ Measured, not just argued. A deliberate buy-the-dip / sell-the-recovery rule (bu
 
 Generalises: **in a market this thin, your own order is the price move.** Before assuming a spread is harvestable, check it against the price impact of the position you would need to take.
 
+**Demand is wildly uneven, and MELON has none.** `SHOPS` in the engine lists which products each shop consumes; shops fire every **4 steps** against the Town Centre's **24**, a **single-product shop consumes at double rate**, and shops unlock **with replacement** so the same one can land several times. So one unlocked shop is worth roughly six Town Centres.
+
+Read the table and melon is in **no shop at all**. Its only sink is the Town Centre's one unit a day - about **30 units for the whole season** - and we were selling **183** into it. Carrot, by contrast, with `PET_CAFE` (single-product, 2x) unlocked twice, can be pulling ~37 a day.
+
+`choose_crop` now divides our own pipeline by absorption **plus the demand that will still arrive** before the season ends, read live from `obs["town"]["unlocked_shops"]`. Worth **+3,358, 14/16 head to head** - the largest single change measured. Note this is *not* the same as the earlier failed attempt to diversify off melon by raising `SELF_SUPPLY_EXPONENT`: that was a blunt penalty on anything we already grow, this is a measurement of where the buyers actually are.
+
+**Pick the animal by care-bank arithmetic, not by base price.** The `CARE` bank accrues +1 per fed-and-cared day and pays out **in full** on the next production day, so a **longer interval banks a bigger payout**. A goose collects 2 units per event; a sheep collects 4, at four times the unit price. Modelled net per season - and the model predicts 52 egg units against 52 measured, so it is calibrated:
+
+| animal | events | per event | units | net |
+|---|---|---|---|---|
+| GOOSE | 26 | 2 | 52 | $2,023 |
+| COW | 11 | 3 | 33 | $3,704 |
+| **SHEEP** | 8 | **4** | 32 | **$5,236** |
+
+`ACTIVE_ANIMALS = ["SHEEP"]` is worth **+1,332, 15/16**. A new species needs its own `SELL_PRICE_THRESHOLDS` and `MAX_SELL_PER_TURN` entries or it falls back to the default threshold and dumps into a curve that floors after 58 units.
+
+**A denser crew is now a WIN, and the old entry here was wrong twice over.** It was rejected against the across-seed stdev (the wrong test) on a far older agent. `WORK_TILES_PER_HAND` 6 -> 4 is **+1,910, winning 16 of 16**. The farm waters **19.2 tiles a day against 24 planted** - we cannot keep alive the land we already hold, so hands are exactly the right lever. Units also spend 1,919 turns moving against 575 watering, with 414 idle `PASS`es, so there is more headroom here.
+
+That same measurement settles **`BUY_LAND`** with a mechanism rather than just a score: acreage cannot be the ceiling while we are under-watering what we own. Tiles *are* saturated days 4-16 (24/25 planted), so the instinct is reasonable - it is watering capacity, not ground, that binds.
+
 **Measured dead ends — don't re-run these without changing something first.** All lost on the full batch:
 
-- **More animals is a loss, and the old explanation was wrong.** `MAX_ANIMALS` at 2/3/4/6 scored 38,413 / 33,983 / 33,617 / 21,749 against 43,099 for one goose (seed 0 vs `starter`). Eggs rise with every goose (52 → 188) and money falls anyway: each coop costs a crop tile *and* a share of the crew's upkeep turns. The earlier note blamed "escape failures" and that theory died with the daily-feeding fix — this was re-tested afterwards and still loses, so the cause is tile-and-turn opportunity cost, not husbandry.
+- **More than one animal is a heavy loss, whatever the species.** `MAX_ANIMALS` 2/3/4/6 as geese scored 38,413 / 33,983 / 33,617 / 21,749 against 43,099 for one. A *sheep plus a cow* - two different, deep markets, so no self-competition - was even worse: **-16,634, 0 of 16 matches.** Every structure costs a crop tile and a share of the crew's upkeep capacity, and that dwarfs the animal's revenue. The old "escapes" explanation died with the daily-feeding fix; this is opportunity cost.
+
 - **Diversifying away from melon is a large loss.** Raising `SELF_SUPPLY_EXPONENT` from 2.0 to 3.0/4.0/6.0 scored **-6,883 / -5,594 / -9,858** head-to-head against the current agent, losing every match. Melon concentration survives its own price crash.
 - **Selling melon in smaller slices is a large loss.** `MAX_SELL_PER_TURN["MELON"]` from 15 to 6: **-5,958, 0/8 matches.**
 
 - **`BUY_LAND` is a loss, even when rich.** Tested at a ~7k bank (mean roughly halved, win rate 12/12 → 6/12) and again at a ~29k bank where the $1k/$2k/$4k quadrants are pocket change (still ~2,000–2,900 worse). More ground spreads a fixed crew thinner, and melon needs sustained watering to reach full yield. **The crew, not the acreage, is the ceiling** — revisit only alongside a genuine upkeep increase.
-- **A denser crew is a loss.** `WORK_TILES_PER_HAND` of 4 (about 6 hands) instead of 6 (about 4 hands) cost 1,300–3,400 depending on the era it was tested in. Surplus units don't idle politely: they plant tiles the crew then can't water, and spend seed money doing it.
+- ~~**A denser crew is a loss.**~~ **Retracted — it is a win.** This claimed `WORK_TILES_PER_HAND` 4 cost 1,300–3,400. It was judged against the across-seed stdev, which is the wrong test, and measured on a far older agent. Re-run head to head it is **+1,910, 16 of 16**. Kept here as a visible correction rather than deleted, because it is the second dead end this repo recorded that was really a measurement error.
 
 ## Sources of truth, in priority order
 
