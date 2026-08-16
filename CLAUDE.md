@@ -12,11 +12,23 @@ The animal rollout is deliberately capped at **one goose** (`MAX_ANIMALS`): buil
 
 `tests/` carries a stdlib-`unittest` suite. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has one working experiments notebook.
 
-**Current V1 local benchmark — mean final bank over 12 seeded 720-turn seasons per opponent:**
+**Current local benchmark** (crop economics + goose, measured at `ebc8212`). Two separate tables, because they measure different things — **read the self-play one.**
+
+Against the built-ins, 12 seeded 720-turn seasons each. **Inflated: these three never sell**, so the market stays pristine and our prices never meet a competitor.
 
 | vs | mean | stdev | min | max | wins |
 |---|---|---|---|---|---|
-*(Benchmark table pending re-measurement of the merged crop-economics + goose agent — the numbers on either side of this merge described only half of it.)*
+| `pass` | 41,969 | ±2,206 | 38,524 | 46,198 | 12/12 |
+| `random` | 42,812 | ±1,926 | 40,929 | 45,922 | 12/12 |
+| `starter` | 43,105 | ±1,740 | 40,949 | 46,028 | 12/12 |
+
+Self-play, 6 seeds / 12 agent-results — **the ladder proxy**, and the number to quote:
+
+| | mean | stdev | min | max |
+|---|---|---|---|---|
+| self-play | **27,246** | ±1,604 | 24,763 | 29,894 |
+
+The ~15,000 gap between the two tables is the whole story of why a 33,000 local score became 289.3 on the ladder. Melon finishes near $280 against a built-in and at the **$1 floor** in self-play.
 
 **The single biggest win was a scoring bug, not a strategy.** `choose_crop` subtracted an absolute oversupply term: `(price*yield - stock*price)/days`. Every product starts with market inventory of 10,000, so that term was not a tie-breaker — it *was* the score, collapsing to roughly `-price*10000/days`, which ranks crops by **cheapness**. Melon is the strongest crop in the game at 125.0 value per tile-day (wheat 37.5) and it scored dead last, so the agent planted wheat all season and never once planted a melon. Discounting glut *relative to the engine's `I0` baseline* took the mean from ~7,000 to ~28,800. Generalise it: **when a score mixes a revenue term with a penalty term, check their magnitudes against real game data, not just their signs.**
 
@@ -32,7 +44,13 @@ Two earlier fixes moved the **floor** rather than the mean: a **season-maturity 
 
 Adding `DIG` moved every metric at once: **SELL orders 3.9 → 22.9**, **end-of-season weeds 23.0 → 2.1**, and the sub-$3000 downside disappeared. The lesson generalizes: **tile upkeep capacity, not sell-price tuning, is what gates this agent's income.** Before optimizing thresholds, check how many tiles are alive at season end.
 
+**A trigger keyed on a counter that its own action resets will oscillate.** The feed rule fired only when `consecutive_unfed >= 1` — i.e. only once the animal had *already* missed a meal. Feeding resets that counter, so the next day never looked urgent, and the agent settled into feeding every *other* day: exactly 15 meals in a 30-day season, stable and invisible. It cost more than a skipped meal. The Goose sat permanently one blocked turn from escaping for good, and most of the `CARE` bank was discarded — per `_daily_refresh_animals`, the bank only accrues on days the animal was **also fed**, and a production day that isn't fed throws the whole bank away unpaid. Feeding daily took `FEED` 15 → 30 and **EGG sold 26 → 52**. Bank deltas were inside stdev (a wash), so it ships for the risk, not the mean: **0 animal escapes across 48 episodes.** Generalise it: if the condition that triggers an action is the same state the action clears, check the duty cycle you actually get — don't assume it fires whenever it's needed.
+
+**A green suite is not evidence the fix worked.** An earlier attempt at this same low `FEED` count batched wheat pickups, on the theory that a one-grain-per-trip shed round-trip was the bottleneck. Tests passed, the mean moved, and `FEED` stayed at **exactly 15** — the real cause was untouched. Always measure the specific counter the change was supposed to move.
+
 Still unimplemented: `FERTILIZE` (see PR #5), `BUY_LAND`, cow/sheep (`ACTIVE_ANIMALS`), and shed transfers beyond the fertilizer/animal path.
+
+**Known open question:** `PLANT` requests fell 214 → 138 on seed 0 when feeding went daily, unexplained and single-seed. Separately, the engine drops **all** `PLANT` requests for a crop when a turn's demand exceeds held seeds (`kaggriculture.py:920-931`) — not just the excess, so five units picking melon with one melon seed plants nothing and burns five turns. Measured at 31% of requests blocked on seed 0 (43 of 138), roughly 1% of season unit-turns. An older review reported 93%; that figure does not describe this build.
 
 **Measured dead ends — don't re-run these without changing something first.** Both were plausible and both lost, twice each, on the full 12-seed batch:
 
