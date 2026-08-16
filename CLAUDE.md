@@ -44,7 +44,9 @@ Two earlier fixes moved the **floor** rather than the mean: a **season-maturity 
 
 Adding `DIG` moved every metric at once: **SELL orders 3.9 → 22.9**, **end-of-season weeds 23.0 → 2.1**, and the sub-$3000 downside disappeared. The lesson generalizes: **tile upkeep capacity, not sell-price tuning, is what gates this agent's income.** Before optimizing thresholds, check how many tiles are alive at season end.
 
-**A trigger keyed on a counter that its own action resets will oscillate.** The feed rule fired only when `consecutive_unfed >= 1` — i.e. only once the animal had *already* missed a meal. Feeding resets that counter, so the next day never looked urgent, and the agent settled into feeding every *other* day: exactly 15 meals in a 30-day season, stable and invisible. It cost more than a skipped meal. The Goose sat permanently one blocked turn from escaping for good, and most of the `CARE` bank was discarded — per `_daily_refresh_animals`, the bank only accrues on days the animal was **also fed**, and a production day that isn't fed throws the whole bank away unpaid. Feeding daily took `FEED` 15 → 30 and **EGG sold 26 → 52**. Bank deltas were inside stdev (a wash), so it ships for the risk, not the mean: **0 animal escapes across 48 episodes.** Generalise it: if the condition that triggers an action is the same state the action clears, check the duty cycle you actually get — don't assume it fires whenever it's needed.
+**A trigger keyed on a counter that its own action resets will oscillate.** The feed rule fired only when `consecutive_unfed >= 1` — i.e. only once the animal had *already* missed a meal. Feeding resets that counter, so the next day never looked urgent, and the agent settled into feeding every *other* day: exactly 15 meals in a 30-day season, stable and invisible. It cost more than a skipped meal. The Goose sat permanently one blocked turn from escaping for good, and most of the `CARE` bank was discarded — per `_daily_refresh_animals`, the bank only accrues on days the animal was **also fed**, and a production day that isn't fed throws the whole bank away unpaid. Feeding daily took `FEED` 15 → 30, **EGG sold 26 → 52**, and **0 animal escapes across 48 episodes**. Generalise it: if the condition that triggers an action is the same state the action clears, check the duty cycle you actually get — don't assume it fires whenever it's needed.
+
+This one was first reported as *"a wash on bank balance, ships for the risk"* because its deltas sat inside the across-seed stdev. **That was wrong, and the fault was the test, not the change.** Re-run as a paired comparison (`experiments/paired_compare.py`), it is **+1,657 mean, better on 12 of 12 seeds, t = 9.9** — one of the largest gains in the agent. See the paired-comparison note under evaluation below before you label anything a wash.
 
 **A green suite is not evidence the fix worked.** An earlier attempt at this same low `FEED` count batched wheat pickups, on the theory that a one-grain-per-trip shed round-trip was the bottleneck. Tests passed, the mean moved, and `FEED` stayed at **exactly 15** — the real cause was untouched. Always measure the specific counter the change was supposed to move.
 
@@ -135,12 +137,29 @@ Unit tests only cover helpers in isolation. **The real verification for a strate
 
 Pass `seed` in the configuration to make episodes reproducible — but **only against `pass` and `starter`**. Verified: on a fixed seed, those two reproduce an identical final bank exactly, while `random` does not (5169 vs 5120 on the same seed). `seed` controls environment stochasticity — weed spawns, shop unlocks — not the built-in `random` agent's own RNG. The drift is ~1%, far inside its ±410 stdev, so the `random` column is still usable; just **A/B strategy changes against `pass`/`starter`**, where a difference is signal rather than opponent noise.
 
+**Judge a change with a paired comparison, not against the across-seed stdev.** `seeded_batch.py` reports a spread of roughly ±2,000, but that mostly measures how much *seasons* differ from each other — kinder weeds, luckier shop unlocks. Both versions play the same fixed seeds, so that variance is common to both arms and cancels. Testing a delta against it is far too strict and has already caused us to mislabel two real gains as noise.
+
+```bash
+git show main:main.py > /tmp/base_main.py
+.venv/Scripts/python.exe experiments/paired_compare.py /tmp/base_main.py main.py
+```
+
+Same episodes, read both ways:
+
+| change | across-seed view | paired view |
+|---|---|---|
+| daily feeding | +1,657 vs stdev 1,740 → "a wash" | +1,657, **12/12 seeds**, t = 9.9 |
+| fertilizer | +1,764 vs stdev 2,206 → "within noise" | +1,764, **12/12 seeds**, t = 5.5 |
+
+**Read the win count before any t-value.** Better on 12 of 12 needs no statistics; better on 7 of 12 is not rescued by one. Only pair against `pass`/`starter` — `random`'s own RNG is not seed-controlled, so the same seed does not reproduce the episode and the pairing is invalid.
+
 Compare a change against the same seed set:
 
 ```bash
 .venv/Scripts/python.exe experiments/seeded_batch.py    # mean/stdev/win-rate vs all 3 built-ins
 .venv/Scripts/python.exe experiments/benchmark.py       # adds melon_maxxer from the official notebook
 .venv/Scripts/python.exe experiments/selfplay_bench.py  # both sides run main.py - the honest number
+.venv/Scripts/python.exe experiments/paired_compare.py A.py B.py  # A/B two versions on one seed set
 ```
 
 At ~7s per season, 12 seeds × 3 opponents is about 4 minutes. Report mean and win-rate, not a single score. `experiments/replay_diagnostics.py` breaks a single episode down by action histogram and end-of-farm state — that's what found the weed cascade. Replay JSONs it dumps are multi-MB and gitignored.
