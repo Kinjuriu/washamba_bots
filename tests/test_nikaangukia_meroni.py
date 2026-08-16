@@ -12,6 +12,7 @@ Run with:
 import unittest
 
 from main import (
+    LIQUIDATION_START_DAY,
     MAX_HANDS_PER_DAY,
     MAX_MARKET_ORDERS_PER_TURN,
     MAX_SELL_PER_TURN,
@@ -614,6 +615,49 @@ class TestHandCoordination(unittest.TestCase):
             "private": {"shed": {}, "seeds": {}, "inventories": [{}]},
         }
         self.assertEqual(nikaangukia_meroni(state_obs)["hands"], [])
+
+
+class TestEndOfSeasonLiquidation(unittest.TestCase):
+    def _market(self, prices):
+        return {"prices": prices, "inventory": {}}
+
+    def test_holds_a_below_threshold_price_in_midseason(self):
+        # Mid-season there is still time for the price to recover.
+        private = {"shed": {"MELON": 40}, "seeds": {}}
+        actions = decide_market_actions(
+            {"money": 0}, private, self._market({"MELON": 100}), day=12
+        )
+        self.assertEqual([a for a in actions if a[0] == "SELL"], [])
+
+    def test_sells_below_threshold_once_the_season_is_ending(self):
+        # Same price, but now the season runs out before any recovery can
+        # arrive. Stock left in the shed at the end scores nothing, so a
+        # cheap sale beats holding out for a price that will never come.
+        private = {"shed": {"MELON": 40}, "seeds": {}}
+        actions = decide_market_actions(
+            {"money": 0}, private, self._market({"MELON": 100}),
+            day=LIQUIDATION_START_DAY,
+        )
+        self.assertIn(["SELL", "MELON", MAX_SELL_PER_TURN["MELON"]], actions)
+
+    def test_liquidation_still_paces_premium_goods(self):
+        # Liquidating is not the same as dumping: the per-turn cap still
+        # applies so the final days don't crater the price in one order.
+        private = {"shed": {"MELON": 90}, "seeds": {}}
+        actions = decide_market_actions(
+            {"money": 0}, private, self._market({"MELON": 250}),
+            day=LIQUIDATION_START_DAY + 2,
+        )
+        melon_sales = [a for a in actions if a[:2] == ["SELL", "MELON"]]
+        self.assertEqual(melon_sales, [["SELL", "MELON", MAX_SELL_PER_TURN["MELON"]]])
+
+    def test_does_not_emit_sales_for_an_empty_shed(self):
+        private = {"shed": {"MELON": 0, "WHEAT": 0}, "seeds": {}}
+        actions = decide_market_actions(
+            {"money": 0}, private, self._market({"MELON": 250}),
+            day=LIQUIDATION_START_DAY,
+        )
+        self.assertEqual([a for a in actions if a[0] == "SELL"], [])
 
 
 class TestMarketOrderCap(unittest.TestCase):

@@ -113,7 +113,17 @@ SEASON_DAYS = 30
 # threshold, right up until it overflows and evaporates for free. Once the
 # shed gets this full, force a sale regardless of price - a mediocre sale
 # beats a guaranteed $0.
-SHED_FORCE_SELL_THRESHOLD = 90
+SHED_FORCE_SELL_THRESHOLD = 70
+
+# Anything still sitting in the shed when the season ends is worth exactly
+# nothing - there is no scoring credit for inventory, only for bank balance.
+# Measured on a real season: the shed sat at its 100-item cap on day 28
+# holding 95 melons, because the price had drifted below the sell threshold
+# and the agent kept waiting for a recovery that the season had no time
+# left to deliver. From this day on, sell everything regardless of price.
+# Still spread across turns via MAX_SELL_PER_TURN so the last few days
+# don't dump the whole stock into one price-crashing order.
+LIQUIDATION_START_DAY = 25
 
 # Never spend more than this fraction of our current cash on a single
 # seed purchase, so a bad crop pick can't wipe out our bank balance.
@@ -586,8 +596,12 @@ def decide_market_actions(farm, private, market_state, day):
     # per product (see MAX_SELL_PER_TURN) so a big harvest of a premium good
     # doesn't dump the whole stack into one price-crashing order.
     shed = private.get("shed", {})
+    liquidating = day >= LIQUIDATION_START_DAY
+
     for product, quantity in shed.items():
-        if should_sell(product, quantity, market_state):
+        # Near the end of the season, price thresholds stop mattering:
+        # unsold stock scores nothing, so any sale beats holding out.
+        if quantity > 0 and (liquidating or should_sell(product, quantity, market_state)):
             cap = MAX_SELL_PER_TURN.get(product, quantity)
             actions.append(["SELL", product, min(quantity, cap)])
             already_selling.add(product)
