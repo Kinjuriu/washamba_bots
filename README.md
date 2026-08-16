@@ -49,6 +49,8 @@ Full competition rules, game mechanics, pricing formulas, and observation/action
 
 At its simplest, `melon_maxxer(obs)` reads the current state and chooses between market and farm decisions. The market branch buys seed or sells produce; the farm branch moves, plants, waters, or harvests.
 
+Our agent, `nikaangukia_meroni(obs)`, follows the same shape but does more on each branch: the market branch buys seeds and animals, protects the feed reserve, sells produce and hires hands; the farm branch moves, plants, waters, digs weeds, feeds, cares, collects fertilizer, harvests, and places animals.
+
 ```mermaid
 flowchart TD
     agent["melon_maxxer(obs)"]

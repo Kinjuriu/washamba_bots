@@ -6,15 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An agent for the Kaggle **Kaggriculture** simulation competition: two agents each manage a virtual farm over a 30-day season (720 turns, 24/day) and compete for the highest bank balance. There is no static train/test set — everything is scored via live episodes against other agents plus a final Bradley-Terry tournament.
 
-**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). One shared `choose_unit_action` ladder drives the main farmer **and every hired hand**, with a per-turn claim set so units spread out instead of converging on the same tile. `tests/` carries a 55-case stdlib-`unittest` suite for its helpers. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has one working experiments notebook.
+**Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). One shared, inventory-aware `choose_unit_action` ladder drives the main farmer **and every hired hand**, with a per-turn claim set so units spread out instead of converging on the same tile.
 
-**Current baseline — mean final bank over 12 seeded 720-turn seasons per opponent:**
+The animal rollout is deliberately capped at **one goose** (`MAX_ANIMALS`): build a coop, buy/pick up/place the goose, feed and care for it, collect fertilizer, harvest eggs, and hold back a two-unit wheat reserve so selling feed can't starve it. The animal logic is data-driven off the engine's `ANIMALS` table, so cow and sheep need no new code — only a change to `ACTIVE_ANIMALS`.
+
+`tests/` carries a stdlib-`unittest` suite. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has one working experiments notebook.
+
+**Current V1 local benchmark — mean final bank over 12 seeded 720-turn seasons per opponent:**
 
 | vs | mean | stdev | min | max | wins |
 |---|---|---|---|---|---|
-| `pass` | 33261 | ±1250 | 31544 | 35906 | 12/12 |
-| `random` | 32852 | ±981 | 31322 | 34112 | 12/12 |
-| `starter` | 33356 | ±1617 | 31814 | 37720 | 12/12 |
+*(Benchmark table pending re-measurement of the merged crop-economics + goose agent — the numbers on either side of this merge described only half of it.)*
 
 **The single biggest win was a scoring bug, not a strategy.** `choose_crop` subtracted an absolute oversupply term: `(price*yield - stock*price)/days`. Every product starts with market inventory of 10,000, so that term was not a tie-breaker — it *was* the score, collapsing to roughly `-price*10000/days`, which ranks crops by **cheapness**. Melon is the strongest crop in the game at 125.0 value per tile-day (wheat 37.5) and it scored dead last, so the agent planted wheat all season and never once planted a melon. Discounting glut *relative to the engine's `I0` baseline* took the mean from ~7,000 to ~28,800. Generalise it: **when a score mixes a revenue term with a penalty term, check their magnitudes against real game data, not just their signs.**
 
@@ -22,7 +24,7 @@ An agent for the Kaggle **Kaggriculture** simulation competition: two agents eac
 
 **Hiring is the single highest-ROI mechanic in the game, by a wide margin.** The n-th hire of a day costs `farmHandCostMult × fib(n)` with the counter resetting each morning, so four hands cost **$1+$1+$2+$3 = $7/day — about $210 for the whole season.** That bought roughly **+1,400 mean bank** (`pass` 5635 → 6864, `random` 5264 → 7357, `starter` 5555 → 6609). Hands are cleared every night, so re-hire each morning (`HIRE_BEFORE_HOUR`); a hand bought at hour 20 costs the same and does a fraction of the work.
 
-The reason it pays so well is the same one behind the weed cascade below: **a single farmer's upkeep capacity is what caps income.** More units means more tiles watered and dug, so the farm stops decaying — a full season now ends with ~0 weeds instead of 23.
+The reason it pays so well is the same one behind the weed cascade below: **a single farmer's upkeep capacity is what caps income.** More units means more tiles watered and dug, while the one Goose adds a maintained animal revenue stream without the escape failures seen in the four-Goose experiment.
 
 Two earlier fixes moved the **floor** rather than the mean: a **season-maturity gate** (`choose_crop` refuses crops whose `first_yield_day` can't land before day 29 — the agent used to bleed cash buying tomato seed it could never harvest) and a **shed-overflow valve** (force-sell once the shed passes `SHED_FORCE_SELL_THRESHOLD`, since overflow past 100 items is silently discarded).
 
@@ -30,7 +32,7 @@ Two earlier fixes moved the **floor** rather than the mean: a **season-maturity 
 
 Adding `DIG` moved every metric at once: **SELL orders 3.9 → 22.9**, **end-of-season weeds 23.0 → 2.1**, and the sub-$3000 downside disappeared. The lesson generalizes: **tile upkeep capacity, not sell-price tuning, is what gates this agent's income.** Before optimizing thresholds, check how many tiles are alive at season end.
 
-Still unimplemented: animals, `FEED`/`CARE`, `FERTILIZE`, and shed transfers (`DROP`/`PICKUP`).
+Still unimplemented: `FERTILIZE` (see PR #5), `BUY_LAND`, cow/sheep (`ACTIVE_ANIMALS`), and shed transfers beyond the fertilizer/animal path.
 
 **Measured dead ends — don't re-run these without changing something first.** Both were plausible and both lost, twice each, on the full 12-seed batch:
 
