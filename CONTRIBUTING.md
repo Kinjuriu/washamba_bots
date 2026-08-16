@@ -7,11 +7,12 @@ went wrong on this repo — nothing is here as generic good practice.
 contract). This file is the short version of **how we work** so we stop
 re-losing the same days.
 
-> **Status: proposed, not yet adopted.** Two items below bind the whole team
-> and need an explicit yes before they're real — the PR benchmark gate, and
-> naming a **submission owner** (currently unassigned, and it guards the
-> scarcest thing we have). Everything else is a description of how this repo
-> actually behaves; argue with those on the evidence.
+> **Status: proposed, not yet adopted.** One item below binds the whole team
+> and needs an explicit yes before it's real — the **PR benchmark gate**.
+> Everything else is either a description of how this repo actually behaves
+> (argue with those on the evidence) or a competition rule we don't get a
+> vote on. **Check the Kaggle team-merge section before Sept 23** — that one
+> is not optional.
 
 ## The one rule
 
@@ -126,15 +127,43 @@ process fetishism, but because we genuinely cannot tell it from a regression.
   launches whatever is first on `PATH` — that is how a notebook ends up on
   system Python reporting `No module named kaggle_environments`.
 
-## Submissions — coordinate before you upload
+## Submissions — anyone can submit, but announce it first
 
-**Only 5 submissions per day, and only your latest 2 stay active for
-matchmaking and final scoring.** An uncoordinated upload can evict a better
-agent from the active pair and burn quota we can't get back.
+**Only 5 submissions per day, and only the latest 2 stay active for
+matchmaking and final scoring.** That second half is the dangerous one: an
+upload doesn't just consume quota, it can silently **evict a better agent**
+from the active pair. There is no undo, and the ladder signal that agent was
+still accumulating is gone with it.
 
-Post in the team channel before submitting. **(Proposed)** one named person
-owns the submission for a given day — we have not agreed who, and an
-unassigned rule is one nobody follows. Pick a name and put it here.
+Anyone can submit. The rule is not permission, it's visibility — nobody
+should discover a submission by seeing the score move.
+
+**Before you upload, post in the team channel:**
+
+- what changed, in one line;
+- the self-play number and the seed count behind it;
+- which of the currently active 2 you expect to displace.
+
+**Never submit a change that hasn't been through the seeded batch.** A
+submission slot is the scarcest thing we have; spending one on an unmeasured
+change costs a day of ladder signal to learn what 4 minutes locally would
+have told you.
+
+If two people want to submit the same day, the one with benchmark numbers
+goes first.
+
+### We must be a merged Kaggle team
+
+**Private sharing of competition code outside your team is a rules
+violation** (`docs/kaggriculture_context.md:53`) — this repo counts. Everyone
+contributing here must be entered *and* merged into the same Kaggle team.
+
+**The team merger and entry deadline is Sept 23, 2026**, a week before final
+submissions close. It cannot be done late. Until we're merged we are separate
+competitors sharing code privately, which is the thing the rule prohibits.
+
+Verify with `kaggle competitions list --group entered` (expect
+`userHasEntered: True`) and confirm the team roster on the competition page.
 
 Final scoring is a single Bradley-Terry tournament roughly two weeks after
 the Sept 30 deadline — deliberately, to damp hot streaks. Late-season
