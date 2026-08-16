@@ -181,7 +181,18 @@ SHED_FORCE_SELL_THRESHOLD = 70
 # left to deliver. From this day on, sell everything regardless of price.
 # Still spread across turns via MAX_SELL_PER_TURN so the last few days
 # don't dump the whole stock into one price-crashing order.
-LIQUIDATION_START_DAY = 25
+#
+# Day 19, not 25, and the two evaluations disagree about that - which is the
+# whole reason it is 19. Against `starter`, which never sells, holding out
+# for a better price wins: day 19 is -440 there, worse on 10 of 12 seeds.
+# Head to head against a copy of ourselves, where the order book is actually
+# contested, day 19 is +617 and wins 21 of 24 matches. Selling into a market
+# a competitor is also selling into is a race for the town's daily demand,
+# and the loser gets the crashed price. The ladder is contested, so the
+# head-to-head number is the one that predicts it (experiments/head_to_head.py).
+#
+# Swept 13/16/19/21/23/25/27: 19 is an interior peak, not an edge effect.
+LIQUIDATION_START_DAY = 19
 
 # ---------------------------------------------------------------------
 # Seed buying
