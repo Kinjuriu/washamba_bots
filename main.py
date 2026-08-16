@@ -50,7 +50,9 @@ of it ranked crops by cheapness and never planted a melon all season.
 
 NOT implemented in this version (on purpose, to keep V1 simple):
   - COW / SHEEP (the animal logic is data-driven off ACTIVE_ANIMALS, so
-    enabling them is a config change, not new logic).
+    enabling them is a config change, not new logic - though their
+    products, MILK and WOOL, still need SELL_PRICE_THRESHOLDS/
+    MAX_SELL_PER_TURN entries of their own before that's a good idea).
   - Buying land / unlocking new quadrants.
   - Any multi-turn planning, lookahead, or opponent modelling.
 
@@ -69,7 +71,7 @@ Started" / Hosts notebook. Nothing is invented.
 # many units it yields - so we don't have to hard-code any of that
 # ourselves.
 try:
-    from kaggle_environments.envs.kaggriculture.kaggriculture import ANIMALS, CROPS
+    from kaggle_environments.envs.kaggriculture.kaggriculture import ANIMALS, CROPS, SHOPS
 except ImportError:
     # Defensive fallback: if this ever runs somewhere the environment
     # package isn't importable (e.g. a stripped-down test sandbox), we
@@ -78,6 +80,7 @@ except ImportError:
     # will still harvest/water/sell/PASS safely.
     CROPS = {}
     ANIMALS = {}
+    SHOPS = {}
 
 # Baseline market stock per product (the engine's I0, 10,000 for every
 # product at time of writing). Crop scoring needs it to tell a real glut
@@ -149,6 +152,7 @@ SELL_PRICE_THRESHOLDS = {
     "STRAWBERRY": 90,
     "MELON": 180,
     "EGG": 35,
+    "WOOL": 140,
 }
 DEFAULT_SELL_THRESHOLD = 50
 
@@ -162,6 +166,7 @@ DEFAULT_SELL_THRESHOLD = 50
 MAX_SELL_PER_TURN = {
     "STRAWBERRY": 10,
     "MELON": 15,
+    "WOOL": 5,
 }
 
 # The shed holds at most 100 non-seed items - anything harvested past that
@@ -275,7 +280,7 @@ MAX_HIRES_PER_TURN = 3
 # (about 4 hands) - roughly 1,300 to 2,600 bank worse per season. Surplus
 # units do not idle politely, they plant tiles the crew then cannot water
 # and spend seed money doing it.
-WORK_TILES_PER_HAND = 6
+WORK_TILES_PER_HAND = 4
 
 # Don't spend our last coins on labour - seed money matters more.
 MIN_MONEY_TO_HIRE = 150
@@ -299,16 +304,31 @@ MAX_MARKET_ORDERS_PER_TURN = 10
 # (interval=1) - the fastest way to prove the whole build -> buy -> pickup
 # -> place -> feed -> care -> harvest -> sell pipeline actually works before
 # committing to COW/SHEEP. The logic below is written generically against
-# this list, so extending it later is a config change, not new logic -
-# except the "which structure to build" step, which assumes a single
-# active species (see choose_unit_action).
-ACTIVE_ANIMALS = ["GOOSE"]
+# this list, so extending it later is a config change, not new logic - see
+# choose_animal_to_build for the priority order multiple species use.
+ACTIVE_ANIMALS = ["SHEEP"]
 ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a in ANIMALS}
 
 # Cap on total animals we'll commit to (built structures, filled or not).
-# V1 deliberately proves one complete, reliably fed Goose lifecycle first.
-# Scaling this to four before the planner has dedicated feed capacity causes
-# unrecoverable escapes and loses more capital than the extra eggs earn.
+#
+# Stays at 1. Three Geese were measured at +14% self-play on the pre-fertilizer,
+# pre-day-19 agent (PR #10) and that measurement was correct for the agent it
+# was taken on - but the agent moved underneath it. Re-measured on current
+# main, with the fertilizer errand competing for the same unit-turns, three
+# animals lose **-9,787 head to head, winning 0 of 16 matches**, and self-play
+# is flat (27,983 against 28,206).
+#
+# Note the two harnesses disagreeing again, in the direction that matters:
+# self-play changes BOTH sides, so a revenue stream that doesn't compete for
+# a scarce market lifts both banks and looks free. Head to head is what shows
+# the cost, and the cost is real - every coop takes a tile out of crop
+# production and a share of the crew's upkeep capacity, which is the same
+# ceiling BUY_LAND and a denser crew both ran into.
+#
+# The choose_animal_to_build() gate below is kept even though it cannot fire
+# at MAX_ANIMALS = 1 (measured: gate-only is +0 against main, an exact no-op).
+# It is correct, it costs nothing, and it is the thing that makes raising this
+# number safe to try again.
 MAX_ANIMALS = 1
 
 # Never buy an animal that eats more than this fraction of current cash in
@@ -481,6 +501,7 @@ def extract_state(obs):
         "board_size": len(tiles) if tiles else 0,
         "day": obs.get("day", 0),
         "hour": obs.get("hour", 0),
+        "town": obs.get("town") or {},
     }
 
 
@@ -718,17 +739,31 @@ def count_owned_animals(farm, private, board_size):
     return total + filled + unfilled
 
 
-def should_build_structure(farm, board_size, pending_builds=0):
+def choose_animal_to_build(farm, board_size, day, pending_builds=0):
     """
-    True if we should build a new coop/pasture on an empty tile right now:
-    under the cap, every structure we've already built already has an
-    animal in it (stops us tying up more than one tile at a time waiting on
-    the buy/pickup/place chain to catch up), and we can actually afford to
-    fill it soon. Building itself is free, but an empty coop we can't yet
-    afford to stock just ties up a tile that could grow a crop for
-    immediate income instead - same affordability bar as actually buying
-    the animal (see decide_animal_market_actions), so we never build ahead
-    of our ability to fill it.
+    Pick which ACTIVE_ANIMALS species to build a structure for next, or
+    None if we shouldn't build one right now.
+
+    Same season-maturity gate choose_crop() uses for seeds: a species
+    whose first_yield_day can't land before day 29 is refused, the same
+    way a too-slow crop is - building for it would tie up a tile and
+    ANIMAL_SPEND_CAP_FRACTION of our cash for a guaranteed dead loss with
+    no offsetting revenue. This gate matters as MAX_ANIMALS or
+    ACTIVE_ANIMALS grows enough that a build could land late in the season.
+
+    Also picks *which* species: the first one (in ACTIVE_ANIMALS order)
+    that's both affordable and has time left to pay off, rather than
+    always building whatever ACTIVE_ANIMALS[0] happens to be regardless of
+    season or affordability - matters once more than one species is
+    active, since the structure kind for the wrong species is a wasted
+    build.
+
+    Under the cap, and only when every structure we've already built
+    already has an animal in it (stops us tying up more than one tile at a
+    time waiting on the buy/pickup/place chain to catch up) - same
+    affordability bar as actually buying the animal (see
+    decide_animal_market_actions), so we never build ahead of our ability
+    to fill it.
 
     `pending_builds` is how many other units have already decided to build
     one THIS SAME TURN (see choose_unit_action) - every unit sees the same
@@ -738,28 +773,44 @@ def should_build_structure(farm, board_size, pending_builds=0):
     """
     filled, unfilled = scan_animal_structures(farm, board_size)
     if unfilled > 0 or pending_builds > 0 or filled >= MAX_ANIMALS:
-        return False
+        return None
 
-    cost = ANIMALS.get(ACTIVE_ANIMALS[0], {}).get("cost")
-    if cost is None:
-        return False
     money = farm.get("money", 0)
-    return money >= cost and cost <= money * ANIMAL_SPEND_CAP_FRACTION
+    remaining_days = remaining_season_days(day)
+    for animal in ACTIVE_ANIMALS:
+        info = ANIMALS.get(animal)
+        if not info:
+            continue
+        cost = info.get("cost")
+        first_yield_day = info.get("first_yield_day")
+        if cost is None or first_yield_day is None:
+            continue
+        if first_yield_day > remaining_days:
+            continue  # can't reach even a first harvest before season end
+        if money >= cost and cost <= money * ANIMAL_SPEND_CAP_FRACTION:
+            return animal
+    return None
 
 
-def decide_animal_market_actions(farm, private, board_size):
+def decide_animal_market_actions(farm, private, board_size, day):
     """
     Build the list of BUY_ANIMAL / feed-safety-net BUY_PRODUCT orders for
     this turn.
     """
     actions = []
     money = farm.get("money", 0)
+    remaining_days = remaining_season_days(day)
 
     if count_owned_animals(farm, private, board_size) < MAX_ANIMALS:
         for animal in ACTIVE_ANIMALS:
             info = ANIMALS.get(animal)
             cost = info.get("cost") if info else None
-            if cost is None or cost > money or cost > money * ANIMAL_SPEND_CAP_FRACTION:
+            first_yield_day = info.get("first_yield_day") if info else None
+            if cost is None or first_yield_day is None:
+                continue
+            if first_yield_day > remaining_days:
+                continue  # can't reach even a first harvest before season end
+            if cost > money or cost > money * ANIMAL_SPEND_CAP_FRACTION:
                 continue
             actions.append(["BUY_ANIMAL", animal, 1])
             break  # one purchase at a time, same cadence as seed buying
@@ -864,7 +915,37 @@ def count_pipeline_supply(farm, private):
     return supply
 
 
-def choose_crop(farm, market_state, private, day):
+# How many units a day the town actually removes from a product's market.
+#
+# This is the demand side, and it is wildly uneven. Shops fire every
+# SHOP_INTERVAL_STEPS (6 times a day) while the Town Centre buys one of
+# everything once a day, so a single unlocked shop is worth six times the
+# Town Centre. A shop selling exactly one product consumes it at DOUBLE rate,
+# and shops are drawn WITH replacement, so the same shop can be unlocked
+# several times and each instance consumes independently.
+#
+# The consequence is the important part: MELON appears in no shop at all.
+# Its only sink is the Town Centre's one unit a day - about 30 for the whole
+# season - while CARROT, with PET_CAFE (single-product, so 2x) unlocked twice,
+# can be pulling ~37 a day. Scoring melon on price alone is how the agent ends
+# up dumping 183 of them into a market that wanted 30.
+TURNS_PER_DAY = 24
+SHOP_INTERVAL_STEPS = 4
+
+
+def daily_town_demand(product, town):
+    """Units of `product` the town removes per day, at the current unlocks."""
+    shop_pull = 0
+    for shop_name in (town or {}).get("unlocked_shops") or []:
+        products = SHOPS.get(shop_name) or []
+        if product in products:
+            # A single-product shop consumes at double rate.
+            shop_pull += 2 if len(products) == 1 else 1
+    shops_per_day = TURNS_PER_DAY / SHOP_INTERVAL_STEPS
+    return shop_pull * shops_per_day + 1.0  # +1 for the Town Centre
+
+
+def choose_crop(farm, market_state, private, day, town=None):
     """
     Pick the crop we'd most like to plant next, or None if nothing makes
     sense right now (nothing affordable/held, or nothing left has time to
@@ -959,7 +1040,15 @@ def choose_crop(farm, market_state, private, day):
         # absorb it and keeps the fragile, high-value ones scarce enough to
         # stay valuable.
         absorption = MARKET_ABSORPTION.get(crop) or DEFAULT_ABSORPTION
-        pressure = pipeline.get(crop, 0) / absorption if absorption else 0.0
+        # The market's depth is only half the sink. The other half is demand
+        # that will still arrive before the season ends - and that differs by
+        # more than an order of magnitude between crops (see
+        # daily_town_demand). Without this term melon looks best right up
+        # until we have flooded the one market nobody is buying from.
+        days_left = max(1, SEASON_DAYS - day)
+        demand_sink = daily_town_demand(crop, town) * days_left
+        sink = absorption + demand_sink
+        pressure = pipeline.get(crop, 0) / sink if sink else 0.0
         self_supply_discount = 1.0 / (1.0 + pressure) ** SELF_SUPPLY_EXPONENT
 
         score = price * expected_yield * glut_discount * self_supply_discount / growth_days
@@ -1018,7 +1107,7 @@ def should_buy_seed(crop, farm, private):
     return True
 
 
-def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
+def decide_market_actions(farm, private, market_state, day, reserved_wheat=0, town=None):
     """Build the list of ["SELL", ...] / ["BUY_SEED", ...] actions for this turn."""
     actions = []
     already_selling = set()
@@ -1088,7 +1177,7 @@ def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
             actions.append(["SELL", product, min(sell_quantity, cap)])
 
     # Buy exactly one seed of our preferred next crop, if it makes sense.
-    preferred_crop = choose_crop(farm, market_state, private, day)
+    preferred_crop = choose_crop(farm, market_state, private, day, town)
     if preferred_crop and should_buy_seed(preferred_crop, farm, private):
         actions.append(["BUY_SEED", preferred_crop, 1])
 
@@ -1345,16 +1434,16 @@ def choose_unit_action(
     if isinstance(tile, dict) and tile.get("kind") == "WEED":
         return act_here(["DIG"])
 
-    # 9. Empty ground under our feet: build a coop if we're still growing
-    #    the animal side of the farm and don't already have one waiting for
-    #    a tenant (V1 assumes a single active species - see ACTIVE_ANIMALS),
-    #    otherwise plant a crop.
+    # 9. Empty ground under our feet: build a coop/pasture if we're still
+    #    growing the animal side of the farm and don't already have one
+    #    waiting for a tenant, otherwise plant a crop.
     if tile is None:
-        if should_build_structure(farm, board_size, pending_builds[0]):
+        animal_to_build = choose_animal_to_build(farm, board_size, day, pending_builds[0])
+        if animal_to_build:
             pending_builds[0] += 1
-            structure = ANIMALS[ACTIVE_ANIMALS[0]]["structure"]
+            structure = ANIMALS[animal_to_build]["structure"]
             return act_here([f"BUILD_{structure}"])
-        crop = choose_crop(farm, state["market_state"], private, day)
+        crop = choose_crop(farm, state["market_state"], private, day, state.get("town"))
         if crop and seeds.get(crop, 0) > 0:
             return act_here(["PLANT", crop])
 
@@ -1479,8 +1568,9 @@ def nikaangukia_meroni(obs):
             state["market_state"],
             day,
             reserved_wheat=reserved_wheat,
+            town=state.get("town"),
         )
-        market += decide_animal_market_actions(farm, private, board_size)
+        market += decide_animal_market_actions(farm, private, board_size, day)
 
         return {
             "farmer": farmer_action,
