@@ -6,7 +6,7 @@ This file is a map. The detail lives in the documents it links to.
 
 | I want to… | go to |
 |---|---|
-| know what the current agent is and what it scores | [docs/checkpoints/V1-baseline.md](docs/checkpoints/V1-baseline.md) |
+| know what the current agent is and what it scores | [docs/checkpoints/V2-sheep.md](docs/checkpoints/V2-sheep.md) |
 | prove a change is actually better | [docs/CHECKPOINTS.md](docs/CHECKPOINTS.md) |
 | contribute, and not repeat our mistakes | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | understand the game's mechanics and traps | [CLAUDE.md](CLAUDE.md) |
@@ -16,9 +16,9 @@ This file is a map. The detail lives in the documents it links to.
 
 ## Current checkpoint
 
-**V1 baseline** — commit `d88e225`, frozen 2026-08-16. Crop economics, a goose, daily feeding, fertilizer, and day-19 liquidation. Full record with every metric: **[docs/checkpoints/V1-baseline.md](docs/checkpoints/V1-baseline.md)**.
+**V2 sheep** — commit `93d6bed`, frozen 2026-08-16. Crop economics, a sheep, daily feeding, fertilizer, day-19 liquidation, a denser crew, and demand-aware crop scoring. Self-play **35,583**. Full record with every metric: **[docs/checkpoints/V2-sheep.md](docs/checkpoints/V2-sheep.md)**.
 
-V1 is the **deterministic control**. New strategy work is measured against that frozen commit, not against whatever happens to be on `main` today — otherwise someone else's merge lands inside your delta and you cannot see it. A frozen checkpoint is never edited.
+V2 is the **deterministic control**. New strategy work is measured against that frozen commit, not against whatever happens to be on `main` today — otherwise someone else's merge lands inside your delta and you cannot see it. A frozen checkpoint is never edited.
 
 > **Kaggle ratings are secondary evidence, and a single reading means nothing.** Every submission is seeded at **600** before it has played a game, then drifts ±120. One measured trajectory on unchanged code: `600 → 708 → 572 → 489 → 548 → 472`. Read the local self-play number; let the ladder confirm direction over days, not hours.
 

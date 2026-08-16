@@ -8,7 +8,7 @@ An agent for the Kaggle **Kaggriculture** simulation competition: two agents eac
 
 **Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). One shared, inventory-aware `choose_unit_action` ladder drives the main farmer **and every hired hand**, with a per-turn claim set so units spread out instead of converging on the same tile.
 
-The animal rollout is capped at **three geese** (`MAX_ANIMALS`): build coops, buy/pick up/place geese, feed and care for them, collect fertilizer, harvest eggs, and hold back a two-unit-per-animal wheat reserve so selling feed can't starve them. Three is the measured zero-escape sweet spot; four increased the mean slightly but produced escapes. The animal logic is data-driven off the engine's `ANIMALS` table, so cow and sheep need no new code — only a change to `ACTIVE_ANIMALS`.
+The animal rollout is **one sheep** (`ACTIVE_ANIMALS`, `MAX_ANIMALS = 1`): build a pasture, buy/pick up/place it, feed and care for it daily, collect fertilizer, harvest wool, and hold back a wheat reserve so selling feed can't starve it. **One** is not a placeholder — two of anything loses heavily, including a sheep plus a cow selling into entirely separate markets (-16,634, 0 of 16). And the **species** is chosen by care-bank arithmetic, not base price (see below). The logic is data-driven off the engine's `ANIMALS` table, so switching species is a config change.
 
 `tests/` carries a stdlib-`unittest` suite. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has one working experiments notebook.
 
@@ -50,7 +50,7 @@ This one was first reported as *"a wash on bank balance, ships for the risk"* be
 
 **A green suite is not evidence the fix worked.** An earlier attempt at this same low `FEED` count batched wheat pickups, on the theory that a one-grain-per-trip shed round-trip was the bottleneck. Tests passed, the mean moved, and `FEED` stayed at **exactly 15** — the real cause was untouched. Always measure the specific counter the change was supposed to move.
 
-Still unimplemented: `FERTILIZE` (see PR #5), `BUY_LAND`, cow/sheep (`ACTIVE_ANIMALS`), and shed transfers beyond the fertilizer/animal path.
+Still unimplemented: `BUY_LAND` (measured against — see dead ends), a per-turn seed budget, and shed transfers beyond the fertilizer/wheat/animal paths. `FERTILIZE` and the sheep shipped in V2; `pricing.py` exists as research but is **not** wired into `main.py`.
 
 **Count plants that *land*, not `PLANT` actions issued.** The engine drops **all** `PLANT` requests for a crop when a turn's demand exceeds held seeds (`kaggriculture.py:920-931`) — not just the excess — so five units picking melon while holding one melon seed plants nothing and burns five turns. This makes the raw `PLANT` count in an action histogram actively misleading. Seed 0 vs `starter`:
 

@@ -16,8 +16,15 @@ that looks good only because nobody else is trading will show up here.
 Usage:
     .venv/Scripts/python.exe experiments/selfplay_bench.py [n_seeds]
 
-Runs 6 seeds by default (12 agent-results, ~90s). Every seed is fixed, so
-this is directly comparable across changes.
+Runs 6 seeds by default (~90s). Every seed is fixed, so this is directly
+comparable across changes.
+
+One statistical note: each episode produces two banks, but they are the same
+agent playing itself and are near-perfectly correlated - often identical to
+the rupee. Treating them as two samples would halve the apparent stdev, so
+each seed contributes ONE observation (the mean of the pair) and n is the
+seed count. Figures recorded before 2026-08-16 pooled both sides and so quote
+an optimistic stdev; their means are unaffected.
 """
 
 import statistics
@@ -47,8 +54,12 @@ def main():
         env.run(["main.py", "main.py"])
         left, right = env.steps[-1]
 
-        # Both sides are us, so both banks are valid samples.
-        scores += [left.reward, right.reward]
+        # Both sides are us. Their banks are NOT two independent samples -
+        # in a mirror match they are near-perfectly correlated, and on most
+        # seeds they come out byte-identical. Pooling them would halve the
+        # apparent stdev and overstate our precision, so average the pair
+        # into a single per-seed observation and report n = seeds.
+        scores.append((left.reward + right.reward) / 2)
 
         # Sell orders are only read off player 0 - player 1 runs identical
         # code, so this is a representative mix rather than a farm total.
@@ -61,7 +72,7 @@ def main():
         for product, price in left.observation["market"]["prices"].items():
             price_totals[product] += price
 
-    print(f"self-play over {n_seeds} seeds ({len(scores)} agent-results)")
+    print(f"self-play over {n_seeds} seeds (mean of both sides per seed)")
     print(f"  mean  {statistics.mean(scores):8.0f}")
     print(f"  stdev {statistics.stdev(scores):8.0f}")
     print(f"  min   {min(scores):8.0f}   max {max(scores):8.0f}")

@@ -136,7 +136,23 @@ deterministic. That keeps the evaluation machinery in this document valid.
 
 | checkpoint | commit | date | self-play mean | notes |
 |---|---|---|---|---|
-| [V1 baseline](checkpoints/V1-baseline.md) | `d88e225` | 2026-08-16 | see record | first frozen control: crop economics + goose + fertilizer |
+| **[V2 sheep](checkpoints/V2-sheep.md)** | `93d6bed` | 2026-08-16 | **35,583** | **current control** — sheep, denser crew, demand-aware scoring |
+| [V1 baseline](checkpoints/V1-baseline.md) | `df69f97` | 2026-08-16 | 28,212 | superseded: crop economics + goose + fertilizer |
+
+## A note on self-play stdev, if you compare across checkpoints
+
+Until 2026-08-16, `selfplay_bench.py` pooled **both** players' banks into one
+sample set. In a mirror match those two banks are near-perfectly correlated —
+usually byte-identical — so pooling halved the apparent spread and overstated
+precision. It now averages the pair into one observation per seed.
+
+**Means are unaffected**; only the stdev changes, and it gets *larger*. V2's
+record quotes 3,678 from the old pooling; re-measured properly it is ~4,164.
+V1's figure has the same flaw, so the two frozen records stay comparable to
+each other — just don't compare either stdev against a freshly measured one.
+
+Both records are left as written. A frozen checkpoint is never edited, even
+when the tooling behind it improves.
 
 ## Creating the next one
 
