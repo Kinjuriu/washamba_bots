@@ -65,6 +65,25 @@ action histogram counts attempts that never happened. Reading it raw made a
 36% *rise* in plants landed look like a 35% drop. Ask what the engine
 actually applied.
 
+**A ladder reading is one sample of a noisy process — the same rule as a
+single episode.** Every submission is seeded at a rating of **600** before it
+has played anything, then drifts as episodes accumulate. One measured
+trajectory over 21 minutes:
+
+```
+600.0 → 707.8 → 571.6 → 571.6 → 488.5 → 547.8 → 472.1
+```
+
+Quoting minute six gives "+28%"; minute twenty-one gives "no change". Same
+code. The swing is roughly **±120**, which is wider than any single change
+we have ever shipped.
+
+So: **keep an unchanged control submission active** whenever you're testing a
+new one. We get two active slots either way, and the control is the only
+thing that tells you whether a difference is real — it drifted 467.4 → 452.3
+on its own over the same window, which is how we knew a 20-point gap between
+two agents was noise. Never quote a rating that is still moving.
+
 ## Before you open a PR
 
 ```bash
@@ -151,6 +170,10 @@ have told you.
 
 If two people want to submit the same day, the one with benchmark numbers
 goes first.
+
+**Keep one of the two active slots as an unchanged control** while a new
+agent is being evaluated. Ratings drift ±120 on their own; without a control
+you cannot tell a real gain from the swing. Don't replace both slots at once.
 
 ### Everyone contributing must be on the Kaggle team
 

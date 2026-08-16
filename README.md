@@ -8,7 +8,9 @@ An autonomous agent for [Kaggriculture](https://kaggle.com/competitions/kaggricu
 
 > **Before you submit anything to Kaggle, check with the team.** We get **5 submissions/day** and **only the latest 2 stay active** for matchmaking and final scoring — an extra upload silently deactivates work that is still collecting ladder signal.
 
-**Where we stand:** our live submission oscillates around **450–560** and is still settling. The top 20 on the leaderboard sit around **2,937–3,211**. We are not competitive yet.
+**Where we stand:** rank ~3,520 of 4,714, rating oscillating in the 450-570 band. The leaderboard median is **744.5**, top-25% is **1,648**, and the leader is **3,221.9**. We are below median and not competitive yet.
+
+> **A single rating reading is not a result.** Every submission is seeded at **600** before it plays anything, then drifts +-120 as episodes accumulate - one measured run went `600 -> 708 -> 572 -> 489 -> 548 -> 472` in 21 minutes on unchanged code. Keep an unchanged control submission in one of the two active slots so you can tell a real gain from the swing. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Local baseline** (`main.py` at `ebc8212`, crop economics + goose, 12 seeded 720-turn seasons):
 
