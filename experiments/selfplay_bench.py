@@ -1,19 +1,23 @@
-"""
-Self-play benchmark: both sides run main.py.
+"""Self-play benchmark: both sides run main.py.
 
-Why this and not experiments/seeded_batch.py: the built-in opponents
-(`pass`, `random`, `starter`) sell nothing. They leave every market at its
-starting inventory, so our produce always clears at a high price and the
-scores look enormous. That is exactly how a 33,000 local score converged to
-289 on the real ladder.
+Why this exists alongside seeded_batch.py: the three built-in opponents
+(`pass`, `random`, `starter`) never sell anything. They leave every market
+at its pristine starting inventory, so our own sales never compete with a
+rival's and prices stay high all season. That flatters us badly - the
+built-in numbers are roughly 1.5x what the same agent scores against a
+real competitor.
 
-Self-play is the cheapest honest proxy for a real opponent competing for the
-same market. Treat the mean here as the number that predicts ladder movement,
-and treat seeded_batch.py as a regression check rather than a measure of
-strength.
+Self-play is the cheapest honest proxy we have: a second copy of us is
+farming the same crops and dumping them into the same order book. The
+`end price` line is the point of the whole script - watch MELON, which
+collapses toward the $1 floor once both sides are selling it. Any strategy
+that looks good only because nobody else is trading will show up here.
 
 Usage:
-    .venv/Scripts/python.exe experiments/selfplay_bench.py [seeds]
+    .venv/Scripts/python.exe experiments/selfplay_bench.py [n_seeds]
+
+Runs 6 seeds by default (12 agent-results, ~90s). Every seed is fixed, so
+this is directly comparable across changes.
 """
 
 import statistics
@@ -22,47 +26,55 @@ from collections import Counter
 
 from kaggle_environments import make
 
-TRACKED = ("WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON")
+# Products worth watching a price on - the plantable crops. Animal goods
+# and FERTILIZER are reported in the sold mix instead.
+TRACKED_CROPS = ("WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON")
 
 
-def main(seed_count):
+def main():
+    n_seeds = int(sys.argv[1]) if len(sys.argv) > 1 else 6
+
     scores = []
-    end_prices = Counter()
+    price_totals = Counter()
     sold = Counter()
 
-    for seed in range(seed_count):
+    for seed in range(n_seeds):
         env = make(
             "kaggriculture",
             configuration={"episodeSteps": 720, "seed": seed},
             debug=False,
         )
         env.run(["main.py", "main.py"])
+        left, right = env.steps[-1]
 
-        first, second = env.steps[-1]
-        scores += [first.reward, second.reward]
+        # Both sides are us, so both banks are valid samples.
+        scores += [left.reward, right.reward]
 
+        # Sell orders are only read off player 0 - player 1 runs identical
+        # code, so this is a representative mix rather than a farm total.
         for step in env.steps:
-            for order in (step[0].get("action") or {}).get("market") or []:
+            orders = (step[0].get("action") or {}).get("market") or []
+            for order in orders:
                 if order and order[0] == "SELL":
                     sold[order[1]] += order[2] if len(order) > 2 else 1
 
-        for product, price in first.observation["market"]["prices"].items():
-            end_prices[product] += price
+        for product, price in left.observation["market"]["prices"].items():
+            price_totals[product] += price
 
-    print(f"self-play over {seed_count} seeds ({len(scores)} agent-results)")
+    print(f"self-play over {n_seeds} seeds ({len(scores)} agent-results)")
     print(f"  mean  {statistics.mean(scores):8.0f}")
-    print(f"  stdev {statistics.stdev(scores):8.0f}" if len(scores) > 1 else "")
+    print(f"  stdev {statistics.stdev(scores):8.0f}")
     print(f"  min   {min(scores):8.0f}   max {max(scores):8.0f}")
-
-    print("  mean end price:",
-          {p: round(v / seed_count) for p, v in end_prices.items() if p in TRACKED})
+    print(
+        "  mean end price:",
+        {
+            product: round(total / n_seeds)
+            for product, total in price_totals.items()
+            if product in TRACKED_CROPS
+        },
+    )
     print("  sold mix (p0):", dict(sold.most_common(6)))
-
-    # A price far below base means we flooded that market ourselves; a price
-    # well above base means we left money on the table by ignoring it.
-    print("\n  (base prices: WHEAT 25, CARROT 35, TOMATO 60, "
-          "STRAWBERRY 120, MELON 250)")
 
 
 if __name__ == "__main__":
-    main(int(sys.argv[1]) if len(sys.argv) > 1 else 6)
+    main()

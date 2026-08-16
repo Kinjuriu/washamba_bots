@@ -1,30 +1,56 @@
 """
-nikaangukia_meroni_v0
+nikaangukia_meroni_v1
 ======================
 
-Washamba Bots' first deterministic baseline agent for the Kaggriculture
-competition.
+Washamba Bots' deterministic agent for the Kaggriculture competition.
 
-This is deliberately NOT a sophisticated AI. It is a simple, readable,
-rule-based farmer that:
+This is deliberately NOT a sophisticated AI. Every unit - the main farmer
+and any hired hands - shares one reactive, rule-based priority list, and
+they coordinate through a per-turn claim set so two units never spend
+their turns on the same tile:
 
-  1. Harvests ripe crops.
-  2. Waters crops that need it.
-  3. Moves toward urgent tasks (saving a crop) before anything else.
-  4. Digs weeds under its feet for free, reclaiming dead land.
-  5. Plants a sensible crop when standing on an empty tile.
-  6. Otherwise walks toward the next useful tile (preferring a weed to
-     reclaim over aimless wandering).
-  7. PASSes if there is genuinely nothing useful to do.
+  1. Feeds an animal under its feet - ahead of even a ready harvest. A
+     missed feeding is a permanent loss (the animal escapes for good),
+     and it silently costs the CARE bank too, which only pays out on a
+     day the animal was also fed.
+  2. Harvests a ripe crop, or an animal whose held yield is near its cap
+     (collecting its fertilizer first, since that is a separate output).
+  3. Waters a crop, or cares for an already-fed animal, under its feet.
+  4. Places a carried animal on the empty coop/pasture under its feet.
+  5. Runs shed errands: collects a bought animal waiting for its home, or
+     several days of wheat to go feed an animal elsewhere.
+  6. Moves toward urgent work elsewhere (an animal to feed, a ripe crop,
+     a crop about to weed out) before anything below.
+  7. Carries a picked-up animal toward its coop/pasture if not there yet.
+  8. Digs a weed under its feet for free, reclaiming dead land.
+  9. Builds a coop (if still growing the animal side of the farm) or
+     plants a sensible crop when standing on empty ground.
+  10. Runs the fertilizer errand - collects a batch from the shed and
+     carries it to an ongoing crop that is inside its payout window.
+  11. Reclaims the nearest weed elsewhere - dead land is a permanent loss.
+  12. Otherwise walks toward the closest useful tile.
+  13. PASSes if there is genuinely nothing useful to do.
 
 It also does simple, threshold-based market decisions: sell shed goods
 when the price is good (capped per turn for premium goods so a big
 harvest doesn't crash its own price), buy one seed at a time when we
-need one and can afford it.
+need one and can afford it, hire farm hands early each day against how
+much work is actually pending, and buy one GOOSE at a time (see
+ACTIVE_ANIMALS) plus a small wheat safety net for feeding it. Everything
+still in the shed from LIQUIDATION_START_DAY on is sold regardless of
+price - inventory scores nothing once the season ends.
 
-NOT implemented in this version (on purpose, to keep v0 simple):
-  - Animals (COOP / PASTURE tiles), feeding, or collecting animal goods.
-  - Hired hands ("hands" is always returned empty).
+The one piece of real economics is choose_crop(). It scores a crop by
+revenue per growing day, discounted both by how oversupplied that market
+already is and by how much of that crop we are *ourselves* about to
+deliver. That second term matters more than it sounds: a melon planted
+today sells twelve days from now, into the price our own harvest creates.
+See the docstring there before touching the formula - an earlier version
+of it ranked crops by cheapness and never planted a melon all season.
+
+NOT implemented in this version (on purpose, to keep V1 simple):
+  - COW / SHEEP (the animal logic is data-driven off ACTIVE_ANIMALS, so
+    enabling them is a config change, not new logic).
   - Buying land / unlocking new quadrants.
   - Any multi-turn planning, lookahead, or opponent modelling.
 
@@ -33,13 +59,17 @@ observation shape) comes from the official Kaggriculture "Getting
 Started" / Hosts notebook. Nothing is invented.
 """
 
+# ---------------------------------------------------------------------
+# Environment metadata (read from the engine, never hardcoded)
+# ---------------------------------------------------------------------
+
 # CROPS is the same environment-provided metadata table used in the
 # official starter notebook's "Melon Maxxer" example. It tells us, per
 # crop, the seed cost, how many days until it can be harvested, and how
 # many units it yields - so we don't have to hard-code any of that
 # ourselves.
 try:
-    from kaggle_environments.envs.kaggriculture.kaggriculture import CROPS
+    from kaggle_environments.envs.kaggriculture.kaggriculture import ANIMALS, CROPS
 except ImportError:
     # Defensive fallback: if this ever runs somewhere the environment
     # package isn't importable (e.g. a stripped-down test sandbox), we
@@ -47,6 +77,7 @@ except ImportError:
     # an empty CROPS table the agent simply won't plant anything - it
     # will still harvest/water/sell/PASS safely.
     CROPS = {}
+    ANIMALS = {}
 
 # Baseline market stock per product (the engine's I0, 10,000 for every
 # product at time of writing). Crop scoring needs it to tell a real glut
@@ -86,10 +117,26 @@ SELF_SUPPLY_EXPONENT = 2.0
 MIN_GLUT_DISCOUNT = 0.1
 
 
+# ---------------------------------------------------------------------
+# Season
+# ---------------------------------------------------------------------
+
+# The season is a fixed 30 days (0-indexed: day 0 through day 29), per the
+# competition's hard constraints - not something that varies per episode.
+SEASON_DAYS = 30
+
+# ---------------------------------------------------------------------
+# Crop selection
+# ---------------------------------------------------------------------
+
 # The only crops the environment actually defines seed metadata for.
 # (EGG / MILK / WOOL / FERTILIZER are products, not plantable crops -
-# they come from animals, which v0 does not handle.)
+# they come from animals rather than seeds.)
 PLANTABLE_CROPS = ["WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON"]
+
+# ---------------------------------------------------------------------
+# Selling and the shed
+# ---------------------------------------------------------------------
 
 # Minimum market price we're willing to sell a product at. These are
 # simple, per-product thresholds so the team can tune them independently
@@ -101,6 +148,7 @@ SELL_PRICE_THRESHOLDS = {
     "TOMATO": 40,
     "STRAWBERRY": 90,
     "MELON": 180,
+    "EGG": 35,
 }
 DEFAULT_SELL_THRESHOLD = 50
 
@@ -115,14 +163,6 @@ MAX_SELL_PER_TURN = {
     "STRAWBERRY": 10,
     "MELON": 15,
 }
-
-# Don't stockpile more seeds of one crop than this - keeps cash free for
-# other things instead of hoarding.
-MAX_SEED_STOCKPILE = 3
-
-# The season is a fixed 30 days (0-indexed: day 0 through day 29), per the
-# competition's hard constraints - not something that varies per episode.
-SEASON_DAYS = 30
 
 # The shed holds at most 100 non-seed items - anything harvested past that
 # cap is silently discarded at end of day, with no error and no way to
@@ -143,43 +183,56 @@ SHED_FORCE_SELL_THRESHOLD = 70
 # don't dump the whole stock into one price-crashing order.
 LIQUIDATION_START_DAY = 25
 
+# ---------------------------------------------------------------------
+# Seed buying
+# ---------------------------------------------------------------------
+
+# Don't stockpile more seeds of one crop than this - keeps cash free for
+# other things instead of hoarding.
+MAX_SEED_STOCKPILE = 3
+
 # Never spend more than this fraction of our current cash on a single
 # seed purchase, so a bad crop pick can't wipe out our bank balance.
 SEED_SPEND_CAP_FRACTION = 0.5
 
-# Fertilizer. FERTILIZE marks a plant for `day`, `day+1`, `day+2` and only
-# pays out on days the plant is also watered (kaggriculture.py: the bonus is
-# gated on was_watered). What it's worth differs completely by crop type:
+# ---------------------------------------------------------------------
+# Fertilizer
+# ---------------------------------------------------------------------
+
+# FERTILIZE marks a plant for `day`, `day+1` and `day+2`, and the bonus is
+# paid only on days the plant is *also* watered - `_daily_refresh_plants`
+# gates it on `was_watered`. It is a multiplier on watering, never a
+# substitute for it.
 #
-#   ONGOING crops bank +2 instead of +1 on every production tick inside the
-#   window, so one $100 unit is worth roughly:
-#     TOMATO      interval 1 -> catches 3 ticks -> +3 units
-#     STRAWBERRY  interval 2 -> catches 2 ticks -> +2 units
-#   Both trade well above base when nobody floods them, so this is the
-#   strongest use of a fertilizer unit by a wide margin.
+# Only ongoing crops can use it at all. `_daily_refresh_plants` skips
+# one-time crops outright (`if not cd["ongoing"]: continue`), so a unit of
+# fertilizer spent on wheat, carrot or melon is simply thrown away. That
+# leaves the two ongoing crops, where each covered production tick banks
+# +2 instead of +1:
 #
-#   ONE-TIME crops only add to a yield that is already capped at max_yield:
-#     WHEAT   +2 units (~$50-100 against a $100 unit - marginal)
-#     CARROT  +1 unit  (a loss)
-#     MELON   +0       - watering alone already reaches the cap of 6 exactly
-#                        at first_yield_day, so fertilising it buys nothing
-#
-# So we only ever fertilise ongoing crops.
+#   TOMATO      interval 1 -> the 3-day cover catches 3 ticks
+#   STRAWBERRY  interval 2 -> catches 2 ticks
 FERTILIZABLE_CROPS = ("TOMATO", "STRAWBERRY")
 
-# Bought fertilizer lands in the shed, but FERTILIZE consumes from the
-# acting unit's own inventory - so a unit has to stand shed-adjacent and
-# PICKUP before it can fertilise anything. Carry a few at a time so one trip
-# serves several plants instead of one.
+# Bought fertilizer lands in the shed, but FERTILIZE spends from the acting
+# unit's own inventory - so a unit has to stand shed-adjacent and PICKUP
+# before it can fertilise anything. Carry a few at a time so one trip serves
+# several plants instead of one.
 FERTILIZER_CARRY_BATCH = 3
 
 # Don't buy fertilizer we have no plant to use it on, and keep a lid on the
-# stock so it doesn't crowd the shed or the cash.
+# stock so it doesn't crowd the shed or the cash. The Goose also produces
+# fertilizer for free via COLLECT_FERTILIZER, so this cap is mostly a brake
+# on buying what the animal already supplies.
 MAX_FERTILIZER_STOCK = 6
 
 # Fertilizer bought this late can't catch enough production ticks to repay
 # itself before the season ends.
 FERTILIZER_LAST_USEFUL_DAY = 24
+
+# ---------------------------------------------------------------------
+# Labour
+# ---------------------------------------------------------------------
 
 # Farm hands. The n-th hire of a day costs farmHandCostMult * fib(n) with
 # fib indexed 1, 1, 2, 3, 5, 8, ... (kaggriculture.py:_fib / _hire_cost), and
@@ -216,11 +269,52 @@ WORK_TILES_PER_HAND = 6
 # Don't spend our last coins on labour - seed money matters more.
 MIN_MONEY_TO_HIRE = 150
 
+# ---------------------------------------------------------------------
+# Market order budget
+# ---------------------------------------------------------------------
+
 # The engine processes at most this many market orders per player per turn
 # and silently drops the rest (kaggriculture.json: maxMarketOrdersPerTurn),
 # so going over the cap loses orders with no error to catch.
 MAX_MARKET_ORDERS_PER_TURN = 10
 
+
+# ---------------------------------------------------------------------
+# Animal husbandry
+# ---------------------------------------------------------------------
+
+# Animal husbandry (V1 scope: just GOOSE). It's the cheapest animal ($300),
+# has the fastest payback (first_yield_day=4), and produces every day
+# (interval=1) - the fastest way to prove the whole build -> buy -> pickup
+# -> place -> feed -> care -> harvest -> sell pipeline actually works before
+# committing to COW/SHEEP. The logic below is written generically against
+# this list, so extending it later is a config change, not new logic -
+# except the "which structure to build" step, which assumes a single
+# active species (see choose_unit_action).
+ACTIVE_ANIMALS = ["GOOSE"]
+ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a in ANIMALS}
+
+# Cap on total animals we'll commit to (built structures, filled or not).
+# V1 deliberately proves one complete, reliably fed Goose lifecycle first.
+# Scaling this to four before the planner has dedicated feed capacity causes
+# unrecoverable escapes and loses more capital than the extra eggs earn.
+MAX_ANIMALS = 1
+
+# Never buy an animal that eats more than this fraction of current cash in
+# one shot - same reasoning as SEED_SPEND_CAP_FRACTION.
+ANIMAL_SPEND_CAP_FRACTION = 0.5
+
+# Keep at least this much WHEAT on hand (shed + carried) whenever we own a
+# placed animal, buying more via BUY_PRODUCT if it ever hits zero. A missed
+# feeding is not a recoverable loss like a weed (DIG reclaims those) - the
+# animal escapes for good - so feed supply can't be left to chance on
+# however wheat farming happens to be going that day.
+MIN_WHEAT_RESERVE_FOR_FEEDING = 2
+
+# Feeding spends wheat from the acting unit's own inventory, not the shed,
+# so every meal otherwise costs a fresh shed round-trip. Carry a few days'
+# worth per trip instead.
+WHEAT_CARRY_BATCH = 3
 
 
 # ---------------------------------------------------------------------
@@ -266,6 +360,89 @@ def get_current_tile(farm):
     return get_tile_at(farm, farmer_pos[0], farmer_pos[1])
 
 
+def shed_access_tiles(board_size):
+    """
+    The four inner-corner tiles adjacent to the shed, matching the engine's
+    own placement rule (kaggriculture.py: _shed_access_tiles /
+    _is_shed_adjacent) - not exposed directly on `obs`, so we replicate the
+    formula rather than guess at it.
+    """
+    half = board_size // 2
+    return [(half - 1, half - 1), (half, half - 1), (half - 1, half), (half, half)]
+
+
+def is_shed_adjacent(x, y, board_size):
+    return (x, y) in shed_access_tiles(board_size)
+
+
+def wants_fertilizer(tile, day):
+    """
+    True if fertilising this plant right now would actually pay.
+
+    Only ongoing crops qualify (see FERTILIZABLE_CROPS), and only inside the
+    stretch where the three-day cover still catches production ticks.
+    Fertilizer applied outside that window is thrown away.
+
+    The window edges come straight out of `_daily_refresh_plants`, which
+    computes `days_since_first = (day + 1) - planted_day - first_yield_day`
+    and produces while that is a non-negative multiple of `interval` with
+    `days_since_first // interval + 1 <= max_yield`. Rewriting in terms of
+    the age this function has (`age = day - planted_day`) puts the final
+    tick at `first_yield_day - 1 + interval * (max_yield - 1)`.
+
+    That `- 1` matters: without it the agent buys and applies a unit a day
+    after the last tick it could possibly pay for.
+    """
+    if not (isinstance(tile, dict) and tile.get("kind") == "PLANT"):
+        return False
+
+    crop = tile.get("crop")
+    if crop not in FERTILIZABLE_CROPS:
+        return False
+
+    if tile.get("fertilized_until_day", -1) >= day:
+        return False  # already covered today
+
+    crop_info = CROPS.get(crop) or {}
+    first_yield_day = crop_info.get("first_yield_day")
+    if first_yield_day is None:
+        return False
+
+    interval = crop_info.get("interval") or 1
+    max_yield = crop_info.get("max_yield") or 1
+    last_tick_age = first_yield_day - 1 + interval * (max_yield - 1)
+
+    age = day - tile.get("planted_day", day)
+    # Cover starts today and runs two more days, so applying just ahead of
+    # the first tick still catches it.
+    return (first_yield_day - 3) <= age <= last_tick_age
+
+
+def find_fertilizer_target(farm, board_size, ux, uy, day, exclude=None):
+    """Nearest plant worth fertilising, or None."""
+    exclude = exclude or set()
+    tiles = farm.get("tiles") or []
+
+    best_target = None
+    best_distance = None
+    for y in range(board_size):
+        row = tiles[y] if y < len(tiles) else []
+        for x in range(len(row)):
+            if (x, y) in exclude or not wants_fertilizer(row[x], day):
+                continue
+            distance = abs(x - ux) + abs(y - uy)
+            if best_distance is None or distance < best_distance:
+                best_distance = distance
+                best_target = (x, y)
+    return best_target
+
+
+def nearest_shed_tile(fx, fy, board_size):
+    """Closest of the four shed-access tiles to (fx, fy)."""
+    tiles = shed_access_tiles(board_size)
+    return min(tiles, key=lambda t: abs(t[0] - fx) + abs(t[1] - fy))
+
+
 def get_market_state(obs):
     """Return {"prices": {...}, "inventory": {...}}, defaulting to empty dicts."""
     market = obs.get("market") or {}
@@ -306,7 +483,7 @@ def step_toward(fx, fy, tx, ty):
     one step closer to (tx, ty), or None if we're already there.
 
     This is simple Manhattan-distance movement, not real pathfinding -
-    good enough for v0 since the board has no obstacles the farmer can't
+    good enough for V1 since the board has no obstacles the farmer can't
     just walk around a tile at a time.
     """
     if fx > tx:
@@ -382,15 +559,19 @@ def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None, exclude
     and they'd all walk to one tile while the rest of the farm rotted.
 
     task options:
-      "harvest"      - a plant tile that's ready to pick right now.
-      "water_urgent" - a plant tile that already missed a watering and
-                        will turn into a weed if it's missed again today.
-      "weed"         - a dead tile that can be dug back into plantable
-                        ground.
-      "any"          - anything at all worth walking to: a ripe plant,
-                        an unwatered plant, or (if we're holding at
-                        least one seed that can still mature) an empty
-                        tile we could plant.
+      "harvest"        - a plant or animal tile that's ready to pick right
+                          now.
+      "water_urgent"   - a plant tile that already missed a watering and
+                          will turn into a weed if it's missed again today.
+      "feed"    - an animal tile that already missed a feeding and
+                          will escape for good if it's missed again today.
+      "weed"           - a dead tile that can be dug back into plantable
+                          ground.
+      "empty_structure" - a built COOP/PASTURE with no animal in it yet.
+      "any"            - anything at all worth walking to: a ripe plant,
+                          an unwatered plant, or (if we're holding at
+                          least one seed that can still mature) an empty
+                          tile we could plant.
     """
     seeds = seeds or {}
     exclude = exclude or set()
@@ -420,7 +601,24 @@ def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None, exclude
                 elif task == "any" and (is_ripe or needs_water):
                     is_match = True
 
+            elif isinstance(tile, dict) and "animal" in tile:
+                is_ripe = tile.get("yield_units", 0) > 0
+                needs_feed = not tile.get("fed_today", True)
+
+                if task == "harvest" and is_ripe:
+                    is_match = True
+                elif task == "feed" and needs_feed:
+                    is_match = True
+
             elif isinstance(tile, dict) and tile.get("kind") == "WEED" and task == "weed":
+                is_match = True
+
+            elif (
+                isinstance(tile, dict)
+                and tile.get("kind") in ANIMAL_STRUCTURE_KINDS
+                and "animal" not in tile
+                and task == "empty_structure"
+            ):
                 is_match = True
 
             elif tile is None and task == "any" and have_any_seed:
@@ -445,6 +643,126 @@ def _closer_target(fx, fy, target_a, target_b):
     dist_a = abs(target_a[0] - fx) + abs(target_a[1] - fy)
     dist_b = abs(target_b[0] - fx) + abs(target_b[1] - fy)
     return target_a if dist_a <= dist_b else target_b
+
+
+# ---------------------------------------------------------------------
+# Animals
+# ---------------------------------------------------------------------
+
+def unit_inventory(private, unit_idx):
+    """
+    The specific unit's own carried inventory (private["inventories"][idx],
+    idx 0 = main farmer, idx i = the (i-1)th hand - matching the engine's
+    own indexing). What a unit is carrying, not what's in the shed, is what
+    FEED/PLACE actually consume.
+    """
+    inventories = private.get("inventories") or []
+    if 0 <= unit_idx < len(inventories) and isinstance(inventories[unit_idx], dict):
+        return inventories[unit_idx]
+    return {}
+
+
+def carried_animal(inv):
+    """Which ACTIVE_ANIMALS item (if any) this unit is currently carrying."""
+    for animal in ACTIVE_ANIMALS:
+        if inv.get(animal, 0) > 0:
+            return animal
+    return None
+
+
+def scan_animal_structures(farm, board_size):
+    """
+    One pass over the board counting ACTIVE_ANIMALS structures, split into
+    filled (has an animal) and unfilled (built, waiting for one). A single
+    scan avoids walking the whole grid separately for every related
+    decision (build gating, buy gating).
+    """
+    tiles = farm.get("tiles") or []
+    filled = 0
+    unfilled = 0
+    for y in range(board_size):
+        row = tiles[y] if y < len(tiles) else []
+        for tile in row:
+            if isinstance(tile, dict) and tile.get("kind") in ANIMAL_STRUCTURE_KINDS:
+                if "animal" in tile:
+                    filled += 1
+                else:
+                    unfilled += 1
+    return filled, unfilled
+
+
+def count_owned_animals(farm, private, board_size):
+    """
+    Total ACTIVE_ANIMALS we've committed to: bought-but-uncollected (shed),
+    carried by any unit, and already placed on the board. Used to gate
+    buying - without counting the in-transit ones we'd keep overbuying past
+    the cap while one is still being carried to its coop.
+    """
+    shed = private.get("shed", {})
+    total = sum(shed.get(a, 0) for a in ACTIVE_ANIMALS)
+    for inv in private.get("inventories") or []:
+        if isinstance(inv, dict):
+            total += sum(inv.get(a, 0) for a in ACTIVE_ANIMALS)
+    filled, unfilled = scan_animal_structures(farm, board_size)
+    return total + filled + unfilled
+
+
+def should_build_structure(farm, board_size, pending_builds=0):
+    """
+    True if we should build a new coop/pasture on an empty tile right now:
+    under the cap, every structure we've already built already has an
+    animal in it (stops us tying up more than one tile at a time waiting on
+    the buy/pickup/place chain to catch up), and we can actually afford to
+    fill it soon. Building itself is free, but an empty coop we can't yet
+    afford to stock just ties up a tile that could grow a crop for
+    immediate income instead - same affordability bar as actually buying
+    the animal (see decide_animal_market_actions), so we never build ahead
+    of our ability to fill it.
+
+    `pending_builds` is how many other units have already decided to build
+    one THIS SAME TURN (see choose_unit_action) - every unit sees the same
+    pre-turn board, so without this a farmer plus several hands can each
+    independently see "no coop built yet" and all build one in the same
+    turn, blowing straight through the cap in one shot.
+    """
+    filled, unfilled = scan_animal_structures(farm, board_size)
+    if unfilled > 0 or pending_builds > 0 or filled >= MAX_ANIMALS:
+        return False
+
+    cost = ANIMALS.get(ACTIVE_ANIMALS[0], {}).get("cost")
+    if cost is None:
+        return False
+    money = farm.get("money", 0)
+    return money >= cost and cost <= money * ANIMAL_SPEND_CAP_FRACTION
+
+
+def decide_animal_market_actions(farm, private, board_size):
+    """
+    Build the list of BUY_ANIMAL / feed-safety-net BUY_PRODUCT orders for
+    this turn.
+    """
+    actions = []
+    money = farm.get("money", 0)
+
+    if count_owned_animals(farm, private, board_size) < MAX_ANIMALS:
+        for animal in ACTIVE_ANIMALS:
+            info = ANIMALS.get(animal)
+            cost = info.get("cost") if info else None
+            if cost is None or cost > money or cost > money * ANIMAL_SPEND_CAP_FRACTION:
+                continue
+            actions.append(["BUY_ANIMAL", animal, 1])
+            break  # one purchase at a time, same cadence as seed buying
+
+    filled, _ = scan_animal_structures(farm, board_size)
+    if filled > 0 and money > 0:
+        shed_wheat = private.get("shed", {}).get("WHEAT", 0)
+        carried_wheat = sum(
+            inv.get("WHEAT", 0) for inv in (private.get("inventories") or []) if isinstance(inv, dict)
+        )
+        if shed_wheat + carried_wheat < MIN_WHEAT_RESERVE_FOR_FEEDING:
+            actions.append(["BUY_PRODUCT", "WHEAT", 1])
+
+    return actions
 
 
 # ---------------------------------------------------------------------
@@ -543,15 +861,22 @@ def choose_crop(farm, market_state, private, day):
 
     Deliberately simple scoring - no profit projection or lookahead:
 
-        score = (price * expected_yield - oversupply_penalty) / growth_days
+        score = price * yield * glut_discount * self_supply_discount
+                / growth_days
 
       - price * expected_yield: rough revenue if we sell everything the
         plant produces at today's price.
-      - oversupply_penalty: current market inventory of that product,
-        scaled by its own price. This is what stops us from blindly
-        planting strawberries just because their price *looks* high -
-        a high price with a lot of stock already on the market is a
-        sign the price is about to crash, not an opportunity.
+      - glut_discount: how oversupplied this product already is, measured
+        *relative* to the market's baseline stock. It must be relative:
+        every product starts at an inventory of 10,000, so an absolute
+        `stock * price` penalty term is not a tie breaker, it is the whole
+        score - and it ranks crops by cheapness, which is how an earlier
+        version planted wheat all season and never once planted a melon.
+      - self_supply_discount: what we have already committed to selling,
+        growing on our own tiles plus sitting in the shed, weighted by how
+        much punishment that particular market takes. Spot price says what
+        a unit fetches today; a melon planted now sells twelve days from
+        now, after our own harvest has landed.
       - growth_days: how long we have to wait for the payoff, so we
         don't favor a slow crop just because its total payout is bigger.
 
@@ -682,7 +1007,7 @@ def should_buy_seed(crop, farm, private):
     return True
 
 
-def decide_market_actions(farm, private, market_state, day):
+def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
     """Build the list of ["SELL", ...] / ["BUY_SEED", ...] actions for this turn."""
     actions = []
     already_selling = set()
@@ -694,21 +1019,32 @@ def decide_market_actions(farm, private, market_state, day):
     liquidating = day >= LIQUIDATION_START_DAY
 
     for product, quantity in shed.items():
-        # Fertilizer is an input, not produce. It sits in the shed waiting
-        # for a unit to PICKUP, and its price clears the default sell
-        # threshold comfortably - so without this guard the agent buys it and
-        # immediately sells it straight back, churning market-order slots and
-        # never actually fertilising anything. Measured: 715 units sold in a
-        # single season, with zero reaching a plant. Only dump it at the end,
+        # Fertilizer is an input, not produce - and with a Goose on the farm
+        # it arrives free via COLLECT_FERTILIZER. Its price clears the default
+        # sell threshold comfortably, so without this guard the agent dumps
+        # every unit the animal makes (and buys more, then sells those too:
+        # 715 units round-tripped in one measured season with zero reaching a
+        # plant). Hold it for the crops and only liquidate at season end,
         # when leftover stock scores nothing anyway.
         if product == "FERTILIZER" and not liquidating:
             continue
 
+        # Hold back the wheat earmarked for feeding. Wheat is animal feed,
+        # and an animal that misses two consecutive days escapes for good -
+        # so selling the feed can permanently destroy a 300-cost asset for
+        # a few dollars of wheat. The reserve is kept even while
+        # liquidating: the animal still produces right up to the last day.
+        sell_quantity = quantity
+        if product == "WHEAT":
+            sell_quantity = max(0, quantity - reserved_wheat)
+
         # Near the end of the season, price thresholds stop mattering:
         # unsold stock scores nothing, so any sale beats holding out.
-        if quantity > 0 and (liquidating or should_sell(product, quantity, market_state)):
+        if sell_quantity > 0 and (
+            liquidating or should_sell(product, sell_quantity, market_state)
+        ):
             cap = MAX_SELL_PER_TURN.get(product, quantity)
-            actions.append(["SELL", product, min(quantity, cap)])
+            actions.append(["SELL", product, min(sell_quantity, cap)])
             already_selling.add(product)
 
     # Shed is nearly full: anything not already being sold above would just
@@ -718,10 +1054,27 @@ def decide_market_actions(farm, private, market_state, day):
     shed_total = sum(shed.values())
     if shed_total >= SHED_FORCE_SELL_THRESHOLD:
         for product, quantity in shed.items():
+            # Same exclusion as the main sell loop - the overflow valve
+            # must not become the back door that dumps the fertilizer.
+            # Fertilizer is an input, not produce - and with a Goose on the farm
+            # it arrives free via COLLECT_FERTILIZER. Its price clears the default
+            # sell threshold comfortably, so without this guard the agent dumps
+            # every unit the animal makes (and buys more, then sells those too:
+            # 715 units round-tripped in one measured season with zero reaching a
+            # plant). Hold it for the crops and only liquidate at season end,
+            # when leftover stock scores nothing anyway.
+            if product == "FERTILIZER" and not liquidating:
+                continue
+
             if product in already_selling or quantity <= 0:
                 continue
+            sell_quantity = quantity
+            if product == "WHEAT":
+                sell_quantity = max(0, quantity - reserved_wheat)
+            if sell_quantity <= 0:
+                continue
             cap = MAX_SELL_PER_TURN.get(product, quantity)
-            actions.append(["SELL", product, min(quantity, cap)])
+            actions.append(["SELL", product, min(sell_quantity, cap)])
 
     # Buy exactly one seed of our preferred next crop, if it makes sense.
     preferred_crop = choose_crop(farm, market_state, private, day)
@@ -729,8 +1082,10 @@ def decide_market_actions(farm, private, market_state, day):
         actions.append(["BUY_SEED", preferred_crop, 1])
 
     # Fertilizer, but only against ongoing crops we actually have in the
-    # ground - it's the one product where a unit has to fetch it from the
-    # shed by hand, so buying speculatively wastes both money and turns.
+    # ground - it's the one product a unit has to fetch from the shed by
+    # hand, so buying speculatively wastes both money and turns. A Goose
+    # supplies it free, so in practice this only tops up when the crops
+    # want more than the animal produced.
     if day <= FERTILIZER_LAST_USEFUL_DAY:
         held = shed.get("FERTILIZER", 0) + sum(
             (carried or {}).get("FERTILIZER", 0)
@@ -755,94 +1110,33 @@ def decide_market_actions(farm, private, market_state, day):
 # Farmer decision
 # ---------------------------------------------------------------------
 
-def get_unit_inventory(private, unit_index):
-    """What the given unit is carrying. inventories[0] is the main farmer."""
-    inventories = private.get("inventories") or []
-    if 0 <= unit_index < len(inventories):
-        carried = inventories[unit_index]
-        if isinstance(carried, dict):
-            return carried
-    return {}
-
-
-def is_shed_adjacent(x, y, board_size):
-    """
-    The shed is not a tile and never appears in `tiles`. It is reachable
-    from the four centre tiles, and only PICKUP/DROP need that adjacency -
-    market orders work from anywhere.
-    """
-    half = board_size // 2
-    return (x, y) in {
-        (half - 1, half - 1), (half, half - 1),
-        (half - 1, half), (half, half),
-    }
-
-
-def wants_fertilizer(tile, day):
-    """
-    True if fertilising this plant right now would actually pay.
-
-    Only ongoing crops qualify (see FERTILIZABLE_CROPS), and only inside the
-    stretch where the cover - today through day+2 - still catches production
-    ticks. Fertiliser applied outside that window is simply thrown away.
-    """
-    if not (isinstance(tile, dict) and tile.get("kind") == "PLANT"):
-        return False
-
-    crop = tile.get("crop")
-    if crop not in FERTILIZABLE_CROPS:
-        return False
-
-    if tile.get("fertilized_until_day", -1) >= day:
-        return False  # already covered today
-
-    crop_info = CROPS.get(crop) or {}
-    first_yield_day = crop_info.get("first_yield_day")
-    if first_yield_day is None:
-        return False
-
-    interval = crop_info.get("interval") or 1
-    max_yield = crop_info.get("max_yield") or 1
-    last_tick_age = first_yield_day + interval * (max_yield - 1)
-
-    age = day - tile.get("planted_day", day)
-    # Cover starts today and runs two more days, so applying just ahead of
-    # the first tick still catches it.
-    return (first_yield_day - 2) <= age <= last_tick_age
-
-
-def find_fertilizer_target(farm, board_size, ux, uy, day, exclude=None):
-    """Nearest plant worth fertilising, or None."""
-    exclude = exclude or set()
-    tiles = farm.get("tiles") or []
-
-    best_target = None
-    best_distance = None
-    for y in range(board_size):
-        row = tiles[y] if y < len(tiles) else []
-        for x in range(len(row)):
-            if (x, y) in exclude or not wants_fertilizer(row[x], day):
-                continue
-            distance = abs(x - ux) + abs(y - uy)
-            if best_distance is None or distance < best_distance:
-                best_distance = distance
-                best_target = (x, y)
-    return best_target
-
-
-def choose_unit_action(state, ux, uy, claimed=None, unit_index=0):
+def choose_unit_action(
+    state, ux, uy, unit_idx, claimed=None, pending_builds=None, feed_claimed=None
+):
     """
     Decide the single action for one unit - the main farmer or a hired
     hand - standing at (ux, uy), following the fixed priority order
     described at the top of this file.
+
+    `unit_idx` is this unit's index into private["inventories"] (0 = main
+    farmer, i = the (i-1)th hand), needed to know what it's personally
+    carrying - FEED and PLACE consume from that, not the shed.
 
     `claimed` is the set of (x, y) tiles other units have already taken
     this turn, and whatever this unit settles on is added to it. Without
     that bookkeeping every hand would independently pick the same nearest
     target and the whole crew would walk to one tile while the rest of
     the farm went to weeds - which defeats the point of hiring them.
+
+    `pending_builds` is a shared one-item counter ([n]) of how many
+    structures other units have already decided to build this same turn.
+    Every unit sees the same pre-turn board, so without this a farmer plus
+    several hands could each independently see "no coop built yet" and all
+    build one in the same turn, blowing straight through MAX_ANIMALS.
     """
     claimed = claimed if claimed is not None else set()
+    pending_builds = pending_builds if pending_builds is not None else [0]
+    feed_claimed = feed_claimed if feed_claimed is not None else set()
 
     farm = state["farm"]
     if not farm:
@@ -852,7 +1146,25 @@ def choose_unit_action(state, ux, uy, claimed=None, unit_index=0):
     day = state["day"]
     private = state["private"]
     seeds = private.get("seeds", {})
+    inv = unit_inventory(private, unit_idx)
     tile = get_tile_at(farm, ux, uy)
+
+    # Another unit already acted on this tile this turn. Every tile action is
+    # either once-per-day (WATER, CARE, FEED) or consumes its target outright
+    # (HARVEST, DIG, PLANT, COLLECT_FERTILIZER), so a second unit acting here
+    # spends its whole turn on an engine no-op. Units decide from a shared
+    # observation snapshot, so without this they all see `cared_today: False`
+    # and all pick CARE - measured at 76 CARE actions across only 30 distinct
+    # days, i.e. 46 turns burned, with multiple units caring for the same
+    # goose on 30 separate turns.
+    #
+    # Standing in for the tile with a sentinel makes the whole local-action
+    # ladder below fall through (it is all `isinstance(tile, dict)` and
+    # `tile is None` checks), so the unit goes and finds real work instead.
+    if (ux, uy) in claimed:
+        tile = "TAKEN"
+
+    is_animal_tile = isinstance(tile, dict) and "animal" in tile
 
     def act_here(action):
         """Take an action on our own tile, and reserve it against other units."""
@@ -867,58 +1179,163 @@ def choose_unit_action(state, ux, uy, claimed=None, unit_index=0):
         claimed.add((target[0], target[1]))
         return [direction]
 
-    # 1. Harvest a ripe crop under our feet.
+    # 1. Feed an animal before any harvest/care task. A Goose with
+    # consecutive_unfed == 1 can escape at the next day boundary, so this
+    # safety action must outrank even a ready harvest.
+    if is_animal_tile and not tile.get("fed_today"):
+        if inv.get("WHEAT", 0) > 0:
+            feed_claimed.add((ux, uy))
+            return act_here(["FEED"])
+
+    # 2. Harvest a ripe crop or an animal whose held yield is close to its
+    # capacity. Animal goods do not decay, so do not spend one action
+    # harvesting a single Egg every day.
     if isinstance(tile, dict) and tile.get("kind") == "PLANT" and is_harvestable(tile, day):
         return act_here(["HARVEST"])
+    if is_animal_tile:
+        animal = ANIMALS.get(tile.get("animal"), {})
+        max_held = animal.get("max_held", 1)
+        held = tile.get("yield_units", 0)
+        if held >= max_held:
+            return act_here(["HARVEST"])
 
-    # 2. Water a crop under our feet that hasn't been watered today.
+        # Fertilizer is a separate non-stacking daily output. Collect it
+        # before care/harvest whenever the animal has room for another yield.
+        if tile.get("fertilizer_available"):
+            return act_here(["COLLECT_FERTILIZER"])
+
+        # Leave enough room for the next Goose production, but cash out near
+        # season end so output cannot be stranded on the tile.
+        if held > 0 and (held >= max_held - 2 or day >= SEASON_DAYS - 2):
+            return act_here(["HARVEST"])
+
+    # 3. Water a crop under our feet, or care for an already-fed animal under
+    #    feet. Feed always wins over care when only one action is possible:
+    #    a missed feeding is a permanent loss (the animal escapes for good
+    #    - see _daily_refresh_animals), care is just a bonus multiplier.
     if isinstance(tile, dict) and tile.get("kind") == "PLANT" and not tile.get("watered_today", True):
         return act_here(["WATER"])
+    if is_animal_tile:
+        if not tile.get("cared_today"):
+            return act_here(["CARE"])
 
-    # 2b. Fertilise the ongoing crop under our feet, if we're carrying any.
-    #     Cheap - we're already standing here - and worth several hundred on
-    #     a tomato or strawberry. Ranked below watering because the bonus
-    #     only pays on days the plant is watered anyway.
-    carried = get_unit_inventory(private, unit_index)
-    if carried.get("FERTILIZER", 0) > 0 and wants_fertilizer(tile, day):
+    # 3b. Fertilise the ongoing crop under our feet, if we're carrying any.
+    #     Free in movement terms - we are already standing here - and worth
+    #     several hundred on a tomato or strawberry. Ranked below watering
+    #     because the bonus only pays on days the plant is watered anyway,
+    #     so watering first is strictly better when we can only do one.
+    if inv.get("FERTILIZER", 0) > 0 and wants_fertilizer(tile, day):
         return act_here(["FERTILIZE"])
 
-    # 3. Something urgent elsewhere (a ripe crop, or a crop about to turn
-    #    into a weed) beats anything else right now - preventing a new weed
-    #    is worth more than reclaiming an old one.
-    harvest_target = find_nearest_target(
-        farm, board_size, ux, uy, "harvest", day, exclude=claimed
-    )
-    water_target = find_nearest_target(
-        farm, board_size, ux, uy, "water_urgent", day, exclude=claimed
-    )
+    # 4. Place a carried animal on the empty structure under our feet.
+    animal_in_hand = carried_animal(inv)
+    if animal_in_hand and isinstance(tile, dict) and "animal" not in tile:
+        structure = ANIMALS.get(animal_in_hand, {}).get("structure")
+        if structure and tile.get("kind") == structure:
+            return act_here(["PLACE", animal_in_hand])
+
+    # 5. Shed errands: collect a bought animal waiting for its home, or
+    #    wheat we need to go feed a starving animal elsewhere.
+    if is_shed_adjacent(ux, uy, board_size):
+        shed = private.get("shed", {})
+        if animal_in_hand is None:
+            _, unfilled = scan_animal_structures(farm, board_size)
+            if unfilled > 0:
+                for animal in ACTIVE_ANIMALS:
+                    if shed.get(animal, 0) > 0:
+                        return act_here(["PICKUP", animal, 1])
+        if inv.get("WHEAT", 0) <= 0 and shed.get("WHEAT", 0) > 0:
+            if find_nearest_target(farm, board_size, ux, uy, "feed", day, exclude=claimed):
+                # Collect several days of feed in one trip. Feeding needs
+                # wheat in the acting unit's own inventory, so picking up a
+                # single grain means a fresh shed round-trip for every meal.
+                return act_here(
+                    ["PICKUP", "WHEAT", min(shed.get("WHEAT", 0), WHEAT_CARRY_BATCH)]
+                )
+
+    # 6. Something urgent elsewhere - a ripe crop/animal, a crop about to
+    #    weed out, or an animal about to escape - beats anything below.
+    #    Preventing a loss is worth more than reclaiming one already lost.
+    #    If the winning target needs feeding and we're not carrying wheat,
+    #    detour to the shed instead of arriving empty-handed (only if the
+    #    shed actually has wheat - otherwise there's nothing to do about it
+    #    this turn).
+    # Feed is a daily errand, not a rescue. An earlier version only walked to
+    # an animal that had ALREADY missed a day, which self-oscillates: feeding
+    # resets consecutive_unfed, so the next day never looks urgent and the
+    # animal is fed every OTHER day - 15 meals in a 30-day season, measured.
+    # That left the Goose permanently one blocked turn from escaping for good,
+    # and threw away most of the CARE bank, which only accrues on days the
+    # animal was also fed and is discarded unpaid if its production day is not
+    # (see _daily_refresh_animals in the engine).
+    #
+    # Feed is also a separate reservation class. A crop worker without Wheat
+    # must not claim the Goose tile for HARVEST/WATER movement before a
+    # different unit carrying Wheat has a chance to reach it.
+    feed_target = find_nearest_target(farm, board_size, ux, uy, "feed", day, exclude=set())
+    if feed_target in feed_claimed:
+        feed_target = None
+    if feed_target:
+        if inv.get("WHEAT", 0) <= 0:
+            if private.get("shed", {}).get("WHEAT", 0) > 0:
+                moved = walk_to(nearest_shed_tile(ux, uy, board_size))
+                if moved:
+                    return moved
+        else:
+            feed_claimed.add(feed_target)
+            moved = walk_to(feed_target)
+            if moved:
+                return moved
+
+    non_feed_exclude = set(claimed)
+    if feed_target is not None:
+        non_feed_exclude.add(feed_target)
+    harvest_target = find_nearest_target(farm, board_size, ux, uy, "harvest", day, exclude=non_feed_exclude)
+    water_target = find_nearest_target(farm, board_size, ux, uy, "water_urgent", day, exclude=non_feed_exclude)
     urgent_target = _closer_target(ux, uy, harvest_target, water_target)
     if urgent_target:
         moved = walk_to(urgent_target)
         if moved:
             return moved
 
-    # 4. Reclaim a weed under our feet - free, and turns dead land back into
+    # 7. Carrying an animal we haven't placed yet - go find it a home.
+    if animal_in_hand:
+        structure_target = find_nearest_target(
+            farm, board_size, ux, uy, "empty_structure", day, exclude=claimed
+        )
+        if structure_target:
+            moved = walk_to(structure_target)
+            if moved:
+                return moved
+
+    # 8. Reclaim a weed under our feet - free, and turns dead land back into
     #    something we can plant again instead of losing it for the rest of
     #    the season.
     if isinstance(tile, dict) and tile.get("kind") == "WEED":
         return act_here(["DIG"])
 
-    # 5. Plant here if the tile is empty and unlocked, and we hold a seed.
+    # 9. Empty ground under our feet: build a coop if we're still growing
+    #    the animal side of the farm and don't already have one waiting for
+    #    a tenant (V1 assumes a single active species - see ACTIVE_ANIMALS),
+    #    otherwise plant a crop.
     if tile is None:
+        if should_build_structure(farm, board_size, pending_builds[0]):
+            pending_builds[0] += 1
+            structure = ANIMALS[ACTIVE_ANIMALS[0]]["structure"]
+            return act_here([f"BUILD_{structure}"])
         crop = choose_crop(farm, state["market_state"], private, day)
         if crop and seeds.get(crop, 0) > 0:
             return act_here(["PLANT", crop])
 
-    # 5b. Fertiliser logistics. Bought fertilizer lands in the shed but
-    #     FERTILIZE spends from the unit's own inventory, so this is a
-    #     collect-then-deliver errand. Ranked below all the crop upkeep
-    #     above: a plant that dies unwatered costs more than a fertiliser
-    #     bonus is worth.
+    # 10. Fertilizer logistics. Fertilizer reaches the shed either by
+    #     purchase or free from the Goose, but FERTILIZE spends from the
+    #     unit's own inventory - so this is a collect-then-deliver errand.
+    #     Deliberately ranked below every crop-upkeep step above: a plant
+    #     that dies unwatered costs far more than a fertilizer bonus is
+    #     worth, and the bonus only pays on watered days regardless.
     shed_fertilizer = (private.get("shed") or {}).get("FERTILIZER", 0)
-    carrying = carried.get("FERTILIZER", 0)
 
-    if carrying > 0:
+    if inv.get("FERTILIZER", 0) > 0:
         fertilize_target = find_fertilizer_target(
             farm, board_size, ux, uy, day, exclude=claimed
         )
@@ -927,17 +1344,19 @@ def choose_unit_action(state, ux, uy, claimed=None, unit_index=0):
             if moved:
                 return moved
 
-    elif shed_fertilizer > 0 and find_fertilizer_target(farm, board_size, ux, uy, day):
+    elif shed_fertilizer > 0 and find_fertilizer_target(
+        farm, board_size, ux, uy, day, exclude=claimed
+    ):
         # Collect a batch so one trip serves several plants.
         if is_shed_adjacent(ux, uy, board_size):
-            return ["PICKUP", "FERTILIZER", min(shed_fertilizer, FERTILIZER_CARRY_BATCH)]
+            return act_here(
+                ["PICKUP", "FERTILIZER", min(shed_fertilizer, FERTILIZER_CARRY_BATCH)]
+            )
+        moved = walk_to(nearest_shed_tile(ux, uy, board_size))
+        if moved:
+            return moved
 
-        half = board_size // 2
-        direction = step_toward(ux, uy, half - 1, half - 1)
-        if direction:
-            return [direction]
-
-    # 6. Reclaim the nearest weed elsewhere - dead land is a permanent loss
+    # 11. Reclaim the nearest weed elsewhere - dead land is a permanent loss
     #    until it's dug back to plantable ground, so don't just leave it.
     weed_target = find_nearest_target(
         farm, board_size, ux, uy, "weed", day, exclude=claimed
@@ -947,7 +1366,7 @@ def choose_unit_action(state, ux, uy, claimed=None, unit_index=0):
         if moved:
             return moved
 
-    # 7. Nothing to do right here - walk toward the closest useful tile.
+    # 12. Nothing to do right here - walk toward the closest useful tile.
     fallback_target = find_nearest_target(
         farm, board_size, ux, uy, "any", day, seeds, exclude=claimed
     )
@@ -956,11 +1375,11 @@ def choose_unit_action(state, ux, uy, claimed=None, unit_index=0):
         if moved:
             return moved
 
-    # 8. Genuinely nothing useful to do.
+    # 13. Genuinely nothing useful to do.
     return ["PASS"]
 
 
-def choose_farmer_action(state, claimed=None):
+def choose_farmer_action(state, claimed=None, pending_builds=None, feed_claimed=None):
     """Our main farmer's action - the shared unit logic, anchored at the farmer."""
     farm = state.get("farm")
     if not farm:
@@ -970,7 +1389,9 @@ def choose_farmer_action(state, claimed=None):
     if not farmer_pos or len(farmer_pos) != 2:
         return ["PASS"]
 
-    return choose_unit_action(state, farmer_pos[0], farmer_pos[1], claimed, unit_index=0)
+    return choose_unit_action(
+        state, farmer_pos[0], farmer_pos[1], 0, claimed, pending_builds, feed_claimed
+    )
 
 
 # ---------------------------------------------------------------------
@@ -979,7 +1400,7 @@ def choose_farmer_action(state, claimed=None):
 
 def nikaangukia_meroni(obs):
     """
-    Washamba Bots' v0 baseline agent.
+    Washamba Bots' V1 agent.
 
     Always returns a well-formed action dict, even for a missing or
     malformed observation - if anything goes wrong we fall back to a
@@ -999,20 +1420,36 @@ def nikaangukia_meroni(obs):
 
         # One shared claim set across every unit this turn, so the farmer and
         # each hand pick different tiles instead of piling onto the same one.
+        # pending_builds is the same idea for coop/pasture construction - see
+        # choose_unit_action's docstring.
         claimed = set()
-        farmer_action = choose_farmer_action(state, claimed)
+        pending_builds = [0]
+        feed_claimed = set()
+        farmer_action = choose_farmer_action(state, claimed, pending_builds, feed_claimed)
         hands_actions = [
-            # inventories[0] is the main farmer, so hand i is index i + 1.
-            choose_unit_action(state, hand[0], hand[1], claimed, unit_index=index + 1)
-            for index, hand in enumerate(farm.get("hands") or [])
+            choose_unit_action(
+                state, hand[0], hand[1], idx + 1, claimed, pending_builds, feed_claimed
+            )
+            for idx, hand in enumerate(farm.get("hands") or [])
             if isinstance(hand, (list, tuple)) and len(hand) == 2
         ]
 
         # Hires go first: they're a few dollars each and multiply how much
         # work the crew gets through, so they're the last orders we'd want
-        # silently dropped if we ever brush the per-turn cap.
+        # silently dropped if we ever brush the per-turn cap. Animal orders
+        # go last - buying one or topping up feed reserve is less
+        # time-critical turn-to-turn than hiring or selling at a good price.
         market = decide_hire_orders(farm, board_size, day, hour, seeds)
-        market += decide_market_actions(farm, private, state["market_state"], day)
+        filled_animals, _ = scan_animal_structures(farm, board_size)
+        reserved_wheat = filled_animals * MIN_WHEAT_RESERVE_FOR_FEEDING
+        market += decide_market_actions(
+            farm,
+            private,
+            state["market_state"],
+            day,
+            reserved_wheat=reserved_wheat,
+        )
+        market += decide_animal_market_actions(farm, private, board_size)
 
         return {
             "farmer": farmer_action,
@@ -1026,7 +1463,9 @@ def nikaangukia_meroni(obs):
         return {"farmer": ["PASS"], "hands": [], "market": []}
 
 
-# Kaggle environments calls the agent as a plain function of the
-# observation, exactly as shown in the official starter notebook
-# (e.g. `env.run([melon_maxxer, "random"])`).
+# The framework picks the LAST callable in this module's namespace - not a
+# function named `agent` (kaggle_environments/agent.py:64). Anything callable
+# defined below this line silently becomes the submission instead, the episode
+# still reports DONE, every action is discarded as invalid, and the agent
+# finishes on exactly its starting money. Keep this binding last.
 agent = nikaangukia_meroni
