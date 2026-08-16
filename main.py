@@ -1097,7 +1097,17 @@ def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
     # hand, so buying speculatively wastes both money and turns. A Goose
     # supplies it free, so in practice this only tops up when the crops
     # want more than the animal produced.
-    if day <= FERTILIZER_LAST_USEFUL_DAY:
+    #
+    # `not liquidating` is load-bearing, not belt-and-braces. Once
+    # liquidation starts, the sell loop above stops exempting FERTILIZER and
+    # dumps the shed - so a buy rule that outlives that day buys stock the
+    # very next order sells straight back. Measured when
+    # LIQUIDATION_START_DAY moved to 19 while this rule still ran to day 24:
+    # 111 units bought, every one of them on days 19-24, 134 sold in the same
+    # window. It barely moves the bank because the round trip is near
+    # break-even, which is exactly why it went unnoticed - the real cost is
+    # the market-order slots it burns, and we only get 10 a turn.
+    if not liquidating and day <= FERTILIZER_LAST_USEFUL_DAY:
         held = shed.get("FERTILIZER", 0) + sum(
             (carried or {}).get("FERTILIZER", 0)
             for carried in (private.get("inventories") or [])
