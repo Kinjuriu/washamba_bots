@@ -582,15 +582,22 @@ MAX_HIRES_PER_TURN = 3
 
 # Roughly how many tiles needing attention justify one more hand. This is
 # the ratio that actually sets crew size; MAX_HANDS_PER_DAY is only a
-# ceiling for when we own more land. Measured on the opening 25-tile
-# quadrant: a ratio of 4 (about 6 hands) is clearly worse than a ratio of 6
-# (about 4 hands) - roughly 1,300 to 2,600 bank worse per season. Surplus
-# units do not idle politely, they plant tiles the crew then cannot water
-# and spend seed money doing it.
+# ceiling for when we own more land. A ratio of 4 (about 6 hands) was once
+# recorded here as 1,300-2,600 worse than 6, but that was judged against the
+# across-seed stdev - the wrong test, since both arms play the same seeds and
+# that variance cancels. Re-run head to head, 4 is +1,910 winning 16 of 16:
+# the farm waters 19.2 tiles a day against 24 planted, so upkeep, not
+# acreage, is what binds.
 WORK_TILES_PER_HAND = 4
 
-# Don't spend our last coins on labour - seed money matters more.
-MIN_MONEY_TO_HIRE = 150
+# Don't spend our last coins on labour - but the first hand of the day costs
+# $1, so a $150 floor was reserving seed money against a purchase two orders
+# of magnitude smaller. There is a cash trough on roughly days 3-7, after the
+# seed/pasture/animal spend and before the first real harvest lands, and a
+# 150 gate locks the crew out for whole days inside it. Measured head to head:
+# 60 is +402 (10/16), 20 is +1,025 (19/24, worst match -102), 0 is +1,144 -
+# monotone in how much of the trough the gate still blocks.
+MIN_MONEY_TO_HIRE = 20
 
 # ---------------------------------------------------------------------
 # Market order budget
