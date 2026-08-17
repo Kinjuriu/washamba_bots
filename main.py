@@ -677,7 +677,7 @@ MAX_MARKET_ORDERS_PER_TURN = 10
 # committing to COW/SHEEP. The logic below is written generically against
 # this list, so extending it later is a config change, not new logic - see
 # choose_animal_to_build for the priority order multiple species use.
-ACTIVE_ANIMALS = ["SHEEP"]
+ACTIVE_ANIMALS = ["SHEEP", "COW"]
 ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a in ANIMALS}
 
 # Cap on total animals we'll commit to (built structures, filled or not).
@@ -733,7 +733,7 @@ ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a i
 # and three sheep the market ends BELOW the 10,000 baseline (9,822 / 9,855 /
 # 9,743) at a price ABOVE the $200 base (244 / 243 / 248), with nothing left
 # unsold. The town eats wool faster than three sheep can make it.
-MAX_ANIMALS = 1
+MAX_ANIMALS = 3
 
 # Never buy an animal that eats more than this fraction of current cash in
 # one shot - same reasoning as SEED_SPEND_CAP_FRACTION.
@@ -1153,6 +1153,35 @@ def count_owned_animals(farm, private, board_size):
     return total + filled + unfilled
 
 
+def count_animals_by_species(farm, private, board_size):
+    """
+    How many of each ACTIVE_ANIMALS species we hold, counting the shed,
+    every unit's inventory, and animals already placed on the board.
+
+    Unlike count_owned_animals this cannot count *unfilled* structures -
+    an empty pasture has no species yet. That is the point: COW and SHEEP
+    share the PASTURE structure (see the ANIMALS table), so which species
+    we end up with is decided at BUY_ANIMAL, never at build time.
+    """
+    counts = {a: 0 for a in ACTIVE_ANIMALS}
+    shed = private.get("shed", {})
+    for a in ACTIVE_ANIMALS:
+        counts[a] += shed.get(a, 0)
+    for inv in private.get("inventories") or []:
+        if isinstance(inv, dict):
+            for a in ACTIVE_ANIMALS:
+                counts[a] += inv.get(a, 0)
+    tiles = farm.get("tiles") or []
+    for y in range(board_size):
+        row = tiles[y] if y < len(tiles) else []
+        for tile in row:
+            if isinstance(tile, dict) and tile.get("kind") in ANIMAL_STRUCTURE_KINDS:
+                species = tile.get("animal")
+                if species in counts:
+                    counts[species] += 1
+    return counts
+
+
 def choose_animal_to_build(farm, board_size, day, pending_builds=0):
     """
     Pick which ACTIVE_ANIMALS species to build a structure for next, or
@@ -1216,6 +1245,8 @@ def decide_animal_market_actions(farm, private, board_size, day):
     remaining_days = remaining_season_days(day)
 
     if count_owned_animals(farm, private, board_size) < MAX_ANIMALS:
+        held = count_animals_by_species(farm, private, board_size)
+        affordable = []
         for animal in ACTIVE_ANIMALS:
             info = ANIMALS.get(animal)
             cost = info.get("cost") if info else None
@@ -1226,8 +1257,29 @@ def decide_animal_market_actions(farm, private, board_size, day):
                 continue  # can't reach even a first harvest before season end
             if cost > money or cost > money * ANIMAL_SPEND_CAP_FRACTION:
                 continue
+            affordable.append(animal)
+
+        if affordable:
+            # Prefer a species we hold fewest of, ties broken by
+            # ACTIVE_ANIMALS order. This used to take the first affordable
+            # species outright, which silently made a multi-species roster
+            # impossible: ACTIVE_ANIMALS = ["SHEEP", "COW"] bought SHEEP for
+            # every slot and never once a cow, byte-identical to running two
+            # sheep. The recorded sheep-plus-cow dead end therefore never
+            # tested a cow at all.
+            #
+            # It matters because the species sell into *different* markets.
+            # A second sheep competes with the first for WOOL; a cow adds
+            # MILK, which we currently produce zero of. Real top-ladder
+            # agents run COW x5-6 plus SHEEP x3 together
+            # (docs/REPLAY_ANALYSIS.md).
+            #
+            # No-op at MAX_ANIMALS = 1: the only purchase happens with every
+            # count at zero, so the tie-break picks ACTIVE_ANIMALS[0] exactly
+            # as before.
+            animal = min(affordable, key=lambda a: (held.get(a, 0), ACTIVE_ANIMALS.index(a)))
             actions.append(["BUY_ANIMAL", animal, 1])
-            break  # one purchase at a time, same cadence as seed buying
+            # one purchase at a time, same cadence as seed buying
 
     filled, _ = scan_animal_structures(farm, board_size)
     if filled > 0 and money > 0:
