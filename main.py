@@ -670,70 +670,49 @@ MAX_MARKET_ORDERS_PER_TURN = 10
 # Animal husbandry
 # ---------------------------------------------------------------------
 
-# Animal husbandry (V1 scope: just GOOSE). It's the cheapest animal ($300),
-# has the fastest payback (first_yield_day=4), and produces every day
-# (interval=1) - the fastest way to prove the whole build -> buy -> pickup
-# -> place -> feed -> care -> harvest -> sell pipeline actually works before
-# committing to COW/SHEEP. The logic below is written generically against
-# this list, so extending it later is a config change, not new logic - see
-# choose_animal_to_build for the priority order multiple species use.
-ACTIVE_ANIMALS = ["SHEEP"]
+# Animal husbandry. Two species now (Issue #20, Phase B1): SHEEP and COW,
+# both cheap enough to prove the build -> buy -> pickup -> place -> feed ->
+# care -> harvest -> sell pipeline works for a mixed herd before committing
+# to the replay-derived target of ~8-9 animals. The logic below is written
+# generically against this list, so extending it later is a config change,
+# not new logic - see choose_animal_to_build / decide_animal_market_actions
+# for how a species is picked among several active ones.
+ACTIVE_ANIMALS = ["SHEEP", "COW"]
 ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a in ANIMALS}
 
 # Cap on total animals we'll commit to (built structures, filled or not).
 #
-# Stays at 1. Three Geese were measured at +14% self-play on the pre-fertilizer,
-# pre-day-19 agent (PR #10) and that measurement was correct for the agent it
-# was taken on - but the agent moved underneath it. Re-measured on current
-# main, with the fertilizer errand competing for the same unit-turns, three
-# animals lose **-9,787 head to head, winning 0 of 16 matches**, and self-play
-# is flat (27,983 against 28,206).
+# Raised 1 -> 2 (Issue #20, Phase B1) to prove SHEEP + COW works mechanically
+# before scaling further. This is a DIFFERENT experiment from every history
+# note below, which measured two of the SAME species (a second sheep, three
+# Geese) - pure market self-competition, no diversity. Two different species
+# selling into two different markets hasn't been isolated on its own before.
+#
+# A second SHEEP specifically was a near-catastrophe pre-seed-reserve-fix:
+# paired against `starter` it was -19,514, losing 0 of 12 seeds (buying it
+# drains the days 3-7 cash trough to nothing, and both sheep starve). Issue
+# #15 re-measured it after MIN_CASH_RESERVE_FOR_SEED_BUYING went 100 -> 450
+# (see that constant, below): +900 paired (8/12, t=0.61 - not shippable
+# alone) but +4,384 head to head (14/16). Not a clear win even with the
+# trough fixed, which is exactly why this needs its own measurement rather
+# than being assumed safe just because the trough that broke it is gone.
+#
+# Three Geese (single species) were measured at +14% self-play on the
+# pre-fertilizer, pre-day-19 agent (PR #10) - correct for that agent, but it
+# moved underneath the number. Re-measured on current main, three of the same
+# species lose -9,787 head to head (0/16), self-play flat (27,983 v 28,206).
 #
 # Note the two harnesses disagreeing again, in the direction that matters:
 # self-play changes BOTH sides, so a revenue stream that doesn't compete for
 # a scarce market lifts both banks and looks free. Head to head is what shows
-# the cost, and the cost is real - every coop takes a tile out of crop
-# production and a share of the crew's upkeep capacity, which is the same
-# ceiling BUY_LAND and a denser crew both ran into.
+# the cost, and the cost is real - every coop/pasture takes a tile out of
+# crop production and a share of the crew's upkeep capacity, which is the
+# same ceiling BUY_LAND and a denser crew both ran into.
 #
-# Stays at 1, but NOT for the reason the old note gave, and the difference
-# matters if you are thinking of raising it.
-#
-# A second sheep looks like one of the largest gains available when measured
-# head to head against this agent: +5,119 (14/16) on 8 seeds, +3,623 (18/24)
-# on 12. Paired against the `starter` built-in it is **-19,514, losing 0 of
-# 12 seeds**. Both numbers are real; the second one is the one that matters,
-# because it is a genuine failure and not a harness artifact.
-#
-# What happens: buying the second animal lands in the same days 3-7 cash
-# trough that MIN_MONEY_TO_HIRE is tuned around, and drains it to nothing.
-# The two constants are NOT coupled, though - checked, because the obvious
-# worry is that cheap hiring drains the cash the animal needs. It is the other
-# way round: at the old gate of 150 the second sheep is -31,059 (0/12), worse
-# than the -19,514 it costs at 20. Cheaper hands cushion the collapse.
-# Measured on seed 0 against `starter`, money at day 5 is $5 and at day 10 is
-# $9 (against $17 and $482 with one sheep). With no cash the agent cannot buy
-# feed, so FEED falls 29 -> 10 and **both sheep starve and escape** - the two
-# pastures end the season empty, wool sold is 0, and the crew is under-hired
-# for a third of the season (HIRE 165 -> 112, WATER 611 -> 466).
-#
-# It survives head to head only because that opponent crowds the market the
-# same way we do, which changes our cash timing enough to clear the trough.
-# Against a differently-shaped opponent it does not clear, and the ladder is
-# full of differently-shaped opponents.
-#
-# So this is gated on cash, not on the count. Raising MAX_ANIMALS is safe only
-# once buying animal n is conditional on surviving the trough - a bank floor
-# or a day gate on the second purchase - at which point re-measure on BOTH
-# harnesses. For the record, past 2 the count itself is the problem: 3 is
-# -2,618 (6/16) and 4 is -16,121 (0/16) even head to head.
-#
-# Not market depth, though - that theory is wrong and worth not re-testing.
-# WOOL floors 58 units above I0 on the static curve, but measured at one, two
-# and three sheep the market ends BELOW the 10,000 baseline (9,822 / 9,855 /
-# 9,743) at a price ABOVE the $200 base (244 / 243 / 248), with nothing left
-# unsold. The town eats wool faster than three sheep can make it.
-MAX_ANIMALS = 1
+# This step (SHEEP + COW) must be re-measured on its own - paired_compare
+# against the 1-sheep checkpoint - before being trusted; see CLAUDE.md /
+# CHECKPOINTS.md. Revert to 1 if it doesn't hold up.
+MAX_ANIMALS = 2
 
 # Never buy an animal that eats more than this fraction of current cash in
 # one shot - same reasoning as SEED_SPEND_CAP_FRACTION.
@@ -1137,40 +1116,89 @@ def scan_animal_structures(farm, board_size):
     return filled, unfilled
 
 
-def count_owned_animals(farm, private, board_size):
+def species_owned_counts(farm, private, board_size):
     """
-    Total ACTIVE_ANIMALS we've committed to: bought-but-uncollected (shed),
-    carried by any unit, and already placed on the board. Used to gate
-    buying - without counting the in-transit ones we'd keep overbuying past
-    the cap while one is still being carried to its coop.
+    Per-species count of ACTIVE_ANIMALS we've committed to: bought-but-
+    uncollected (shed), carried by any unit, and already placed on the
+    board (species read from the placed tile's "animal" field - a built
+    but still-empty structure isn't committed to any species yet, so it's
+    not counted here; see scan_animal_structures for that count).
     """
+    counts = {animal: 0 for animal in ACTIVE_ANIMALS}
     shed = private.get("shed", {})
-    total = sum(shed.get(a, 0) for a in ACTIVE_ANIMALS)
+    for animal in ACTIVE_ANIMALS:
+        counts[animal] += shed.get(animal, 0)
     for inv in private.get("inventories") or []:
         if isinstance(inv, dict):
-            total += sum(inv.get(a, 0) for a in ACTIVE_ANIMALS)
-    filled, unfilled = scan_animal_structures(farm, board_size)
-    return total + filled + unfilled
+            for animal in ACTIVE_ANIMALS:
+                counts[animal] += inv.get(animal, 0)
+    tiles = farm.get("tiles") or []
+    for y in range(board_size):
+        row = tiles[y] if y < len(tiles) else []
+        for tile in row:
+            if isinstance(tile, dict):
+                species = tile.get("animal")
+                if species in counts:
+                    counts[species] += 1
+    return counts
 
 
-def choose_animal_to_build(farm, board_size, day, pending_builds=0):
+def count_owned_animals(farm, private, board_size):
+    """
+    Total ACTIVE_ANIMALS we've committed to, across every species: the sum
+    of species_owned_counts() plus structures already built but still
+    waiting for a tenant. Used to gate buying - without counting the
+    in-transit ones we'd keep overbuying past the cap while one is still
+    being carried to its coop/pasture.
+    """
+    _, unfilled = scan_animal_structures(farm, board_size)
+    return sum(species_owned_counts(farm, private, board_size).values()) + unfilled
+
+
+def _eligible_animal_species(day, money, spend_cap_fraction=ANIMAL_SPEND_CAP_FRACTION):
+    """
+    ACTIVE_ANIMALS species that are both affordable right now and can still
+    reach a first harvest before the season ends - same season-maturity
+    gate choose_crop() uses for seeds: a species whose first_yield_day
+    can't land before day 29 would tie up a tile and cash for a guaranteed
+    dead loss with no offsetting revenue.
+    """
+    remaining_days = remaining_season_days(day)
+    eligible = []
+    for animal in ACTIVE_ANIMALS:
+        info = ANIMALS.get(animal)
+        if not info:
+            continue
+        cost = info.get("cost")
+        first_yield_day = info.get("first_yield_day")
+        if cost is None or first_yield_day is None:
+            continue
+        if first_yield_day > remaining_days:
+            continue  # can't reach even a first harvest before season end
+        if money >= cost and cost <= money * spend_cap_fraction:
+            eligible.append(animal)
+    return eligible
+
+
+def pick_next_animal_species(eligible, owned_counts):
+    """
+    Among eligible species, the one we own fewest of - so buying/building
+    diversifies across ACTIVE_ANIMALS instead of collapsing onto whichever
+    species happens to sort first (the bug this replaces: a fixed-order
+    "first eligible" loop never reached a second species once the first
+    one was always affordable). Ties broken by ACTIVE_ANIMALS order, so
+    behaviour is unchanged from a single active species.
+    """
+    if not eligible:
+        return None
+    order = {animal: i for i, animal in enumerate(ACTIVE_ANIMALS)}
+    return min(eligible, key=lambda a: (owned_counts.get(a, 0), order[a]))
+
+
+def choose_animal_to_build(farm, private, board_size, day, pending_builds=0):
     """
     Pick which ACTIVE_ANIMALS species to build a structure for next, or
     None if we shouldn't build one right now.
-
-    Same season-maturity gate choose_crop() uses for seeds: a species
-    whose first_yield_day can't land before day 29 is refused, the same
-    way a too-slow crop is - building for it would tie up a tile and
-    ANIMAL_SPEND_CAP_FRACTION of our cash for a guaranteed dead loss with
-    no offsetting revenue. This gate matters as MAX_ANIMALS or
-    ACTIVE_ANIMALS grows enough that a build could land late in the season.
-
-    Also picks *which* species: the first one (in ACTIVE_ANIMALS order)
-    that's both affordable and has time left to pay off, rather than
-    always building whatever ACTIVE_ANIMALS[0] happens to be regardless of
-    season or affordability - matters once more than one species is
-    active, since the structure kind for the wrong species is a wasted
-    build.
 
     Under the cap, and only when every structure we've already built
     already has an animal in it (stops us tying up more than one tile at a
@@ -1178,6 +1206,10 @@ def choose_animal_to_build(farm, board_size, day, pending_builds=0):
     affordability bar as actually buying the animal (see
     decide_animal_market_actions), so we never build ahead of our ability
     to fill it.
+
+    The species choice itself uses pick_next_animal_species: whichever
+    eligible species we currently own fewest of, so a mixed herd actually
+    gets built rather than every structure landing for the same species.
 
     `pending_builds` is how many other units have already decided to build
     one THIS SAME TURN (see choose_unit_action) - every unit sees the same
@@ -1190,20 +1222,9 @@ def choose_animal_to_build(farm, board_size, day, pending_builds=0):
         return None
 
     money = farm.get("money", 0)
-    remaining_days = remaining_season_days(day)
-    for animal in ACTIVE_ANIMALS:
-        info = ANIMALS.get(animal)
-        if not info:
-            continue
-        cost = info.get("cost")
-        first_yield_day = info.get("first_yield_day")
-        if cost is None or first_yield_day is None:
-            continue
-        if first_yield_day > remaining_days:
-            continue  # can't reach even a first harvest before season end
-        if money >= cost and cost <= money * ANIMAL_SPEND_CAP_FRACTION:
-            return animal
-    return None
+    eligible = _eligible_animal_species(day, money, ANIMAL_SPEND_CAP_FRACTION)
+    owned = species_owned_counts(farm, private, board_size)
+    return pick_next_animal_species(eligible, owned)
 
 
 def decide_animal_market_actions(farm, private, board_size, day):
@@ -1213,21 +1234,13 @@ def decide_animal_market_actions(farm, private, board_size, day):
     """
     actions = []
     money = farm.get("money", 0)
-    remaining_days = remaining_season_days(day)
 
     if count_owned_animals(farm, private, board_size) < MAX_ANIMALS:
-        for animal in ACTIVE_ANIMALS:
-            info = ANIMALS.get(animal)
-            cost = info.get("cost") if info else None
-            first_yield_day = info.get("first_yield_day") if info else None
-            if cost is None or first_yield_day is None:
-                continue
-            if first_yield_day > remaining_days:
-                continue  # can't reach even a first harvest before season end
-            if cost > money or cost > money * ANIMAL_SPEND_CAP_FRACTION:
-                continue
-            actions.append(["BUY_ANIMAL", animal, 1])
-            break  # one purchase at a time, same cadence as seed buying
+        eligible = _eligible_animal_species(day, money, ANIMAL_SPEND_CAP_FRACTION)
+        owned = species_owned_counts(farm, private, board_size)
+        animal = pick_next_animal_species(eligible, owned)
+        if animal:
+            actions.append(["BUY_ANIMAL", animal, 1])  # one purchase at a time, same cadence as seed buying
 
     filled, _ = scan_animal_structures(farm, board_size)
     if filled > 0 and money > 0:
@@ -1931,7 +1944,7 @@ def choose_unit_action(
     #    growing the animal side of the farm and don't already have one
     #    waiting for a tenant, otherwise plant a crop.
     if tile is None:
-        animal_to_build = choose_animal_to_build(farm, board_size, day, pending_builds[0])
+        animal_to_build = choose_animal_to_build(farm, private, board_size, day, pending_builds[0])
         if animal_to_build:
             pending_builds[0] += 1
             structure = ANIMALS[animal_to_build]["structure"]
