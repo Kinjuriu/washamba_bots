@@ -8,7 +8,7 @@ An agent for the Kaggle **Kaggriculture** simulation competition: two agents eac
 
 **Current state:** `main.py` holds `nikaangukia_meroni` — a deterministic, rule-based agent (harvest → water → reclaim weeds via `DIG` → move-to-urgent → plant → walk → pass, plus threshold-based selling). One shared, inventory-aware `choose_unit_action` ladder drives the main farmer **and every hired hand**, with a per-turn claim set so units spread out instead of converging on the same tile.
 
-The animal rollout is **one sheep** (`ACTIVE_ANIMALS`, `MAX_ANIMALS = 1`): build a pasture, buy/pick up/place it, feed and care for it daily, collect fertilizer, harvest wool, and hold back a wheat reserve so selling feed can't starve it. **One** is not a placeholder — two of anything loses heavily, including a sheep plus a cow selling into entirely separate markets (-16,634, 0 of 16). And the **species** is chosen by care-bank arithmetic, not base price (see below). The logic is data-driven off the engine's `ANIMALS` table, so switching species is a config change.
+The animal rollout is **one sheep** (`ACTIVE_ANIMALS`, `MAX_ANIMALS = 1`): build a pasture, buy/pick up/place it, feed and care for it daily, collect fertilizer, harvest wool, and hold back a wheat reserve so selling feed can't starve it. **One** is a cash constraint, not a market one — a second animal is a large *win* head to head and a **-19,514, 0-of-12 disaster** against a built-in, because buying it drains the days 3-7 cash trough and both sheep then starve (see below). The **species** is chosen by care-bank arithmetic, not base price (see below). The logic is data-driven off the engine's `ANIMALS` table, so switching species is a config change.
 
 `tests/` carries a stdlib-`unittest` suite. There is no `agent/` package — that part of the `README.md` layout is still aspirational. `experiments/` holds evaluation tooling (see below) and `notebooks/` has one working experiments notebook.
 
@@ -37,6 +37,12 @@ The ~15,000 gap between the two tables is the whole story of why a 33,000 local 
 **Hiring is the single highest-ROI mechanic in the game, by a wide margin.** The n-th hire of a day costs `farmHandCostMult × fib(n)` with the counter resetting each morning, so four hands cost **$1+$1+$2+$3 = $7/day — about $210 for the whole season.** That bought roughly **+1,400 mean bank** (`pass` 5635 → 6864, `random` 5264 → 7357, `starter` 5555 → 6609). Hands are cleared every night, so re-hire each morning (`HIRE_BEFORE_HOUR`); a hand bought at hour 20 costs the same and does a fraction of the work.
 
 The reason it pays so well is the same one behind the weed cascade below: **a single farmer's upkeep capacity is what caps income.** More units means more tiles watered and dug, while three Geese add a maintained animal revenue stream without the escape failures seen in the four-Goose experiment.
+
+**Because a hand is that cheap, any cash gate in front of hiring is mispriced.** `MIN_MONEY_TO_HIRE` sat at **150** while the first hand of the day costs **$1** — reserving seed money against a purchase two orders of magnitude smaller. It matters because there is a **cash trough on roughly days 3-7**, after the seed/pasture/animal spend and before the first real harvest lands, and the gate locked the crew out for entire days inside it. Dropping it to **20** is **+1,025 head to head (19/24, worst match -102)** and **+2,072 paired against a built-in (9/12, t = 3.09)** — the first change in a while that two harnesses which *can* disagree both call a win.
+
+Dose-response is monotone in how much of the trough the gate still blocks: 60 is +402 (10/16), 20 is +1,025, 0 is +1,144. 20 and 0 tie because the trough bottoms out near $20 anyway.
+
+The mechanism was verified against the counter it was meant to move, not the bank delta: total hires barely shift (**170 → 173**) and early-season hiring is *identical*. The whole effect is **three hires on one day, costing $4**, at the moment young plants need watering. And the trough predicts the outcome on every seed — **10 of 12 dip below 150 during hiring hours and all 10 improve; the 2 that never dip are exact no-ops.** Generalises: **price a gate against the thing it is actually gating.** A flat cash floor in front of a fibonacci-priced purchase is a bug waiting for someone to measure it.
 
 Two earlier fixes moved the **floor** rather than the mean: a **season-maturity gate** (`choose_crop` refuses crops whose `first_yield_day` can't land before day 29 — the agent used to bleed cash buying tomato seed it could never harvest) and a **shed-overflow valve** (force-sell once the shed passes `SHED_FORCE_SELL_THRESHOLD`, since overflow past 100 items is silently discarded).
 
@@ -104,13 +110,44 @@ Read the table and melon is in **no shop at all**. Its only sink is the Town Cen
 
 `ACTIVE_ANIMALS = ["SHEEP"]` is worth **+1,332, 15/16**. A new species needs its own `SELL_PRICE_THRESHOLDS` and `MAX_SELL_PER_TURN` entries or it falls back to the default threshold and dumps into a curve that floors after 58 units.
 
-**A denser crew is now a WIN, and the old entry here was wrong twice over.** It was rejected against the across-seed stdev (the wrong test) on a far older agent. `WORK_TILES_PER_HAND` 6 -> 4 is **+1,910, winning 16 of 16**. The farm waters **19.2 tiles a day against 24 planted** - we cannot keep alive the land we already hold, so hands are exactly the right lever. Units also spend 1,919 turns moving against 575 watering, with 414 idle `PASS`es, so there is more headroom here.
+**A second sheep is the sharpest two-harness disagreement we have found, and it is why one harness is not enough.** Head to head against this agent it looks like one of the largest gains available: **+5,119 (14/16)** on 8 seeds, **+3,623 (18/24)** on 12, with the counters all confirming it — 2 pastures built, 2 animals bought and placed, `FEED` 30 -> 58, **wool sold 34 -> 67**, against a cost of only 10 crop harvests.
 
-That same measurement settles **`BUY_LAND`** with a mechanism rather than just a score: acreage cannot be the ceiling while we are under-watering what we own. Tiles *are* saturated days 4-16 (24/25 planted), so the instinct is reasonable - it is watering capacity, not ground, that binds.
+Paired against the `starter` built-in the same change is **-19,514, losing 0 of 12 seeds, t = -20.0.**
+
+**The built-in is right, and the failure is real.** Buying the second animal lands in the same **days 3-7 cash trough** that `MIN_MONEY_TO_HIRE` is tuned around, and empties it. Seed 0 against `starter`, one sheep against two:
+
+| | money d5 | money d10 | `FEED` | pastures at season end | wool sold | bank |
+|---|---|---|---|---|---|---|
+| one sheep | $17 | $482 | 29 | `{PASTURE, animal: SHEEP}` | 32 | **52,981** |
+| two sheep | **$5** | **$9** | **10** | `{PASTURE}`, `{PASTURE}` — **both empty** | **0** | **37,978** |
+
+With no cash there is no feed, so **both sheep starve and escape** - unrecoverable - and the two pastures sit empty for the rest of the season producing nothing. The crew is starved too: `HIRE` 165 -> 112, `WATER` 611 -> 466.
+
+This is **not** an artefact of the lowered hire gate, which was the obvious suspicion since both spend the same trough. Checked: at the old `MIN_MONEY_TO_HIRE = 150` the second sheep costs **-31,059 (0/12)**, *worse* than the -19,514 it costs at 20. Cheap hands cushion the collapse rather than causing it, so the two constants are independent.
+
+It survives head to head *only* because that opponent crowds the market exactly the way we do, which shifts our cash timing enough to clear the trough. **The ladder is full of differently-shaped opponents.** Generalise it: **head to head can bless a change that only works because the opponent is a copy of us.** That is the mirror image of the built-ins' known flaw, and the reason the standard is now *two harnesses that can disagree* - the hire-gate fix passing both is what made it trustworthy.
+
+Raising `MAX_ANIMALS` is only safe once the *n*-th purchase is gated on surviving the trough (a bank floor or a day gate), then re-measured on both harnesses. Past 2 the count itself is the problem regardless: 3 is **-2,618 (6/16)** and 4 is **-16,121 (0/16)** even head to head.
+
+**Do not blame market depth - that theory is wrong and not worth re-testing.** The static curve says WOOL floors 58 units above `I0` (`sq`, T=105), so a premium crash looks like the binding constraint. Measured end-of-season it is not: at one, two *and* three sheep the market ends with inventory **below** the 10,000 baseline (9,822 / 9,855 / 9,743) at a price **above** the $200 base (244 / 243 / 248), with **zero** wool unsold. The town eats wool faster than three sheep can make it.
+
+**A denser crew is now a WIN, and the old entry here was wrong twice over.** It was rejected against the across-seed stdev (the wrong test) on a far older agent. `WORK_TILES_PER_HAND` 6 -> 4 is **+1,910, winning 16 of 16**. At the time the farm watered **19.2 tiles a day against 24 planted** - it could not keep alive the land it already held, so hands were exactly the right lever.
+
+**That shortfall is now closed, which re-opens the land question.** Re-measured after the hire-gate fix with `experiments/ceiling.py`, and it holds in a *contested* market as well as self-play (checked, because self-play flatters anything that doesn't compete for a scarce sink): the farm runs **24 of 25 tiles planted from day 4 to day 19**, at **water/planted = 1.00** through mid-season, with near-zero weeds and **13% of unit-turns idle on `PASS`**. Season-wide the ratio moved **0.80 -> 0.94**. We now keep alive everything we own. Note *how* it closed - watering per day is unchanged at ~19; the agent stopped over-planting past what it could tend.
+
+That same measurement used to settle **`BUY_LAND`**: acreage cannot be the ceiling while we are under-watering what we own.
+
+**That argument has expired, and `BUY_LAND` still loses - for a different reason.** We now water 100% of what we plant, so the old mechanism no longer applies. The replacement test is whether the crew can absorb *more* work, and it cannot: on the current 25 tiles a denser crew is now a **heavy loss in both directions** - `WORK_TILES_PER_HAND` 3 is **-7,352 (0/16)** and 2 is **-7,385 (0/16)**, against the 4 the agent uses. Surplus units do not idle politely; they plant tiles the crew then cannot water and spend seed money doing it.
+
+`MAX_HANDS_PER_DAY` is **dead code at 25 tiles** - 12 and 16 both measure at *exactly* +0. `decide_hire_orders` computes `wanted = min(MAX_HANDS_PER_DAY, work // WORK_TILES_PER_HAND)`, and a farm that is already tended has little pending work, so `work // 4` lands near 6 and never reaches the cap. **The ratio, not the cap, is the knob that scales the crew** - don't reach for the cap when you mean the ratio.
+
+So more ground would need more hands, and more hands are measurably harmful today. The precondition CLAUDE.md set for revisiting land - a genuine upkeep increase - is **still unmet**, just for a different reason than the one originally recorded.
 
 **Measured dead ends — don't re-run these without changing something first.** All lost on the full batch:
 
-- **More than one animal is a heavy loss, whatever the species.** `MAX_ANIMALS` 2/3/4/6 as geese scored 38,413 / 33,983 / 33,617 / 21,749 against 43,099 for one. A *sheep plus a cow* - two different, deep markets, so no self-competition - was even worse: **-16,634, 0 of 16 matches.** Every structure costs a crop tile and a share of the crew's upkeep capacity, and that dwarfs the animal's revenue. The old "escapes" explanation died with the daily-feeding fix; this is opportunity cost.
+- **More than one animal is a heavy loss — but the recorded *reason* was wrong, and so was one of the measurements.** `MAX_ANIMALS` 2/3/4/6 as geese scored 38,413 / 33,983 / 33,617 / 21,749 against 43,099 for one. Two is not opportunity cost, it is **cash starvation in the days 3-7 trough** (see the second-sheep section above) — and it *wins* head to head, so it is only visible on the built-in harness. Three and four are opportunity cost, as recorded.
+
+  The **sheep-plus-cow** result (-16,634, 0 of 16) is **unreproducible as written**: `ACTIVE_ANIMALS = ["SHEEP", "COW"]` with `MAX_ANIMALS = 2` builds **two sheep and no cow** — `choose_animal_to_build` ranks by care-bank arithmetic and sheep wins both slots (verified: `BUY_ANIMAL SHEEP x2`, `PASTURE x2`, byte-identical episode to the two-sheep variant). **Two independent deep markets remains untested, not refuted.** Testing it needs species diversity forced, which the current code does not do.
 
 - **Diversifying away from melon is a large loss.** Raising `SELF_SUPPLY_EXPONENT` from 2.0 to 3.0/4.0/6.0 scored **-6,883 / -5,594 / -9,858** head-to-head against the current agent, losing every match. Melon concentration survives its own price crash.
 - **Selling melon in smaller slices is a large loss.** `MAX_SELL_PER_TURN["MELON"]` from 15 to 6: **-5,958, 0/8 matches.**

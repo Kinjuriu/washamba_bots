@@ -639,10 +639,43 @@ ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a i
 # production and a share of the crew's upkeep capacity, which is the same
 # ceiling BUY_LAND and a denser crew both ran into.
 #
-# The choose_animal_to_build() gate below is kept even though it cannot fire
-# at MAX_ANIMALS = 1 (measured: gate-only is +0 against main, an exact no-op).
-# It is correct, it costs nothing, and it is the thing that makes raising this
-# number safe to try again.
+# Stays at 1, but NOT for the reason the old note gave, and the difference
+# matters if you are thinking of raising it.
+#
+# A second sheep looks like one of the largest gains available when measured
+# head to head against this agent: +5,119 (14/16) on 8 seeds, +3,623 (18/24)
+# on 12. Paired against the `starter` built-in it is **-19,514, losing 0 of
+# 12 seeds**. Both numbers are real; the second one is the one that matters,
+# because it is a genuine failure and not a harness artifact.
+#
+# What happens: buying the second animal lands in the same days 3-7 cash
+# trough that MIN_MONEY_TO_HIRE is tuned around, and drains it to nothing.
+# The two constants are NOT coupled, though - checked, because the obvious
+# worry is that cheap hiring drains the cash the animal needs. It is the other
+# way round: at the old gate of 150 the second sheep is -31,059 (0/12), worse
+# than the -19,514 it costs at 20. Cheaper hands cushion the collapse.
+# Measured on seed 0 against `starter`, money at day 5 is $5 and at day 10 is
+# $9 (against $17 and $482 with one sheep). With no cash the agent cannot buy
+# feed, so FEED falls 29 -> 10 and **both sheep starve and escape** - the two
+# pastures end the season empty, wool sold is 0, and the crew is under-hired
+# for a third of the season (HIRE 165 -> 112, WATER 611 -> 466).
+#
+# It survives head to head only because that opponent crowds the market the
+# same way we do, which changes our cash timing enough to clear the trough.
+# Against a differently-shaped opponent it does not clear, and the ladder is
+# full of differently-shaped opponents.
+#
+# So this is gated on cash, not on the count. Raising MAX_ANIMALS is safe only
+# once buying animal n is conditional on surviving the trough - a bank floor
+# or a day gate on the second purchase - at which point re-measure on BOTH
+# harnesses. For the record, past 2 the count itself is the problem: 3 is
+# -2,618 (6/16) and 4 is -16,121 (0/16) even head to head.
+#
+# Not market depth, though - that theory is wrong and worth not re-testing.
+# WOOL floors 58 units above I0 on the static curve, but measured at one, two
+# and three sheep the market ends BELOW the 10,000 baseline (9,822 / 9,855 /
+# 9,743) at a price ABOVE the $200 base (244 / 243 / 248), with nothing left
+# unsold. The town eats wool faster than three sheep can make it.
 MAX_ANIMALS = 1
 
 # Never buy an animal that eats more than this fraction of current cash in
