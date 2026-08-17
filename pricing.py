@@ -352,3 +352,115 @@ def recommend_sell_quantity(
         if price > 1:
             inventory += 1
     return count
+
+
+# ---------------------------------------------------------------------
+# Selling cadence (experiments/pricing_cadence_experiment_report.md)
+#
+# Promoted here after a validated experiment: head-to-head vs the
+# unmodified control, 12 seeds, seat-swapped - the variant combining all
+# three functions below won 24/24 matches, mean +1,571, stdev 209 (the
+# lowest variance and most consistent of the three variants tested; see
+# the report for the full comparison). NOT wired into main.py - that is
+# a separate, explicit step the report defers pending review.
+# ---------------------------------------------------------------------
+
+SEASON_DAYS = 30
+
+
+def estimate_sell_or_hold_value(
+    item,
+    quantity,
+    inventory,
+    day,
+    pipeline_supply=0,
+    opponent_pipeline_supply=0,
+    unlocked_shops=(),
+    start_step=None,
+    horizon_days=3,
+    params=None,
+):
+    """
+    Compare selling `quantity` units of `item` right now against holding
+    them for `horizon_days` more days, using the same deterministic price
+    model estimate_future_price() already provides - no financial
+    futures-curve assumption, just the engine's own mechanics run forward
+    from the current state.
+
+        value_now  = revenue from price_path_for_sale() at the current
+                     inventory - this turn's real per-unit price decay,
+                     not just the spot price.
+        value_hold = quantity * estimate_future_price()'s forecast at
+                     the horizon, given our own pipeline and the
+                     opponent's visible pipeline landing in between, and
+                     town demand draining the market in between.
+
+    Pure and deterministic - same inputs, same answer, no I/O. Returns a
+    dict distinguishing value_now / value_hold (total and per-unit) and
+    `hold_is_better`.
+    """
+    if start_step is None:
+        start_step = day * DEFAULT_TURNS_PER_DAY
+
+    if quantity <= 0:
+        return {
+            "value_now": 0.0,
+            "value_hold": 0.0,
+            "value_now_per_unit": 0.0,
+            "value_hold_per_unit": 0.0,
+            "hold_is_better": False,
+        }
+
+    now = price_path_for_sale(item, inventory, quantity, params)
+    value_now = float(sum(now["prices"]))
+
+    forecast = estimate_future_price(
+        item,
+        inventory,
+        turns_ahead=horizon_days * DEFAULT_TURNS_PER_DAY,
+        our_pipeline_supply=pipeline_supply,
+        opponent_pipeline_supply=opponent_pipeline_supply,
+        unlocked_shops=unlocked_shops,
+        start_step=start_step,
+        params=params,
+    )
+    value_hold_per_unit = float(forecast["future_price"])
+    value_hold = value_hold_per_unit * quantity
+
+    return {
+        "value_now": value_now,
+        "value_hold": value_hold,
+        "value_now_per_unit": value_now / quantity,
+        "value_hold_per_unit": value_hold_per_unit,
+        "hold_is_better": value_hold > value_now,
+    }
+
+
+def inventory_pressure(shed_quantity, pipeline_supply, remaining_days, per_turn_cap):
+    """
+    How much of a product we're carrying relative to what we could
+    plausibly still move before season end, at its own per-turn cap and
+    roughly one selling opportunity a day. >=1 means we are structurally
+    overcommitted - even selling flat-out every remaining day at the cap
+    would not clear it in time.
+
+    `per_turn_cap` is caller-supplied rather than looked up here: this
+    module has no opinion on which products need a cap (that's a per-
+    agent tuning choice, e.g. main.py's MAX_SELL_PER_TURN) - pass a large
+    number for a product with no meaningful ceiling.
+    """
+    capacity = max(1, per_turn_cap * max(1, remaining_days))
+    carried = shed_quantity + pipeline_supply
+    return carried / capacity
+
+
+def cadence_urgency(day, season_days=SEASON_DAYS):
+    """
+    0 at day 0, rising smoothly toward 1 as the season ends - a
+    continuous alternative to a hard "liquidate from day N" cutoff.
+    Verified against replay evidence of real contested ladder games
+    (docs/REPLAY_ANALYSIS.md in the agent repo): selling ramps from
+    around day 10 with no discontinuity near day 22, so urgency should
+    ramp too, not flip.
+    """
+    return min(1.0, max(0.0, day) / (season_days - 1))

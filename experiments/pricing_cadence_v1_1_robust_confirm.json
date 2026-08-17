@@ -1,0 +1,174 @@
+{
+  "D": {
+    "name": "D",
+    "mean": 1571.0416666666667,
+    "median": 1597.0,
+    "stdev": 209.39404899285745,
+    "best": 1956.0,
+    "worst": 999.0,
+    "wins": 24,
+    "matches": 24,
+    "per_seed": [
+      {
+        "seed": 0,
+        "paired_delta_mean": 1703.5
+      },
+      {
+        "seed": 1,
+        "paired_delta_mean": 1577.0
+      },
+      {
+        "seed": 2,
+        "paired_delta_mean": 1477.5
+      },
+      {
+        "seed": 3,
+        "paired_delta_mean": 1617.0
+      },
+      {
+        "seed": 4,
+        "paired_delta_mean": 1522.5
+      },
+      {
+        "seed": 5,
+        "paired_delta_mean": 1678.0
+      },
+      {
+        "seed": 6,
+        "paired_delta_mean": 1360.0
+      },
+      {
+        "seed": 7,
+        "paired_delta_mean": 1557.0
+      },
+      {
+        "seed": 8,
+        "paired_delta_mean": 1519.0
+      },
+      {
+        "seed": 9,
+        "paired_delta_mean": 1627.0
+      },
+      {
+        "seed": 10,
+        "paired_delta_mean": 1576.0
+      },
+      {
+        "seed": 11,
+        "paired_delta_mean": 1638.0
+      }
+    ],
+    "all_deltas": [
+      1737.0,
+      1670.0,
+      1577.0,
+      1577.0,
+      999.0,
+      1956.0,
+      1617.0,
+      1617.0,
+      1102.0,
+      1943.0,
+      1678.0,
+      1678.0,
+      1360.0,
+      1360.0,
+      1557.0,
+      1557.0,
+      1519.0,
+      1519.0,
+      1627.0,
+      1627.0,
+      1576.0,
+      1576.0,
+      1638.0,
+      1638.0
+    ]
+  },
+  "D_robust": {
+    "name": "D_robust",
+    "mean": 1748.6666666666667,
+    "median": 1782.0,
+    "stdev": 216.53309148983425,
+    "best": 2129.0,
+    "worst": 1147.0,
+    "wins": 24,
+    "matches": 24,
+    "per_seed": [
+      {
+        "seed": 0,
+        "paired_delta_mean": 1844.0
+      },
+      {
+        "seed": 1,
+        "paired_delta_mean": 1754.0
+      },
+      {
+        "seed": 2,
+        "paired_delta_mean": 1625.5
+      },
+      {
+        "seed": 3,
+        "paired_delta_mean": 1847.0
+      },
+      {
+        "seed": 4,
+        "paired_delta_mean": 1708.5
+      },
+      {
+        "seed": 5,
+        "paired_delta_mean": 1816.0
+      },
+      {
+        "seed": 6,
+        "paired_delta_mean": 1494.0
+      },
+      {
+        "seed": 7,
+        "paired_delta_mean": 1734.0
+      },
+      {
+        "seed": 8,
+        "paired_delta_mean": 1696.0
+      },
+      {
+        "seed": 9,
+        "paired_delta_mean": 1881.0
+      },
+      {
+        "seed": 10,
+        "paired_delta_mean": 1753.0
+      },
+      {
+        "seed": 11,
+        "paired_delta_mean": 1831.0
+      }
+    ],
+    "all_deltas": [
+      1878.0,
+      1810.0,
+      1754.0,
+      1754.0,
+      1147.0,
+      2104.0,
+      1847.0,
+      1847.0,
+      1288.0,
+      2129.0,
+      1816.0,
+      1816.0,
+      1494.0,
+      1494.0,
+      1734.0,
+      1734.0,
+      1696.0,
+      1696.0,
+      1881.0,
+      1881.0,
+      1753.0,
+      1753.0,
+      1831.0,
+      1831.0
+    ]
+  }
+}

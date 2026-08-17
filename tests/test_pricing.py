@@ -17,7 +17,10 @@ import unittest
 from pricing import (
     MARKET_PARAMS,
     apply_town_demand,
+    cadence_urgency,
     estimate_future_price,
+    estimate_sell_or_hold_value,
+    inventory_pressure,
     market_price,
     price_path_for_sale,
     recommend_sell_quantity,
@@ -317,6 +320,95 @@ class TestRecommendSellQuantity(unittest.TestCase):
                 self.assertEqual(
                     recommend_sell_quantity(item, I0, 10, min_acceptable_price=0), 0
                 )
+
+
+class TestEstimateSellOrHoldValue(unittest.TestCase):
+    """Promoted from experiments/pricing_cadence_experiment_report.md after
+    a validated head-to-head experiment (24/24 wins, mean +1,571, stdev
+    209 vs the unmodified control, 12 seeds). NOT wired into main.py."""
+
+    def test_zero_quantity_is_a_no_op(self):
+        result = estimate_sell_or_hold_value("WHEAT", 0, 10000, day=0)
+        self.assertEqual(result["value_now"], 0.0)
+        self.assertEqual(result["value_hold"], 0.0)
+        self.assertFalse(result["hold_is_better"])
+
+    def test_value_now_matches_the_real_price_path(self):
+        result = estimate_sell_or_hold_value("MELON", 10, 10000, day=0)
+        path = price_path_for_sale("MELON", 10000, 10)
+        self.assertEqual(result["value_now"], sum(path["prices"]))
+
+    def test_heavy_pipeline_makes_holding_worse_not_better(self):
+        for crop in PLANTABLE_CROPS:
+            with self.subTest(crop=crop):
+                no_pipeline = estimate_sell_or_hold_value(
+                    crop, 10, 10000, day=0, pipeline_supply=0
+                )
+                heavy_pipeline = estimate_sell_or_hold_value(
+                    crop, 10, 10000, day=0, pipeline_supply=500
+                )
+                self.assertLessEqual(
+                    heavy_pipeline["value_hold_per_unit"],
+                    no_pipeline["value_hold_per_unit"],
+                )
+
+    def test_opponent_pipeline_also_depresses_the_hold_value(self):
+        no_opponent = estimate_sell_or_hold_value(
+            "STRAWBERRY", 10, 10000, day=0, opponent_pipeline_supply=0
+        )
+        with_opponent = estimate_sell_or_hold_value(
+            "STRAWBERRY", 10, 10000, day=0, opponent_pipeline_supply=300
+        )
+        self.assertLess(
+            with_opponent["value_hold_per_unit"], no_opponent["value_hold_per_unit"]
+        )
+
+    def test_hold_is_better_flag_matches_the_totals(self):
+        for crop in PLANTABLE_CROPS:
+            with self.subTest(crop=crop):
+                result = estimate_sell_or_hold_value(crop, 5, 10000, day=0)
+                self.assertEqual(
+                    result["hold_is_better"],
+                    result["value_hold"] > result["value_now"],
+                )
+
+
+class TestInventoryPressure(unittest.TestCase):
+    def test_zero_carried_is_zero_pressure(self):
+        self.assertEqual(
+            inventory_pressure(0, 0, remaining_days=10, per_turn_cap=15), 0.0
+        )
+
+    def test_pressure_rises_with_carried_quantity(self):
+        low = inventory_pressure(10, 0, remaining_days=10, per_turn_cap=15)
+        high = inventory_pressure(200, 0, remaining_days=10, per_turn_cap=15)
+        self.assertGreater(high, low)
+
+    def test_pressure_falls_as_remaining_days_grow(self):
+        tight = inventory_pressure(100, 0, remaining_days=2, per_turn_cap=15)
+        loose = inventory_pressure(100, 0, remaining_days=20, per_turn_cap=15)
+        self.assertGreater(tight, loose)
+
+    def test_a_pile_bigger_than_capacity_exceeds_one(self):
+        pressure = inventory_pressure(150, 0, remaining_days=1, per_turn_cap=15)
+        self.assertGreater(pressure, 1.0)
+
+
+class TestCadenceUrgency(unittest.TestCase):
+    def test_zero_at_day_zero(self):
+        self.assertEqual(cadence_urgency(0), 0.0)
+
+    def test_rises_toward_one_near_season_end(self):
+        self.assertGreater(cadence_urgency(28), cadence_urgency(10))
+        self.assertLessEqual(cadence_urgency(29), 1.0)
+
+    def test_monotonically_non_decreasing_across_the_season(self):
+        values = [cadence_urgency(day) for day in range(30)]
+        for earlier, later in zip(values, values[1:]):
+            self.assertLessEqual(earlier, later)
+
+    def test_never_exceeds_one_past_the_season(self):
+        self.assertEqual(cadence_urgency(100), 1.0)
 
 
 if __name__ == "__main__":
