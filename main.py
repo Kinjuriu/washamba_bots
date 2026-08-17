@@ -733,7 +733,7 @@ ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a i
 # and three sheep the market ends BELOW the 10,000 baseline (9,822 / 9,855 /
 # 9,743) at a price ABOVE the $200 base (244 / 243 / 248), with nothing left
 # unsold. The town eats wool faster than three sheep can make it.
-MAX_ANIMALS = 1
+MAX_ANIMALS = 2
 
 # Never buy an animal that eats more than this fraction of current cash in
 # one shot - same reasoning as SEED_SPEND_CAP_FRACTION.
