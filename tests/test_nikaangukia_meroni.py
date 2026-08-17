@@ -19,6 +19,8 @@ from main import (
     MAX_HANDS_PER_DAY,
     MAX_MARKET_ORDERS_PER_TURN,
     MAX_SELL_PER_TURN,
+    MAX_SEED_STOCKPILE,
+    MIN_CASH_RESERVE_FOR_SEED_BUYING,
     SEASON_DAYS,
     WHEAT_CARRY_BATCH,
     carried_animal,
@@ -36,6 +38,7 @@ from main import (
     nearest_shed_tile,
     nikaangukia_meroni,
     scan_animal_structures,
+    seed_restock_quantity,
     shed_access_tiles,
     should_sell,
     step_toward,
@@ -340,6 +343,55 @@ class TestShouldSell(unittest.TestCase):
         self.assertTrue(should_sell("MYSTERY_CROP", 1, market_state))
         market_state = {"prices": {"MYSTERY_CROP": 10}}
         self.assertFalse(should_sell("MYSTERY_CROP", 1, market_state))
+
+
+class TestSeedRestockQuantity(unittest.TestCase):
+    # This is the fix for the seed-repurchase spiral: once the shared
+    # per-turn plant_budget makes a seed actually get consumed every turn,
+    # restocking one at a time on every dip below MAX_SEED_STOCKPILE was an
+    # $80/turn (MELON) drain that crashed the bank in days. Restocking only
+    # once a crop is fully out, in one batched order, and never past the
+    # cash reserve the wheat safety net needs, is what fixes that - so this
+    # is worth covering directly rather than trusting the paired benchmark
+    # alone (see CLAUDE.md).
+
+    def test_does_not_restock_while_any_seed_is_still_held(self):
+        # Not yet exhausted (SEED_REBUY_TRIGGER == 0), so no restock even
+        # with plenty of cash - this is the cadence fix, not a cash gate.
+        private = {"seeds": {"WHEAT": 1}}
+        self.assertEqual(seed_restock_quantity("WHEAT", {"money": 1000}, private), 0)
+
+    def test_batches_the_full_gap_back_to_the_stockpile_cap_when_out(self):
+        private = {"seeds": {}}
+        self.assertEqual(
+            seed_restock_quantity("WHEAT", {"money": 1000}, private), MAX_SEED_STOCKPILE
+        )
+
+    def test_never_spends_past_the_cash_reserve_floor(self):
+        # WHEAT seed is $10. $115 affords one purchase and still clears the
+        # $100 floor (105 left); a second would leave 95, so the batch stops
+        # at 1 instead of the full stockpile gap.
+        private = {"seeds": {}}
+        self.assertEqual(seed_restock_quantity("WHEAT", {"money": 115}, private), 1)
+
+    def test_never_spends_past_the_reserve_even_when_technically_affordable(self):
+        # Below the floor entirely: money can cover the sticker price but
+        # not the $100 the wheat safety net needs left over.
+        private = {"seeds": {}}
+        self.assertEqual(
+            seed_restock_quantity("WHEAT", {"money": MIN_CASH_RESERVE_FOR_SEED_BUYING}, private), 0
+        )
+
+    def test_respects_the_spend_cap_fraction_on_a_small_bank(self):
+        # $15 can outright afford a $10 WHEAT seed, but $10 is more than
+        # half of $15 - SEED_SPEND_CAP_FRACTION should block it regardless
+        # of the cash-reserve check.
+        private = {"seeds": {}}
+        self.assertEqual(seed_restock_quantity("WHEAT", {"money": 15}, private), 0)
+
+    def test_returns_zero_for_a_crop_with_no_seed_cost(self):
+        private = {"seeds": {}}
+        self.assertEqual(seed_restock_quantity("NOT_A_REAL_CROP", {"money": 1000}, private), 0)
 
 
 class TestDecideMarketActions(unittest.TestCase):
