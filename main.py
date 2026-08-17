@@ -38,13 +38,16 @@ ACTIVE_ANIMALS) plus a small wheat safety net for feeding it. Everything
 still in the shed from LIQUIDATION_START_DAY on is sold regardless of
 price - inventory scores nothing once the season ends.
 
-The one piece of real economics is choose_crop(). It scores a crop by
-revenue per growing day, discounted both by how oversupplied that market
-already is and by how much of that crop we are *ourselves* about to
-deliver. That second term matters more than it sounds: a melon planted
-today sells twelve days from now, into the price our own harvest creates.
+The one piece of real economics is choose_crop(). FORWARD-PRICING EXPERIMENT
+branch (see docs/EXPERIMENT_WORKFLOW.md): it scores a crop by *forecast*
+revenue per growing day - pricing.py's estimate_future_price() at the
+crop's first_yield_day horizon, given current market inventory and
+everything we're already committed to selling - rather than today's spot
+price. A melon planted today sells twelve days from now, into whatever
+price our own harvest (and the market's own drift) has created by then.
 See the docstring there before touching the formula - an earlier version
-of it ranked crops by cheapness and never planted a melon all season.
+scored on spot price alone and once ranked crops by cheapness, planting
+wheat all season and never once planting a melon.
 
 NOT implemented in this version (on purpose, to keep V1 simple):
   - COW / SHEEP (the animal logic is data-driven off ACTIVE_ANIMALS, so
@@ -77,42 +80,17 @@ except ImportError:
     CROPS = {}
     ANIMALS = {}
 
-# Baseline market stock per product (the engine's I0, 10,000 for every
-# product at time of writing). Crop scoring needs it to tell a real glut
-# from the normal starting inventory.
-try:
-    from kaggle_environments.envs.kaggriculture.kaggriculture import MARKET_PARAMS
-
-    MARKET_BASELINE_STOCK = {
-        product: params.get("I0")
-        for product, params in MARKET_PARAMS.items()
-    }
-except ImportError:
-    MARKET_BASELINE_STOCK = {}
-
-DEFAULT_BASELINE_STOCK = 10000
-
-# How many units a product's market absorbs before its price falls apart
-# (the engine's per-resource T). This varies hugely and is the difference
-# between a crop being worth growing in bulk or not: at T units above the
-# baseline, WHEAT still fetches $20 of its $25 base, while MELON goes from
-# $250 to $1 and STRAWBERRY from $120 to $1.
-try:
-    from kaggle_environments.envs.kaggriculture.kaggriculture import MARKET_PARAMS as _MP
-
-    MARKET_ABSORPTION = {product: params.get("T") for product, params in _MP.items()}
-except ImportError:
-    MARKET_ABSORPTION = {}
-
-DEFAULT_ABSORPTION = 300
-
-# How hard our own incoming supply discounts a crop. Higher means the agent
-# diversifies sooner rather than pouring an entire season into one market.
-SELF_SUPPLY_EXPONENT = 2.0
-
-# Floor on the glut discount, so even a badly oversupplied crop keeps some
-# score rather than dropping out of consideration entirely.
-MIN_GLUT_DISCOUNT = 0.1
+# Forward-pricing research module (pricing.py, this repo's root - see
+# docs/EXPERIMENT_WORKFLOW.md). choose_crop() and decide_market_actions()
+# reuse its estimate_future_price()/recommend_sell_quantity() instead of
+# re-deriving the engine's price formula a second time here.
+#
+# Experiment-branch caveat, not yet resolved: the competition accepts a
+# single main.py (or a .tar.gz with main.py at the root). A bare main.py
+# upload would NOT bundle pricing.py, so this import only resolves inside
+# this repo's checkout for now - see the experiment report before this
+# branch is promoted anywhere near a real submission.
+from pricing import PRICE_FLOOR, estimate_future_price, recommend_sell_quantity
 
 
 # ---------------------------------------------------------------------
@@ -122,6 +100,12 @@ MIN_GLUT_DISCOUNT = 0.1
 # The season is a fixed 30 days (0-indexed: day 0 through day 29), per the
 # competition's hard constraints - not something that varies per episode.
 SEASON_DAYS = 30
+
+# Turns per in-game day - engine config default (kaggriculture.json
+# turnsPerDay), and the value implied by the competition's fixed
+# episodeSteps=720 (30 days x 24). Used to convert CROPS' day-based
+# first_yield_day into a turn count for estimate_future_price().
+TURNS_PER_DAY = 24
 
 # ---------------------------------------------------------------------
 # Crop selection
@@ -364,13 +348,23 @@ def extract_state(obs):
     private = obs.get("private") or {}
     tiles = farm.get("tiles") if farm else None
 
+    day = obs.get("day", 0)
+    hour = obs.get("hour", 0)
+    town = obs.get("town") or {}
+
     return {
         "farm": farm,
         "private": private,
         "market_state": get_market_state(obs),
         "board_size": len(tiles) if tiles else 0,
-        "day": obs.get("day", 0),
-        "hour": obs.get("hour", 0),
+        "day": day,
+        "hour": hour,
+        # obs["step"] is framework-supplied (see CLAUDE.md's I/O contract);
+        # the day*TURNS_PER_DAY+hour fallback only matters for a malformed
+        # observation. Both feed estimate_future_price()'s town-demand
+        # phase alignment via choose_crop() - see pricing.py.
+        "step": obs.get("step", day * TURNS_PER_DAY + hour),
+        "unlocked_shops": town.get("unlocked_shops") or [],
     }
 
 
@@ -754,30 +748,31 @@ def count_pipeline_supply(farm, private):
     return supply
 
 
-def choose_crop(farm, market_state, private, day):
+def choose_crop(farm, market_state, private, day, unlocked_shops=(), start_step=None):
     """
     Pick the crop we'd most like to plant next, or None if nothing makes
     sense right now (nothing affordable/held, or nothing left has time to
     mature).
 
-    Deliberately simple scoring - no profit projection or lookahead:
+    FORWARD-PRICING EXPERIMENT (see docs/EXPERIMENT_WORKFLOW.md and the
+    experiment report under experiments/). Previously scored by *today's*
+    price discounted by two hand-tuned terms (a glut discount relative to
+    baseline stock, and a self-supply discount shaped like 1/(1+pressure)^k).
+    Both terms were approximations of the same thing pricing.py's
+    estimate_future_price() now computes exactly, from the engine's own
+    market_price() formula: how the price at `crop`'s current inventory
+    will actually move by the time a plant started today could be sold.
 
-        score = price * yield * glut_discount * self_supply_discount
-                / growth_days
+        score = future_price * expected_yield / growth_days
 
-      - price * expected_yield: rough revenue if we sell everything the
-        plant produces at today's price.
-      - glut_discount: how oversupplied this product already is, measured
-        *relative* to the market's baseline stock. It must be relative:
-        every product starts at an inventory of 10,000, so an absolute
-        `stock * price` penalty term is not a tie breaker, it is the whole
-        score - and it ranks crops by cheapness, which is how an earlier
-        version planted wheat all season and never once planted a melon.
-      - self_supply_discount: what we have already committed to selling,
-        growing on our own tiles plus sitting in the shed, weighted by how
-        much punishment that particular market takes. Spot price says what
-        a unit fetches today; a melon planted now sells twelve days from
-        now, after our own harvest has landed.
+      - future_price: estimate_future_price()'s forecast for `crop` at its
+        first_yield_day horizon, given current market inventory and
+        everything we're already committed to selling (count_pipeline_supply
+        - unchanged from before, just fed to the real formula instead of a
+        hand-rolled discount). This is why the old glut/self-supply terms
+        are gone rather than kept alongside: they approximated exactly what
+        this one number now computes from the real engine mechanics, and
+        keeping both would double-count the same effect.
       - growth_days: how long we have to wait for the payoff, so we
         don't favor a slow crop just because its total payout is bigger.
 
@@ -787,13 +782,19 @@ def choose_crop(farm, market_state, private, day):
     check, the agent kept planting TOMATO (first_yield_day=8) as late as
     day 29, spending seed money on plants that mathematically could never
     produce a single unit - a guaranteed loss with no offsetting revenue.
+
+    `unlocked_shops` / `start_step` are passed straight through to
+    estimate_future_price() to phase-align its town-demand simulation with
+    the real game (see pricing.py) - both default to "nothing unlocked,
+    turn 0" so existing callers/tests keep working unchanged.
     """
     money = farm.get("money", 0)
-    prices = market_state.get("prices", {})
     inventory = market_state.get("inventory", {})
     seeds = private.get("seeds", {})
     remaining_days = remaining_season_days(day)
     pipeline = count_pipeline_supply(farm, private)
+    if start_step is None:
+        start_step = day * TURNS_PER_DAY
 
     best_crop = None
     best_score = None
@@ -817,42 +818,27 @@ def choose_crop(farm, market_state, private, day):
         if not have_seed and not can_afford:
             continue  # can't get hold of this crop right now
 
-        price = prices.get(crop, 0)
-        stock = inventory.get(crop, 0)
+        # Default to I0 (10,000), not 0: every product is always present in
+        # a real market observation (_new_market initialises all of them),
+        # so an *actual* zero-inventory reading never happens - "missing"
+        # only occurs in a malformed/partial obs, where assuming normal
+        # supply is far safer than assuming total scarcity. The latter used
+        # to feed near-zero inventory into a hinge-shaped below_func
+        # (CARROT/TOMATO), which explodes hard near I0 - see
+        # notebooks/pricing_analysis_v0.ipynb section 2b.
+        stock = inventory.get(crop, 10000)
+        turns_ahead = (first_yield_day or 0) * TURNS_PER_DAY
+        forecast = estimate_future_price(
+            crop,
+            stock,
+            turns_ahead=turns_ahead,
+            our_pipeline_supply=pipeline.get(crop, 0),
+            unlocked_shops=unlocked_shops,
+            start_step=start_step,
+        )
+        future_price = forecast["future_price"]
 
-        # Glut discount, measured *relative* to the market's baseline stock
-        # rather than as a raw unit count. Every product starts at an
-        # inventory of 10,000, so an absolute penalty term is not a tie
-        # breaker - it is the whole score. The previous form,
-        # (price*yield - stock*price)/days, collapsed to about
-        # -price*10000/days, which ranks crops by cheapness: it planted
-        # WHEAT (37.5 value per tile-day) and scored MELON (125.0, the best
-        # crop in the game by 2.6x) dead last, so melon was never planted.
-        #
-        # The quoted price already encodes supply - the engine derives it
-        # from inventory - so this only needs to discount a genuine glut,
-        # and never to outweigh revenue.
-        baseline = MARKET_BASELINE_STOCK.get(crop) or DEFAULT_BASELINE_STOCK
-        glut = max(0.0, stock / baseline - 1.0) if baseline else 0.0
-        glut_discount = max(1.0 - glut, MIN_GLUT_DISCOUNT)
-
-        # Our own incoming supply. Spot price is what a unit fetches today,
-        # but a melon planted now sells 12 days from now - after our own
-        # harvest has hit the market. Measured: growing melon on most tiles
-        # drives the melon price from $250 to about $4 by season end with no
-        # opponent involved at all, so the back half of every harvest sells
-        # for nearly nothing.
-        #
-        # Weight that pressure by how much punishment the specific market
-        # takes: at T units above baseline WHEAT still fetches $20 of $25,
-        # while MELON goes to $1. So this pushes volume toward crops that
-        # absorb it and keeps the fragile, high-value ones scarce enough to
-        # stay valuable.
-        absorption = MARKET_ABSORPTION.get(crop) or DEFAULT_ABSORPTION
-        pressure = pipeline.get(crop, 0) / absorption if absorption else 0.0
-        self_supply_discount = 1.0 / (1.0 + pressure) ** SELF_SUPPLY_EXPONENT
-
-        score = price * expected_yield * glut_discount * self_supply_discount / growth_days
+        score = future_price * expected_yield / growth_days
 
         if best_score is None or score > best_score:
             best_score = score
@@ -908,7 +894,9 @@ def should_buy_seed(crop, farm, private):
     return True
 
 
-def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
+def decide_market_actions(
+    farm, private, market_state, day, reserved_wheat=0, unlocked_shops=(), start_step=None
+):
     """Build the list of ["SELL", ...] / ["BUY_SEED", ...] actions for this turn."""
     actions = []
     already_selling = set()
@@ -917,6 +905,7 @@ def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
     # per product (see MAX_SELL_PER_TURN) so a big harvest of a premium good
     # doesn't dump the whole stack into one price-crashing order.
     shed = private.get("shed", {})
+    inventory = market_state.get("inventory", {})
     liquidating = day >= LIQUIDATION_START_DAY
 
     for product, quantity in shed.items():
@@ -934,9 +923,35 @@ def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
         if sell_quantity > 0 and (
             liquidating or should_sell(product, sell_quantity, market_state)
         ):
+            # FORWARD-PRICING EXPERIMENT: the *quantity* sold this turn now
+            # comes from recommend_sell_quantity() (pricing.py) instead of a
+            # blind min(sell_quantity, cap). It walks the same per-unit price
+            # path the engine actually uses and stops before the price would
+            # drop under our threshold - MAX_SELL_PER_TURN is still respected
+            # as a hard ceiling either way. should_sell()'s yes/no gate is
+            # unchanged; this only changes how much we sell once it says yes.
+            #
+            # Liquidating still means "sell regardless of price" - unsold
+            # stock scores nothing at season end - so the floor price is the
+            # only bar there, which makes this numerically identical to the
+            # old min(sell_quantity, cap) in that mode (see
+            # experiments/forward_pricing_experiment.py's report).
             cap = MAX_SELL_PER_TURN.get(product, quantity)
-            actions.append(["SELL", product, min(sell_quantity, cap)])
-            already_selling.add(product)
+            min_price = (
+                PRICE_FLOOR
+                if liquidating
+                else SELL_PRICE_THRESHOLDS.get(product, DEFAULT_SELL_THRESHOLD)
+            )
+            amount = recommend_sell_quantity(
+                product,
+                inventory.get(product, 10000),
+                sell_quantity,
+                min_acceptable_price=min_price,
+                max_per_turn=cap,
+            )
+            if amount > 0:
+                actions.append(["SELL", product, amount])
+                already_selling.add(product)
 
     # Shed is nearly full: anything not already being sold above would just
     # be discarded once the cap hits. Force a sale (still capped, so we
@@ -953,10 +968,20 @@ def decide_market_actions(farm, private, market_state, day, reserved_wheat=0):
             if sell_quantity <= 0:
                 continue
             cap = MAX_SELL_PER_TURN.get(product, quantity)
-            actions.append(["SELL", product, min(sell_quantity, cap)])
+            amount = recommend_sell_quantity(
+                product,
+                inventory.get(product, 10000),
+                sell_quantity,
+                min_acceptable_price=PRICE_FLOOR,
+                max_per_turn=cap,
+            )
+            if amount > 0:
+                actions.append(["SELL", product, amount])
 
     # Buy exactly one seed of our preferred next crop, if it makes sense.
-    preferred_crop = choose_crop(farm, market_state, private, day)
+    preferred_crop = choose_crop(
+        farm, market_state, private, day, unlocked_shops=unlocked_shops, start_step=start_step
+    )
     if preferred_crop and should_buy_seed(preferred_crop, farm, private):
         actions.append(["BUY_SEED", preferred_crop, 1])
 
@@ -1172,7 +1197,14 @@ def choose_unit_action(
             pending_builds[0] += 1
             structure = ANIMALS[ACTIVE_ANIMALS[0]]["structure"]
             return act_here([f"BUILD_{structure}"])
-        crop = choose_crop(farm, state["market_state"], private, day)
+        crop = choose_crop(
+            farm,
+            state["market_state"],
+            private,
+            day,
+            unlocked_shops=state.get("unlocked_shops", ()),
+            start_step=state.get("step"),
+        )
         if crop and seeds.get(crop, 0) > 0:
             return act_here(["PLANT", crop])
 
@@ -1268,6 +1300,8 @@ def nikaangukia_meroni(obs):
             state["market_state"],
             day,
             reserved_wheat=reserved_wheat,
+            unlocked_shops=state["unlocked_shops"],
+            start_step=state["step"],
         )
         market += decide_animal_market_actions(farm, private, board_size)
 
