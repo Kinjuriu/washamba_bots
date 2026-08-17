@@ -1,23 +1,51 @@
 # Session handoff — 2026-08-17
 
-Personal file, not committed. Read this before picking work back up.
+Personal file, historically not committed on other branches (see
+`chore/env-bootstrap-v2-sync`'s pending `.gitignore` rule for `/mydocs/`,
+not yet merged to `main`). **On this branch, `causality-mapping`, it and
+the rest of `mydocs/` are deliberately committed** — this branch exists
+specifically to archive the Fix B research trail so it survives even
+though the underlying code changes did not. Read this before picking
+work back up in a new chat.
 
-**Latest update this session (2nd pass):** Took the retry-2 assessment's
-own recommended "legitimate next step" — fix `growth_days` for ongoing
-crops (TOMATO/STRAWBERRY) to reflect real tile-occupancy instead of
-`max_yield_day` — and actually implemented and measured it, on a new
-branch `fix/ongoing-crop-growth-days` (off `main` tip `2114390`).
-**It is also a decisive loss: -5,099 mean, 0/12 vs `starter`; -7,116
-mean, 0/12 vs `pass`.** Isolating the two crops shows the loss is almost
-entirely **STRAWBERRY** (-5,593, 0/6, correcting it alone) while
-correcting **TOMATO alone is a wash** (-104, 1/12, 10/12 seeds exact
-zero delta — the fix essentially never fires for TOMATO in practice).
-Full write-up committed to `CLAUDE.md`'s "Measured dead ends" on that
-branch (see below) — **this closes the entire TOMATO/STRAWBERRY
-crop-scoring investigation, four attempts deep, don't reopen it without
-new evidence.** Implementation + tests + revert commits are staged but
-**not yet committed** — checked in with the user first per standing
-feedback (always ask before committing experiments). Awaiting go-ahead.
+## Session close-out (read this first)
+
+Took the retry-2 assessment's own recommended "legitimate next step" —
+fix `growth_days` for ongoing crops (TOMATO/STRAWBERRY) to reflect real
+tile-occupancy instead of `max_yield_day` — implemented it, and measured
+it properly. **It is also a decisive loss: -5,099 mean, 0/12 vs
+`starter`; -7,116 mean, 0/12 vs `pass`.** Isolating the two crops shows
+the loss is almost entirely **STRAWBERRY** (-5,593, 0/6, correcting it
+alone) while correcting **TOMATO alone is a wash** (-104, 1/12, 10/12
+seeds exact zero delta — the fix essentially never fires for TOMATO in
+practice). Full write-up is in `CLAUDE.md`'s "Measured dead ends" section
+on this branch.
+
+**This closes the entire TOMATO/STRAWBERRY crop-scoring investigation —
+four attempts deep (flat bonus, absolute gate, relative gate, growth_days
+accuracy fix), each individually well-reasoned, each falsified on
+measurement.** The user's own read on this, which this session concurs
+with: the reasoning chain was buckling under its own complexity — every
+failure produced a more elaborate theory to explain it rather than
+questioning the premise that TOMATO/STRAWBERRY's low selection frequency
+needs fixing at all. **Recommendation for the next chat: don't reopen
+this without genuinely new evidence, and don't let a plausible-sounding
+mechanism alone be the bar for trying again — every one of these four
+was plausible and every one was wrong.**
+
+**What actually happened to the code:** the `crop_growth_days()`
+implementation and its tests were written, measured, and then fully
+discarded (`git checkout -- main.py tests/test_nikaangukia_meroni.py`) —
+not committed-then-reverted like the fertilizer-bonus attempt, since
+there was no reason to preserve broken code in `main`'s history this
+time. `main` itself is untouched by any of this session's work. Only
+this `causality-mapping` branch carries the writeup + full mydocs/
+archive (`FIX.md`, `FIX_B_FERTILIZER_YIELD_BONUS_EVALUATION.md`,
+`FIX_B_RETRY_2_PROPOSAL.md`, `FIX_B_RETRY_2_ASSESSMENT.md`, this file,
+and `scratch/` tracing scripts+data) — committed in full, deliberately,
+per explicit instruction not to lose any of it. If a future chat wants
+the `CLAUDE.md` dead-end entry on `main`, that's a small standalone
+docs-only cherry-pick/PR from this branch's one commit (`68ca33a`).
 
 **Original finding this session (1st pass, superseded above):** Fix B
 had failed three separate retries (flat bonus, absolute gate, relative
@@ -59,6 +87,14 @@ once done.
 - Tests on `fix/seed-plant-budget-batched-rebuy`: **124 passing** (118
   baseline + 6 new `TestSeedRestockQuantity` cases), validation gate
   `['DONE','DONE']`.
+- `causality-mapping` (this branch): one commit (`68ca33a`) ahead of
+  `main` tip `2114390`, docs-only — the `CLAUDE.md` growth_days dead-end
+  writeup plus the full `mydocs/` research archive. See "Session
+  close-out" above.
+- `fix/ongoing-crop-growth-days`: a leftover empty branch pointer, sitting
+  at `main`'s tip with zero unique commits (the code that was briefly on
+  it was discarded via `git checkout`, never committed). Harmless to
+  delete whenever convenient; not cleaned up this session.
 
 ## Fix A (seed-overcommit bug / wheat-feed starvation) — COMPLETE
 
