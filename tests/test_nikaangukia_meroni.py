@@ -30,6 +30,8 @@ from main import (
     decide_animal_market_actions,
     decide_hire_orders,
     decide_market_actions,
+    FERTILIZER_YIELD_BONUS,
+    has_active_fertilizer_source,
     has_plantable_seed,
     is_harvestable,
     is_shed_adjacent,
@@ -175,6 +177,69 @@ class TestChooseCrop(unittest.TestCase):
         private = {"seeds": {"WHEAT": 2}}
 
         self.assertEqual(choose_crop(farm, market_state, private, day=27), "WHEAT")
+
+
+class TestFertilizerYieldBonus(unittest.TestCase):
+    """
+    choose_crop()'s fertilizer-awareness signal: a filled ACTIVE_ANIMALS
+    structure (currently the sheep) bumps TOMATO's expected_yield by
+    FERTILIZER_YIELD_BONUS["TOMATO"], because it's a renewing FERTILIZER
+    source (COLLECT_FERTILIZER) rather than a one-time held balance that's
+    already claimed by whatever's already planted. See the constant's
+    comment in main.py for why held stock was rejected as the signal.
+    """
+
+    def _market(self, inventory):
+        return {"prices": {}, "inventory": inventory}
+
+    def _farm(self, tiles, money=1000):
+        return {"money": money, "tiles": tiles, "farmer": [0, 0], "hands": []}
+
+    def test_filled_sheep_tips_tomato_over_a_close_wheat(self):
+        # Values found empirically against the real forecast (not guessed):
+        # at day 0 with a mild WHEAT glut (10,200 vs the 10,000 baseline),
+        # WHEAT's score (31.5) narrowly beats TOMATO's unboosted score
+        # (30.5) but loses to TOMATO's boosted score (38.125) once the
+        # +1.0 yield bonus applies. CARROT/STRAWBERRY/MELON are put deep in
+        # glut (matching TestChooseCrop's fixtures) so this stays a clean
+        # two-crop comparison.
+        market_state = self._market(
+            inventory={
+                "WHEAT": 10200,
+                "TOMATO": 10000,
+                "CARROT": 200000,
+                "STRAWBERRY": 200000,
+                "MELON": 200000,
+            }
+        )
+        private = {"seeds": {}}
+
+        no_sheep = self._farm([[None]])
+        with_sheep = self._farm([[{"kind": TEST_STRUCTURE, "animal": TEST_ANIMAL}]])
+
+        self.assertEqual(choose_crop(no_sheep, market_state, private, day=0), "WHEAT")
+        self.assertEqual(choose_crop(with_sheep, market_state, private, day=0), "TOMATO")
+
+    def test_unfilled_structure_does_not_count_as_an_active_source(self):
+        # Built but empty - scan_animal_structures reports this as
+        # "unfilled", and only "filled" should grant the bonus.
+        farm = self._farm([[{"kind": TEST_STRUCTURE}]])
+        self.assertFalse(has_active_fertilizer_source(farm))
+
+    def test_no_tiles_is_not_an_active_source(self):
+        farm = self._farm([[None]])
+        self.assertFalse(has_active_fertilizer_source(farm))
+
+    def test_filled_structure_is_an_active_source(self):
+        farm = self._farm([[{"kind": TEST_STRUCTURE, "animal": TEST_ANIMAL}]])
+        self.assertTrue(has_active_fertilizer_source(farm))
+
+    def test_bonus_table_only_covers_tomato_for_now(self):
+        # STRAWBERRY is deliberately excluded from this first cut (see
+        # main.py's comment on FERTILIZER_YIELD_BONUS) - a sheep present
+        # must not change its score.
+        self.assertNotIn("STRAWBERRY", FERTILIZER_YIELD_BONUS)
+        self.assertNotIn("WHEAT", FERTILIZER_YIELD_BONUS)
 
 
 class TestForwardPricingIntegration(unittest.TestCase):

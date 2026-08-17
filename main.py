@@ -537,6 +537,29 @@ SEED_SPEND_CAP_FRACTION = 0.5
 #   STRAWBERRY  interval 2 -> catches 2 ticks
 FERTILIZABLE_CROPS = ("TOMATO", "STRAWBERRY")
 
+# choose_crop's fertilizer-awareness signal. Gated on having an active
+# (placed, filled) fertilizer-producing animal structure - currently just
+# the sheep - not on currently-held FERTILIZER stock. Held stock is a
+# shared, one-time balance already claimed reactively by whatever
+# TOMATO/STRAWBERRY tiles exist today (see FERTILIZER_LAST_USEFUL_DAY
+# above), so crediting a brand-new planting with it would double-count the
+# same units against multiple decisions. A filled sheep is a renewing
+# source instead, and it self-corrects: if it escapes, the signal drops to
+# 0 on the very next choose_crop() call.
+#
+# Sized conservatively, not at the naive "+3 covered ticks" ceiling:
+# _daily_refresh_plants caps yield_units at max_yield whether or not a
+# tick is fertilized, so fertilizer mostly buys earlier availability of
+# the same capped yield, not literally extra units. STRAWBERRY is
+# deliberately excluded here - interval=2 halves the covered-tick benefit
+# versus TOMATO, and it's a linear-decay premium good that floors after
+# only 62 units (see CLAUDE.md's market-shape table), so accelerating its
+# yield risks crashing its own price floor for no net gain. Needs its own
+# separate measurement, not bundled with this change.
+FERTILIZER_YIELD_BONUS = {
+    "TOMATO": 1.0,
+}
+
 # Bought fertilizer lands in the shed, but FERTILIZE spends from the acting
 # unit's own inventory - so a unit has to stand shed-adjacent and PICKUP
 # before it can fertilise anything. Carry a few at a time so one trip serves
@@ -1267,6 +1290,20 @@ def count_pipeline_supply(farm, private):
     return supply
 
 
+def has_active_fertilizer_source(farm):
+    """
+    True if a placed, filled animal structure that produces FERTILIZER via
+    COLLECT_FERTILIZER exists (currently the sheep - keyed off
+    ACTIVE_ANIMALS so this stays correct if the species changes). Reuses
+    scan_animal_structures's existing tile pass rather than a second one.
+    """
+    board_size = len(farm.get("tiles") or [])
+    if board_size == 0:
+        return False
+    filled, _unfilled = scan_animal_structures(farm, board_size)
+    return filled > 0
+
+
 def choose_crop(
     farm, market_state, private, day, unlocked_shops=(), start_step=None,
     opponent_pipeline=None,
@@ -1309,6 +1346,11 @@ def choose_crop(
     estimate_future_price() to phase-align its town-demand simulation with
     the real game (see pricing.py) - both default to "nothing unlocked,
     turn 0" so existing callers/tests keep working unchanged.
+
+    `expected_yield` gets a small bump (FERTILIZER_YIELD_BONUS) for crops
+    that benefit from a reliable fertilizer source - see that constant's
+    comment for why the signal is "a filled animal structure exists", not
+    "we're currently holding fertilizer".
     """
     money = farm.get("money", 0)
     inventory = market_state.get("inventory", {})
@@ -1364,7 +1406,12 @@ def choose_crop(
         )
         future_price = forecast["future_price"]
 
-        score = future_price * expected_yield / growth_days
+        effective_yield = expected_yield
+        bonus = FERTILIZER_YIELD_BONUS.get(crop, 0)
+        if bonus and has_active_fertilizer_source(farm):
+            effective_yield += bonus
+
+        score = future_price * effective_yield / growth_days
 
         if best_score is None or score > best_score:
             best_score = score
