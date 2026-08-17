@@ -6,3 +6,10 @@ __pycache__/
 # Episode replays are multi-MB per game — keep them out of history
 replay*.json
 experiments/*.json
+
+# Personal working files — not shared with the team
+/mydocs/
+
+# Replay JSONs pulled from the host episode dumps (~30MB each)
+replays/
+*.json.zip
