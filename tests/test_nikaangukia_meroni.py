@@ -368,11 +368,17 @@ class TestSeedRestockQuantity(unittest.TestCase):
         )
 
     def test_never_spends_past_the_cash_reserve_floor(self):
-        # WHEAT seed is $10. $115 affords one purchase and still clears the
-        # $100 floor (105 left); a second would leave 95, so the batch stops
-        # at 1 instead of the full stockpile gap.
+        # WHEAT seed is $10. Derived from the constant rather than hardcoded:
+        # floor + $15 affords exactly one purchase and still clears the floor
+        # ($5 to spare); a second would land $5 under it, so the batch stops
+        # at 1 instead of taking the full stockpile gap.
+        #
+        # This was written as a literal $115 against a $100 floor, so it
+        # failed the moment the floor was retuned to 450 - a test of the
+        # constant's value, not of the batching behaviour it names.
         private = {"seeds": {}}
-        self.assertEqual(seed_restock_quantity("WHEAT", {"money": 115}, private), 1)
+        money = MIN_CASH_RESERVE_FOR_SEED_BUYING + 15
+        self.assertEqual(seed_restock_quantity("WHEAT", {"money": money}, private), 1)
 
     def test_never_spends_past_the_reserve_even_when_technically_affordable(self):
         # Below the floor entirely: money can cover the sticker price but

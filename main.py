@@ -543,13 +543,37 @@ SEED_SPEND_CAP_FRACTION = 0.5
 SEED_REBUY_TRIGGER = 0
 
 # Never let a seed purchase - or the tail end of a restock batch - push the
-# bank below this floor. This is the second half of the same fix: even a
+# bank below this floor. This is the second half of the seed fix: even a
 # batched, infrequent restock could still be timed badly enough to leave
-# nothing for the next wheat purchase. $100 comfortably covers several
-# turns of feeding even at a bad wheat price, so the wheat safety net in
-# decide_animal_market_actions never finds the cash drawer empty because
-# seed buying got there first.
-MIN_CASH_RESERVE_FOR_SEED_BUYING = 100
+# nothing for the next wheat purchase, so the wheat safety net in
+# decide_animal_market_actions finds the cash drawer empty because seed
+# buying got there first.
+#
+# Do not lower this. Below ~50 the guard stops binding at all and the
+# ~$80/turn repurchase spiral comes straight back: 25 and 0 are byte
+# identical at **-15,845, losing 0 of 12 seeds**, sheep dead on every one.
+#
+# 450, not 100, and the reason is that this is really a *timing* control
+# rather than a safety floor. At 100 the agent spends its starting stake on
+# seed during the days 3-7 cash trough; at 450 it cannot, so it waits and
+# buys seed out of first-harvest income instead. Seed 0 against `starter`,
+# 100 against 450: BUY_SEED 93 -> 33 (days 0-7: 33 -> 10), and the trough
+# itself nearly disappears - bank at day 5 goes **$17 -> $392**. Fewer PLANT
+# actions (137 -> 90) produce *more* harvests (115 -> 129), because the seed
+# that does get bought actually lands instead of being spent into a turn
+# where units collide on it.
+#
+# That is also why this and MIN_MONEY_TO_HIRE stopped fighting. Measured
+# against the previous agent, the seed fix at 100 was -1,471 (3/12) - it and
+# the hire gate were competing for the same trough dollars. Removing the
+# trough removes the conflict.
+#
+# Swept on the built-in harness against the live agent: 0/25 -15,845 (0/12),
+# 50 -1,121, 100 -1,471, 200 +2,533, 300 +3,410, **450 +5,389 (10/12,
+# t=3.84)**, 700 +3,190. A real interior optimum - too high and it starts
+# blocking seed the agent can afford. Confirmed head to head at **+4,166,
+# winning 24 of 24.**
+MIN_CASH_RESERVE_FOR_SEED_BUYING = 450
 
 # ---------------------------------------------------------------------
 # Fertilizer
