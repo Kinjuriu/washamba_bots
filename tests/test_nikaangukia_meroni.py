@@ -861,10 +861,17 @@ class TestEndOfSeasonLiquidation(unittest.TestCase):
         return {"prices": prices, "inventory": {}}
 
     def test_holds_a_below_threshold_price_in_midseason(self):
-        # Mid-season there is still time for the price to recover.
+        # Before liquidation opens there is still time for the price to
+        # recover, so a below-threshold price is held rather than sold.
+        #
+        # Derived from the constant, not hardcoded. This read `day=12` back
+        # when liquidation started on day 19; moving the constant to 10 made
+        # day 12 a *liquidation* day and the test failed on correct code.
+        # The sibling tests below already derive their day this way.
         private = {"shed": {"MELON": 40}, "seeds": {}}
         actions = decide_market_actions(
-            {"money": 0}, private, self._market({"MELON": 100}), day=12
+            {"money": 0}, private, self._market({"MELON": 100}),
+            day=LIQUIDATION_START_DAY - 1,
         )
         self.assertEqual([a for a in actions if a[0] == "SELL"], [])
 
