@@ -19,6 +19,8 @@ from main import (
     MAX_HANDS_PER_DAY,
     MAX_MARKET_ORDERS_PER_TURN,
     MAX_SELL_PER_TURN,
+    SELL_PRICE_THRESHOLDS,
+    SHED_FORCE_SELL_THRESHOLD,
     MAX_SEED_STOCKPILE,
     MIN_CASH_RESERVE_FOR_SEED_BUYING,
     SEASON_DAYS,
@@ -265,16 +267,29 @@ class TestForwardPricingIntegration(unittest.TestCase):
         # unchanged and still says yes) but the price path crosses under
         # $90 by the 7th unit - recommend_sell_quantity() should stop at 6,
         # where the old blind min(sell_quantity, cap) would have sold all 10.
+        threshold = SELL_PRICE_THRESHOLDS["STRAWBERRY"]
+        cap = MAX_SELL_PER_TURN["STRAWBERRY"]
         private = {"shed": {"STRAWBERRY": 20}, "seeds": {}}
         market_state = {
-            "prices": {"STRAWBERRY": 101},
-            "inventory": {"STRAWBERRY": 10010},
+            # The quoted price is above threshold so should_sell() says yes,
+            # but recommend_sell_quantity() walks the price path down from the
+            # inventory level and stops where it would cross under. The band
+            # where that happens mid-cap is narrow (10,030 sells the full cap,
+            # 10,040 sells nothing) - 10,034 sits inside it. Asserting the
+            # behaviour rather than the exact quantity, because the quantity
+            # moves whenever the threshold is retuned, which is what made the
+            # previous version of this test fail for the wrong reason.
+            "prices": {"STRAWBERRY": threshold + 1},
+            "inventory": {"STRAWBERRY": 10034},
         }
 
         actions = decide_market_actions({"money": 0}, private, market_state, day=0)
 
-        self.assertIn(["SELL", "STRAWBERRY", 6], actions)
-        self.assertNotIn(["SELL", "STRAWBERRY", 10], actions)
+        sold = [a for a in actions if a[1] == "STRAWBERRY"]
+        self.assertEqual(len(sold), 1)
+        quantity = sold[0][2]
+        self.assertGreater(quantity, 0)
+        self.assertLess(quantity, cap)
 
     def test_liquidation_still_sells_the_full_cap_regardless_of_price(self):
         # Safety constraint that must survive the change: from
@@ -451,8 +466,14 @@ class TestDecideMarketActions(unittest.TestCase):
         self.assertNotIn(["SELL", "WHEAT", 3], actions)
 
     def test_holds_instead_of_selling_below_threshold(self):
-        private = {"shed": {"MELON": 50}, "seeds": {}}
-        market_state = self._market(prices={"MELON": 10})
+        # Both numbers are derived: a shed level under the force-sell valve
+        # (or the valve fires regardless of price) and a price under MELON's
+        # own threshold. Hardcoding either one makes this test silently
+        # measure the constant rather than the behaviour.
+        private = {"shed": {"MELON": SHED_FORCE_SELL_THRESHOLD - 10}, "seeds": {}}
+        market_state = self._market(
+            prices={"MELON": SELL_PRICE_THRESHOLDS["MELON"] - 1}
+        )
 
         actions = decide_market_actions({"money": 0}, private, market_state, day=0)
 
@@ -865,9 +886,12 @@ class TestEndOfSeasonLiquidation(unittest.TestCase):
 
     def test_holds_a_below_threshold_price_in_midseason(self):
         # Mid-season there is still time for the price to recover.
-        private = {"shed": {"MELON": 40}, "seeds": {}}
+        private = {"shed": {"MELON": SHED_FORCE_SELL_THRESHOLD - 10}, "seeds": {}}
         actions = decide_market_actions(
-            {"money": 0}, private, self._market({"MELON": 100}), day=12
+            {"money": 0},
+            private,
+            self._market({"MELON": SELL_PRICE_THRESHOLDS["MELON"] - 1}),
+            day=LIQUIDATION_START_DAY - 1,
         )
         self.assertEqual([a for a in actions if a[0] == "SELL"], [])
 
@@ -875,9 +899,11 @@ class TestEndOfSeasonLiquidation(unittest.TestCase):
         # Same price, but now the season runs out before any recovery can
         # arrive. Stock left in the shed at the end scores nothing, so a
         # cheap sale beats holding out for a price that will never come.
-        private = {"shed": {"MELON": 40}, "seeds": {}}
+        private = {"shed": {"MELON": SHED_FORCE_SELL_THRESHOLD - 10}, "seeds": {}}
         actions = decide_market_actions(
-            {"money": 0}, private, self._market({"MELON": 100}),
+            {"money": 0},
+            private,
+            self._market({"MELON": SELL_PRICE_THRESHOLDS["MELON"] - 1}),
             day=LIQUIDATION_START_DAY,
         )
         self.assertIn(["SELL", "MELON", MAX_SELL_PER_TURN["MELON"]], actions)
