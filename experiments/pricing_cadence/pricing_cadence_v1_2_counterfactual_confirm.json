@@ -1,0 +1,88 @@
+{
+  "A_cap_boost": {
+    "name": "A_cap_boost",
+    "mean": 2326.3333333333335,
+    "median": 2386.0,
+    "stdev": 243.50924751062,
+    "best": 2824.0,
+    "worst": 1702.0,
+    "wins": 24,
+    "matches": 24,
+    "per_seed": [
+      {
+        "seed": 0,
+        "paired_delta_mean": 2473.0
+      },
+      {
+        "seed": 1,
+        "paired_delta_mean": 2387.0
+      },
+      {
+        "seed": 2,
+        "paired_delta_mean": 2176.0
+      },
+      {
+        "seed": 3,
+        "paired_delta_mean": 2307.0
+      },
+      {
+        "seed": 4,
+        "paired_delta_mean": 2376.0
+      },
+      {
+        "seed": 5,
+        "paired_delta_mean": 2378.0
+      },
+      {
+        "seed": 6,
+        "paired_delta_mean": 1916.0
+      },
+      {
+        "seed": 7,
+        "paired_delta_mean": 2387.0
+      },
+      {
+        "seed": 8,
+        "paired_delta_mean": 2390.0
+      },
+      {
+        "seed": 9,
+        "paired_delta_mean": 2274.0
+      },
+      {
+        "seed": 10,
+        "paired_delta_mean": 2385.0
+      },
+      {
+        "seed": 11,
+        "paired_delta_mean": 2467.0
+      }
+    ],
+    "all_deltas": [
+      2507.0,
+      2439.0,
+      2387.0,
+      2387.0,
+      1702.0,
+      2650.0,
+      2307.0,
+      2307.0,
+      1928.0,
+      2824.0,
+      2378.0,
+      2378.0,
+      1916.0,
+      1916.0,
+      2387.0,
+      2387.0,
+      2390.0,
+      2390.0,
+      2274.0,
+      2274.0,
+      2385.0,
+      2385.0,
+      2467.0,
+      2467.0
+    ]
+  }
+}
