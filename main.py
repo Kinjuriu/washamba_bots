@@ -759,6 +759,19 @@ MAX_ANIMALS = 4
 # one shot - same reasoning as SEED_SPEND_CAP_FRACTION.
 ANIMAL_SPEND_CAP_FRACTION = 0.5
 
+# Cash to leave behind PER ANIMAL after buying one, so the herd can still eat.
+#
+# ANIMAL_SPEND_CAP_FRACTION is proportional to cash, which means it says the
+# same thing whether we hold one animal or eight - and the feed bill does not.
+# Every animal eats daily, so the n-th purchase raises the running cost of all
+# n. That is why MAX_ANIMALS is a cliff rather than a dial: 4 works, 5 empties
+# the days 3-7 trough and the WHOLE herd starves, taking the pastures with it.
+#
+# Same lesson as MIN_CASH_RESERVE_FOR_SEED_BUYING: price the gate against the
+# thing it actually gates. A flat proportional cap in front of a cost that
+# scales with herd size is a bug waiting to be measured.
+ANIMAL_FEED_RESERVE_PER_ANIMAL = 300
+
 # Keep at least this much WHEAT on hand (shed + carried) whenever we own a
 # placed animal, buying more via BUY_PRODUCT if it ever hits zero. A missed
 # feeding is not a recoverable loss like a weed (DIG reclaims those) - the
@@ -1283,7 +1296,8 @@ def decide_animal_market_actions(farm, private, board_size, day):
     money = farm.get("money", 0)
     remaining_days = remaining_season_days(day)
 
-    if count_owned_animals(farm, private, board_size) < MAX_ANIMALS:
+    owned = count_owned_animals(farm, private, board_size)
+    if owned < MAX_ANIMALS:
         held = species_owned_counts(farm, private, board_size)
         affordable = []
         for animal in ACTIVE_ANIMALS:
@@ -1295,6 +1309,9 @@ def decide_animal_market_actions(farm, private, board_size, day):
             if first_yield_day > remaining_days:
                 continue  # can't reach even a first harvest before season end
             if cost > money or cost > money * ANIMAL_SPEND_CAP_FRACTION:
+                continue
+            # ...and leave enough behind to feed the herd this purchase creates.
+            if money - cost < ANIMAL_FEED_RESERVE_PER_ANIMAL * (owned + 1):
                 continue
             affordable.append(animal)
 
