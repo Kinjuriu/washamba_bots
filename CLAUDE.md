@@ -265,6 +265,37 @@ At ~7s per season, 12 seeds × 3 opponents is about 4 minutes. Report mean and w
 
 **The built-in opponents never sell anything, so every number they produce is inflated.** `pass`, `random` and `starter` leave the market at its pristine starting inventory all season, and our sales never compete with a rival's. Measured on the same agent: ~41,000 against the built-ins versus ~28,000 in self-play. Use the built-in batch to A/B a change (it is cheap and the seeds are fixed), but treat **`selfplay_bench.py` as the number that predicts the ladder** — it is the only local setup where a second trader is crowding the same order book. Its `end price` line is the tell: MELON finishes around $280 against a built-in and near the **$1 floor** in self-play, so any strategy that leans on premium-crop prices looks far better locally than it will score.
 
+**A submission's ladder episodes arrive as one burst, then almost stop — so the public score is a ~22-episode sample, not a converging measurement.** Measured across all eight submissions with `experiments/ladder_episodes.py`:
+
+| submission | total episodes | in first 2h | span |
+|---|---|---|---|
+| `55547718` | 20 | 18 | 6.0h |
+| `55551524` | 24 | 21 | 5.5h |
+| `55559761` | 31 | 22 | 16.0h |
+| `55567833` | 41 | 25 | 25.0h |
+| `55578910` | 34 | 21 | 25.5h |
+| `55591700` | 23 | 22 | 9.8h |
+
+**Every submission gets 18-25 episodes within two hours, then trickles at roughly 0.4/hour while active and freezes the moment it is evicted.** Three consequences, all of which reverse the obvious intuition:
+
+- **Waiting does not accumulate data.** A submission idle for four hours has gained nothing. Planning to "let it converge overnight" buys ~10 episodes, not a settled number.
+- **Eviction is nearly free.** The latest-2-active rule sounds expensive, but the submission being displaced has already delivered ~90% of the episodes it will ever get. Holding a slot back to protect an old reading protects almost nothing.
+- **Slots are the information channel and they do not roll over.** Five submissions a day is ~110 contested episodes a day if used, and zero if not.
+
+**Read the per-episode record, never the public score alone.** The score is a rating seeded near 600, it converges slowly, and it folds opponent strength into one number. Two failures in one day: `55591700` read **637.1 at episode 11 and 587.6 at episode 22** (a 56-point swing, no change to the agent), and comparing its 587.6 against the previous submission's 612.5 looked like a 25-point regression when the two had simply played **22 and 33 episodes**. At an equal 22 the gap was 587.6 vs 601.7 — inside the per-episode swing of both series.
+
+What the per-episode record gives instead, per submission: our bank, the opponent's bank, the **margin**, the win rate, and **the opponent's rating**. That last one is the control the raw score lacks:
+
+| submission | n | win rate | margin (mean) | opponent rating |
+|---|---|---|---|---|
+| hire gate `55567833` | 40 | 45.0% | −14,111 | 587.9 |
+| seed reserve `55578910` | 33 | 54.5% | −2,056 | 584.2 |
+| species `55591700` | 22 | 45.5% | −8,298 | **612.3** |
+
+Species banks **more** than seed reserve (52,517 vs 50,015 mean) but posts a **worse** margin and win rate, against opponents rated **28 points higher**. Whether the harder draw fully explains the gap is not resolvable at n=22 — **the honest verdict is unresolved**, and that is the point: at these sample sizes the ladder cannot separate two agents that differ by a few thousand bank. Reserve ladder slots for **structural** changes big enough to clear that floor, and settle threshold tuning with `paired_compare.py`, which controls seed variance properly.
+
+**The ladder burst is also the only harness we own with real, selling, big-farm opponents.** Opponent banks in our own episodes reach **114,678**, averaging 60,815 against our ~52,500 — the same 2× structural gap `docs/REPLAY_ANALYSIS.md` found in other teams' replays, confirmed on our own matches.
+
 Kaggle CLI is authenticated (`~/.kaggle/credentials.json`) as `peterkibetspidey`, and the account is entered in the competition — verify with `kaggle competitions list --group entered` (expect `userHasEntered: True`). Re-auth with `kaggle auth login` if the session expires.
 
 ## Hard constraints (violating these silently breaks a submission, not just a test)
