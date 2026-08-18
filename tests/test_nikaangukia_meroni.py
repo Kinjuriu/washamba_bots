@@ -37,10 +37,12 @@ from main import (
     is_shed_adjacent,
     nearest_shed_tile,
     nikaangukia_meroni,
+    pick_next_animal_species,
     scan_animal_structures,
     seed_restock_quantity,
     shed_access_tiles,
     should_sell,
+    species_owned_counts,
     step_toward,
 )
 
@@ -48,6 +50,7 @@ from main import (
 # too. Hard-coding GOOSE/COOP here made 11 of them fail the moment the
 # active species changed, which is a test problem rather than a code one.
 TEST_ANIMAL = ACTIVE_ANIMALS[0]
+TEST_ANIMAL_2 = ACTIVE_ANIMALS[1]
 TEST_STRUCTURE = ANIMALS[TEST_ANIMAL]["structure"]
 
 
@@ -945,39 +948,92 @@ class TestAnimalCounting(unittest.TestCase):
         # 1 placed + 1 in shed + 1 carried = 3.
         self.assertEqual(count_owned_animals(farm, private, 1), 3)
 
+    def test_species_owned_counts_is_per_species(self):
+        tiles = [[_unfed_goose_coop()]]  # one placed TEST_ANIMAL
+        farm = self._farm(tiles)
+        private = {
+            "shed": {TEST_ANIMAL_2: 2},
+            "inventories": [{TEST_ANIMAL: 1}, {}],
+        }
+        self.assertEqual(
+            species_owned_counts(farm, private, 1),
+            {TEST_ANIMAL: 2, TEST_ANIMAL_2: 2},
+        )
+
+
+class TestPickNextAnimalSpecies(unittest.TestCase):
+    def test_picks_the_species_owned_least(self):
+        owned = {TEST_ANIMAL: 2, TEST_ANIMAL_2: 0}
+        self.assertEqual(
+            pick_next_animal_species([TEST_ANIMAL, TEST_ANIMAL_2], owned),
+            TEST_ANIMAL_2,
+        )
+
+    def test_ties_break_by_active_animals_order(self):
+        owned = {TEST_ANIMAL: 0, TEST_ANIMAL_2: 0}
+        self.assertEqual(
+            pick_next_animal_species([TEST_ANIMAL, TEST_ANIMAL_2], owned),
+            TEST_ANIMAL,
+        )
+
+    def test_returns_none_when_nothing_is_eligible(self):
+        self.assertIsNone(pick_next_animal_species([], {}))
+
+    def test_ignores_ineligible_species_even_if_owned_less(self):
+        # TEST_ANIMAL_2 isn't in the eligible list (e.g. unaffordable this
+        # turn) so it must not be picked just because it's owned fewer.
+        owned = {TEST_ANIMAL: 1, TEST_ANIMAL_2: 0}
+        self.assertEqual(pick_next_animal_species([TEST_ANIMAL], owned), TEST_ANIMAL)
+
 
 class TestChooseAnimalToBuild(unittest.TestCase):
     def _farm(self, tiles, money):
         return {"money": money, "tiles": tiles, "farmer": [0, 0], "hands": []}
 
+    def _private(self, **species_shed):
+        return {"shed": dict(species_shed), "inventories": [{}]}
+
     def test_builds_when_affordable_and_no_unfilled_structure(self):
-        # GOOSE costs 300; ANIMAL_SPEND_CAP_FRACTION=0.5 means we need
-        # money >= 600 before committing to one.
-        farm = self._farm([[None]], money=1000)
-        self.assertEqual(choose_animal_to_build(farm, 1, day=0), TEST_ANIMAL)
+        # TEST_ANIMAL and TEST_ANIMAL_2 own nothing yet, so the tie breaks
+        # to ACTIVE_ANIMALS order (TEST_ANIMAL first).
+        farm = self._farm([[None]], money=10000)
+        self.assertEqual(
+            choose_animal_to_build(farm, self._private(), 1, day=0), TEST_ANIMAL
+        )
+
+    def test_picks_the_species_we_own_fewer_of(self):
+        # One TEST_ANIMAL already placed - the next build should target
+        # TEST_ANIMAL_2 instead of piling onto the same species again.
+        tiles = [[_unfed_goose_coop(), None]]
+        farm = self._farm(tiles, money=10000)
+        self.assertEqual(
+            choose_animal_to_build(farm, self._private(), 1, day=0), TEST_ANIMAL_2
+        )
 
     def test_does_not_build_when_unaffordable(self):
         farm = self._farm([[None]], money=100)
-        self.assertIsNone(choose_animal_to_build(farm, 1, day=0))
+        self.assertIsNone(choose_animal_to_build(farm, self._private(), 1, day=0))
 
     def test_does_not_build_when_a_structure_is_already_unfilled(self):
-        # One empty coop is already waiting for an animal - don't tie up a
-        # second tile before that one's even filled.
+        # One empty pasture is already waiting for an animal - don't tie up
+        # a second tile before that one's even filled.
         farm = self._farm([[None, {"kind": TEST_STRUCTURE}]], money=10000)
-        self.assertIsNone(choose_animal_to_build(farm, 1, day=0))
+        self.assertIsNone(choose_animal_to_build(farm, self._private(), 1, day=0))
 
     def test_does_not_build_past_the_cap(self):
         tiles = [[_unfed_goose_coop() for _ in range(MAX_ANIMALS)] + [None]]
         farm = self._farm(tiles, money=10000)
-        self.assertIsNone(choose_animal_to_build(farm, 1, day=0))
+        self.assertIsNone(choose_animal_to_build(farm, self._private(), 1, day=0))
 
     def test_refuses_a_species_that_cannot_mature_before_season_end(self):
-        # GOOSE's first_yield_day is 4 - on the second-to-last day there
-        # isn't time left to reach even a first harvest, so building for it
-        # now would tie up a tile and cash for a guaranteed dead loss, the
-        # same way choose_crop() refuses a too-slow crop.
+        # On the second-to-last day there isn't time left for any active
+        # species to reach even a first harvest, so building now would tie
+        # up a tile and cash for a guaranteed dead loss, the same way
+        # choose_crop() refuses a too-slow crop.
         farm = self._farm([[None]], money=10000)
-        self.assertIsNone(choose_animal_to_build(farm, 1, day=SEASON_DAYS - 2))
+        self.assertIsNone(
+            choose_animal_to_build(farm, self._private(), 1, day=SEASON_DAYS - 2)
+        )
 
 
 class TestDecideAnimalMarketActions(unittest.TestCase):
@@ -989,6 +1045,18 @@ class TestDecideAnimalMarketActions(unittest.TestCase):
         private = {"shed": {}, "inventories": [{}]}
         actions = decide_animal_market_actions(farm, private, 1, day=0)
         self.assertIn(["BUY_ANIMAL", TEST_ANIMAL, 1], actions)
+
+    def test_buys_the_species_owned_fewer_of_not_always_the_same_one(self):
+        # Regression test for Issue #20: with more than one active species,
+        # a fixed "first eligible in ACTIVE_ANIMALS order" pick collapsed
+        # onto TEST_ANIMAL forever once it was always affordable. Already
+        # owning one TEST_ANIMAL (in the shed) should steer the next buy to
+        # TEST_ANIMAL_2 instead.
+        farm = self._farm([[None]], money=10000)
+        private = {"shed": {TEST_ANIMAL: 1}, "inventories": [{}]}
+        actions = decide_animal_market_actions(farm, private, 1, day=0)
+        self.assertIn(["BUY_ANIMAL", TEST_ANIMAL_2, 1], actions)
+        self.assertNotIn(["BUY_ANIMAL", TEST_ANIMAL, 1], actions)
 
     def test_does_not_buy_past_the_cap(self):
         tiles = [[_unfed_goose_coop() for _ in range(MAX_ANIMALS)]]

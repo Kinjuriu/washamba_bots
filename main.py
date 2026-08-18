@@ -1163,7 +1163,22 @@ def count_owned_animals(farm, private, board_size):
     return total + filled + unfilled
 
 
-def count_animals_by_species(farm, private, board_size):
+def pick_next_animal_species(eligible, owned_counts):
+    """Of the eligible species, the one we own fewest of.
+
+    The bug this replaces was a fixed-order "first eligible" loop: with
+    ACTIVE_ANIMALS = ["SHEEP", "COW"] and sheep always affordable, the loop
+    never reached cow, so the recorded sheep-plus-cow dead end was really two
+    sheep. Ties break on ACTIVE_ANIMALS order, which makes this an exact no-op
+    while only one species is active.
+    """
+    if not eligible:
+        return None
+    order = {animal: i for i, animal in enumerate(ACTIVE_ANIMALS)}
+    return min(eligible, key=lambda a: (owned_counts.get(a, 0), order[a]))
+
+
+def species_owned_counts(farm, private, board_size):
     """
     How many of each ACTIVE_ANIMALS species we hold, counting the shed,
     every unit's inventory, and animals already placed on the board.
@@ -1192,7 +1207,7 @@ def count_animals_by_species(farm, private, board_size):
     return counts
 
 
-def choose_animal_to_build(farm, board_size, day, pending_builds=0):
+def choose_animal_to_build(farm, private, board_size, day, pending_builds=0):
     """
     Pick which ACTIVE_ANIMALS species to build a structure for next, or
     None if we shouldn't build one right now.
@@ -1204,12 +1219,13 @@ def choose_animal_to_build(farm, board_size, day, pending_builds=0):
     no offsetting revenue. This gate matters as MAX_ANIMALS or
     ACTIVE_ANIMALS grows enough that a build could land late in the season.
 
-    Also picks *which* species: the first one (in ACTIVE_ANIMALS order)
-    that's both affordable and has time left to pay off, rather than
-    always building whatever ACTIVE_ANIMALS[0] happens to be regardless of
-    season or affordability - matters once more than one species is
-    active, since the structure kind for the wrong species is a wasted
-    build.
+    Also picks *which* species, via pick_next_animal_species: of the ones
+    both affordable and with time left to pay off, whichever we own fewest
+    of. Taking the first in ACTIVE_ANIMALS order instead collapses a mixed
+    herd onto one species, which is the same bug decide_animal_market_actions
+    had. A no-op while SHEEP and COW share the PASTURE structure - it starts
+    to matter the moment an active species needs a different structure kind,
+    since building the wrong one is a wasted tile.
 
     Under the cap, and only when every structure we've already built
     already has an animal in it (stops us tying up more than one tile at a
@@ -1230,6 +1246,7 @@ def choose_animal_to_build(farm, board_size, day, pending_builds=0):
 
     money = farm.get("money", 0)
     remaining_days = remaining_season_days(day)
+    eligible = []
     for animal in ACTIVE_ANIMALS:
         info = ANIMALS.get(animal)
         if not info:
@@ -1241,8 +1258,10 @@ def choose_animal_to_build(farm, board_size, day, pending_builds=0):
         if first_yield_day > remaining_days:
             continue  # can't reach even a first harvest before season end
         if money >= cost and cost <= money * ANIMAL_SPEND_CAP_FRACTION:
-            return animal
-    return None
+            eligible.append(animal)
+    return pick_next_animal_species(
+        eligible, species_owned_counts(farm, private, board_size)
+    )
 
 
 def decide_animal_market_actions(farm, private, board_size, day):
@@ -1255,7 +1274,7 @@ def decide_animal_market_actions(farm, private, board_size, day):
     remaining_days = remaining_season_days(day)
 
     if count_owned_animals(farm, private, board_size) < MAX_ANIMALS:
-        held = count_animals_by_species(farm, private, board_size)
+        held = species_owned_counts(farm, private, board_size)
         affordable = []
         for animal in ACTIVE_ANIMALS:
             info = ANIMALS.get(animal)
@@ -1287,7 +1306,7 @@ def decide_animal_market_actions(farm, private, board_size, day):
             # No-op at MAX_ANIMALS = 1: the only purchase happens with every
             # count at zero, so the tie-break picks ACTIVE_ANIMALS[0] exactly
             # as before.
-            animal = min(affordable, key=lambda a: (held.get(a, 0), ACTIVE_ANIMALS.index(a)))
+            animal = pick_next_animal_species(affordable, held)
             actions.append(["BUY_ANIMAL", animal, 1])
             # one purchase at a time, same cadence as seed buying
 
@@ -1993,7 +2012,9 @@ def choose_unit_action(
     #    growing the animal side of the farm and don't already have one
     #    waiting for a tenant, otherwise plant a crop.
     if tile is None:
-        animal_to_build = choose_animal_to_build(farm, board_size, day, pending_builds[0])
+        animal_to_build = choose_animal_to_build(
+            farm, private, board_size, day, pending_builds[0]
+        )
         if animal_to_build:
             pending_builds[0] += 1
             structure = ANIMALS[animal_to_build]["structure"]
