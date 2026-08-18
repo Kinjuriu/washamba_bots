@@ -335,6 +335,23 @@ What the per-episode record gives instead, per submission: our bank, the opponen
 
 Species banks **more** than seed reserve (52,517 vs 50,015 mean) but posts a **worse** margin and win rate, against opponents rated **28 points higher**. Whether the harder draw fully explains the gap is not resolvable at n=22 — **the honest verdict is unresolved**, and that is the point: at these sample sizes the ladder cannot separate two agents that differ by a few thousand bank. Reserve ladder slots for **structural** changes big enough to clear that floor, and settle threshold tuning with `paired_compare.py`, which controls seed variance properly.
 
+**The ladder's error bar, measured directly rather than argued about.** On 2026-08-18 two submissions of *byte-identical* agent code ran simultaneously (`55591700` and `55606684`, both `main.py` at `5486566` - the second submitted by accident as a "baseline, no changes" test). Anything they differ by is pure instrument noise:
+
+| statistic | `55591700` (n=23) | `55606684` (n=7) | apart |
+|---|---|---|---|
+| **public score** | **598.0** | **595.1** | **2.9** |
+| bank, mean | 51,983 | 52,886 | 903 |
+| bank, per-episode sd | 5,883 | 6,556 | — |
+| **margin, mean** | **-7,670** | **-4,493** | **3,177** |
+| opponent rating | 609.1 | 601.2 | 7.9 |
+
+Two lessons, and the second one reverses advice recorded earlier in this file:
+
+- **A single episode moves the running rating by ~10 points, and early readings swing far more.** At n=6 these two identical agents read 635.1 and 595.1 - **40 points apart**. `55606684` opened at 690.2 and fell to 595.1 within seven episodes. Any conclusion drawn inside the first ~10 episodes is noise.
+- **Once episodes accumulate, the score is the *most* reproducible statistic, not the least.** It is the only one that controls for opponent strength, which is exactly why it converges: 2.9 points apart on identical code. **Margin does not** - the same identical pair sits **3,177 apart**, so the margin comparison between species and seed reserve (-8,298 vs -2,056) was far weaker evidence than it looked. Read the score, but only at comparable episode counts, and never before ~15-20 episodes.
+
+The practical floor: **a change worth less than ~1,000 bank is invisible on the ladder** - identical code varies by 903. Settle anything smaller with `paired_compare.py`, which controls seed variance properly.
+
 **The ladder burst is also the only harness we own with real, selling opponents.** Be precise about the size of the gap, because it is easy to overstate and the overstatement changes what you build for. Across our own episodes:
 
 | | our bank | opponent bank |
