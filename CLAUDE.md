@@ -294,7 +294,14 @@ What the per-episode record gives instead, per submission: our bank, the opponen
 
 Species banks **more** than seed reserve (52,517 vs 50,015 mean) but posts a **worse** margin and win rate, against opponents rated **28 points higher**. Whether the harder draw fully explains the gap is not resolvable at n=22 — **the honest verdict is unresolved**, and that is the point: at these sample sizes the ladder cannot separate two agents that differ by a few thousand bank. Reserve ladder slots for **structural** changes big enough to clear that floor, and settle threshold tuning with `paired_compare.py`, which controls seed variance properly.
 
-**The ladder burst is also the only harness we own with real, selling, big-farm opponents.** Opponent banks in our own episodes reach **114,678**, averaging 60,815 against our ~52,500 — the same 2× structural gap `docs/REPLAY_ANALYSIS.md` found in other teams' replays, confirmed on our own matches.
+**The ladder burst is also the only harness we own with real, selling opponents.** Be precise about the size of the gap, because it is easy to overstate and the overstatement changes what you build for. Across our own episodes:
+
+| | our bank | opponent bank |
+|---|---|---|
+| mean | 52,517 | **60,815** — 16% ahead |
+| max | 63,489 | **114,678** — 2x ahead |
+
+**We are mid-field, not half-size.** The mean opponent banks about 16% more than us; it is the *top* of the field that is roughly double, and `docs/REPLAY_ANALYSIS.md`'s 95,288 / 91,904 are drawn from that top end rather than from a typical opponent. A reference opponent built to the 2x number would be modelling the best team in the competition, not the field we are actually matched against.
 
 Kaggle CLI is authenticated (`~/.kaggle/credentials.json`) as `peterkibetspidey`, and the account is entered in the competition — verify with `kaggle competitions list --group entered` (expect `userHasEntered: True`). Re-auth with `kaggle auth login` if the session expires.
 
