@@ -467,6 +467,16 @@ SELL_PRICE_THRESHOLDS = {
 }
 DEFAULT_SELL_THRESHOLD = 50
 
+# MILK is deliberately absent, and that was checked rather than assumed.
+# Adding a new species normally needs its own threshold and per-turn cap or
+# it dumps into a curve it can floor - the trap this file warns about above.
+# Measured at the shipped 2-sheep-1-cow mix: a threshold of 115 and a cap of
+# 7 are BOTH exact no-ops, +0 on 0 of 12 seeds. The gates never bind. Milk
+# sells 36 units a season, the largest single order is 6 (under any sane
+# cap), and the lowest price at any sale is 202 - above milk's own $160 base,
+# because the town eats it faster than one cow produces it, same as wool.
+# Revisit only if the cow count rises: milk floors 76 units above baseline.
+
 # Premium goods (base price > $100) crash hard toward the $1 floor when a
 # large quantity is sold in one order, and there's no buy-back to undo it
 # (BUY_PRODUCT only works for WHEAT/FERTILIZER) - the market only recovers
