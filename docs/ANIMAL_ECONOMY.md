@@ -70,7 +70,57 @@ so being broke on day 3 costs them nothing. There is no ordering of single
 constant changes that walks from one equilibrium to the other; every
 intermediate state is worse than both ends.
 
+## The opening book was tried. It fails, and here is exactly where.
+
+Transcribed verbatim from the replay (`experiments/opening_trace.py`, episode
+94063004, hour 0) - ten orders, the per-turn cap, taking the bank from $3,000
+to $22:
+
+    BUY_PRODUCT WHEAT 6 | BUY_ANIMAL COW 2 | BUY_ANIMAL SHEEP 2
+    HIRE x5 | BUY_SEED WHEAT 7 | BUY_SEED MELON 12
+
+Implemented with the three prerequisites above. Bank across the attempts:
+
+| state | seed 0 bank |
+|---|---|
+| shipped `main` | **77,577** |
+| book, feed gated behind the seed reserve | 6,409 |
+| book firing at hour 0, feed ordered first | 293 |
+| wheat reserved against animals *owned* rather than placed | **24** |
+
+**It got worse with each correct fix.** Every one exposed another downstream
+rule tuned for a crop-first economy:
+
+1. **The book fired an hour late.** A replay row shows the observation *after*
+   the action, so the orders visible in the hour-1 row were issued at hour 0.
+   Firing at hour 1 let the normal ladder spend first.
+2. **Order within the turn is load-bearing.** Orders execute in sequence against
+   one bank and whatever is last is dropped silently
+   (`kaggriculture.py:663`). With feed wheat last it was rejected every time and
+   `FEED` fired **zero times in a whole season**.
+3. **Feed was gated behind `MIN_CASH_RESERVE_FOR_SEED_BUYING`.** At the $5-50
+   the book leaves, nothing could be bought at all. Feed has to outrank seed - a
+   missed meal loses the animal permanently, a missed seed loses one planting.
+4. **The sell reserve counts *placed* animals.** Placement lags purchase by a
+   build/pickup/place round trip, so we bought six wheat at hour 1 and **sold
+   all six at hour 2** while four animals waited in inventory. *(This defect is
+   in shipped `main` too, though at `MAX_ANIMALS = 4` it is nearly invisible.)*
+5. **Pens serialise.** `choose_animal_to_build` refuses to start one while
+   another stands empty; without `pending_builds` in the new guard, every unit
+   sees the same board and they all build - eight pens for three animals.
+
+After all five, the agent still ends at **$14-24 with no crew, no seed and no
+income**: below `MIN_MONEY_TO_HIRE`, below the wheat price, below the seed
+reserve. Every threshold in the agent is set for a farm that keeps a cash
+buffer, and the book's whole point is not keeping one.
+
+**This is the prediction in the section above, confirmed rather than refuted.**
+There is no walk between the two equilibria - not by constants, and not by
+transplanting the opening either, because the opening only works if everything
+downstream already assumes it.
+
 ## What to try instead
+
 
 Not another constant. The change that could work is an explicit **opening
 book**: a scripted first two or three days that buys the pens and animals out
