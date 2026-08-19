@@ -335,6 +335,27 @@ What the per-episode record gives instead, per submission: our bank, the opponen
 
 Species banks **more** than seed reserve (52,517 vs 50,015 mean) but posts a **worse** margin and win rate, against opponents rated **28 points higher**. Whether the harder draw fully explains the gap is not resolvable at n=22 — **the honest verdict is unresolved**, and that is the point: at these sample sizes the ladder cannot separate two agents that differ by a few thousand bank. Reserve ladder slots for **structural** changes big enough to clear that floor, and settle threshold tuning with `paired_compare.py`, which controls seed variance properly.
 
+**The ladder's error bar, measured directly rather than argued about.** On 2026-08-18 two submissions of *byte-identical* agent code ran simultaneously (`55591700` and `55606684`, both `main.py` at `5486566` - the second submitted by accident as a "baseline, no changes" test). Anything they differ by is pure instrument noise, and the answer is: **a lot, for a long time.**
+
+Same code, same day, read three times over about an hour:
+
+| read | `55591700` | `55606684` | apart |
+|---|---|---|---|
+| at n=6 | 635.1 | 595.1 | **40** |
+| n=23 vs n=7 | 598.0 | 595.1 | 2.9 |
+| n=23 vs n=8 | 598.0 | **512.4** | **86** |
+
+**One episode moved `55606684` by 83 points.** It opened at 690.2, fell to 595.1 by episode 7 and to 512.4 by episode 8. The 2.9-point reading in the middle was a coincidence of timing, not convergence - and it is worth recording precisely because it was briefly written up here as evidence the score had settled. **Two identical agents can agree to within 3 points and disagree by 86 an episode later.**
+
+Per-episode banks say the same thing less dramatically: mean 51,983 vs 52,886 (**903 apart**) against a per-episode sd of ~6,000, and margins **3,177 apart** (-7,670 vs -4,493).
+
+What follows:
+
+- **Below ~10 episodes the rating carries no information at all.** Every number quoted from a fresh submission this week - the 637.1 that looked like a win, the 587.6 that looked like a regression - sits inside this range.
+- **Never compare two submissions at different episode counts.** The pair above is n=23 against n=8.
+- **A change worth less than ~1,000 bank is invisible here** regardless of patience, because identical code varies by 903. Settle anything smaller with `paired_compare.py`, which controls seed variance by construction.
+- We do **not** yet have a converged estimate of the gap between two identical agents; `55606684` needs ~20 episodes before the pair can be compared honestly. Until then, treat every ladder delta under ~100 points as unmeasured.
+
 **The ladder burst is also the only harness we own with real, selling opponents.** Be precise about the size of the gap, because it is easy to overstate and the overstatement changes what you build for. Across our own episodes:
 
 | | our bank | opponent bank |
