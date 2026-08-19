@@ -1,14 +1,787 @@
-# Session handoff — 2026-08-17
+# Session handoff — 2026-08-19, latest (read this section first —
+supersedes the "Next session: implement Phase 3" instructions below, which
+are now done; everything below stays as accurate history of what was true
+when written)
+
+## This session: implemented Phase 3 (bundled land + second-animal re-test)
+
+Branched off `refactor/phase2-derived-crew-size` (tip `f8134e9`) as
+**`refactor/phase3-land-and-second-animal`**. Implemented, per
+`mydocs/Plan Phase 1-4.md`'s Phase 3 scope: `BUY_LAND`, a home-quadrant
+gate so the extra animal capacity is funded by newly-bought land rather
+than carved out of the original cropland, and a bank-floor-gated
+`MAX_ANIMALS` bump 3 -> 4. No changes to selling cadence, crop windows, or
+sell thresholds - the plan's explicit warning about PR #17/#29 repeating
+that exact bundling mistake a third time.
+
+**What shipped, all in `main.py`:**
+
+1. `decide_land_orders(farm, day)` emits `["BUY_LAND"]` inside a day
+   window (`LAND_BUY_START_DAY=6` / `LAND_BUY_LAST_USEFUL_DAY=18`, informed
+   by `docs/REPLAY_ANALYSIS.md`'s observed day 6-11 buying window) and
+   never past a `MIN_CASH_RESERVE_FOR_LAND_BUYING=500` floor - the same
+   post-purchase-floor shape as `MIN_CASH_RESERVE_FOR_SEED_BUYING`, since a
+   $1,000-$4,000 lump sum is exactly the kind of spend that emptied the
+   days 3-7 trough before that earlier fix. `LAND_ORDER`/`LAND_PRICES`
+   mirror the engine's own constants (`kaggriculture.py:96-97`) the same
+   way `_hire_cost` mirrors the engine's fib.
+2. **Capped at `MAX_LAND_PURCHASES=2`, not the engine's own limit of 3** -
+   see the measured mechanism below. `docs/REPLAY_ANALYSIS.md` only ever
+   observed 2 purchases (25->75 tiles) on the real ladder; the third
+   quadrant is untested territory, and turned out to be a real, measured
+   loss once tried.
+3. `tile_quadrant(x, y, board_size)` mirrors the engine's `_quadrant_of`
+   exactly. `choose_animal_to_build` now takes optional `ux, uy` and
+   refuses to build past `MAX_ANIMALS_ON_HOME_LAND=3` (the old cap) unless
+   the unit is standing outside the home ("NW") quadrant - so the 4th
+   animal structure can only land on land actually bought via `BUY_LAND`,
+   never carved out of the original 25 tiles' cropland. Inert (`ux=None`)
+   for any existing caller with no location context, so every pre-existing
+   test needed no changes.
+4. `MIN_CASH_RESERVE_FOR_ANIMAL_BUYING=450` added to both
+   `choose_animal_to_build` and `decide_animal_market_actions`, alongside
+   the existing `ANIMAL_SPEND_CAP_FRACTION` - closes the same gap the seed
+   reserve closed: a fraction-of-current-cash cap alone offers no floor
+   below the purchase's own cost at its own boundary case.
+
+**Two real bugs found and fixed, both only reachable once Phase 3 made a
+long-lived shed animal and a bigger board real for the first time - not
+guessed, found by tracing a crashed episode end to end, the way this repo's
+best fixes always are:**
+
+- **A live animal sitting in the shed crashed `decide_market_actions` with
+  a `KeyError`, silently, every turn thereafter.** Both of its shed-sell
+  loops (`for product, quantity in shed.items()`) iterated blindly and
+  called `recommend_sell_quantity`/`market_price` on whatever key was
+  present - including `"SHEEP"`/`"COW"` itself, which is a valid shed key
+  (a bought-but-not-yet-collected animal) but not a market product (only
+  its produce, WOOL/MILK, is in `MARKET_PARAMS`). Pre-Phase-3, an animal
+  essentially never sat in the shed long enough to hit this: with
+  `MAX_ANIMALS=3` every purchase fit inside the home quadrant, so a unit
+  reached it and placed it almost immediately. Phase 3's home-quadrant gate
+  means the 4th animal can sit in the shed for real turns waiting on a unit
+  to reach newly-bought land - so this became reachable, and the caught-
+  exception fallback (`{"farmer": ["PASS"], "hands": [], "market": []}`)
+  silently froze the whole agent at whatever bank it held the instant the
+  animal was bought: seed 0 self-play went 3000 -> 208 for one side and sat
+  there, frozen, for the rest of the season, while the other side finished
+  normally at 71,885. Fixed by skipping any shed key not in `MARKET_PARAMS`
+  in both loops - two-line fix, regression-tested
+  (`test_ignores_a_live_animal_sitting_in_the_shed`,
+  `test_ignores_a_live_animal_during_the_shed_overflow_valve_too`).
+- **Buying all 3 quadrants (100 tiles) is a measured loss relative to
+  buying 2 (75 tiles), matching the replay evidence exactly.** Seed 3 vs
+  `starter`: buying the third $4,000 SE quadrant took the same agent from
+  54,786 down further even as it hired far more (161 -> 282) and planted
+  far more (58 -> 199) - a bigger crew spread over 100 tiles produced less
+  bank than a smaller crew on 75 tiles did. `docs/ROADMAP.md`/
+  `docs/REPLAY_ANALYSIS.md` never actually observed a third purchase on
+  the real ladder either - "both purchases" was always exactly 2. Capped
+  `decide_land_orders` at `MAX_LAND_PURCHASES=2` accordingly; this alone
+  turned the `starter`-paired result from +3,572/9-12 (two badly-losing
+  seeds) to **+9,004/10-12, t=2.89** (see below).
+
+**Full four-harness measurement, this branch vs. the Phase 2 control
+checkpoint (`f8134e9`, `git show refactor/phase2-derived-crew-size:main.py`):**
+
+| harness | result |
+|---|---|
+| `.venv/Scripts/python.exe -m unittest discover -s tests` | **162/162 passing** (145 + 17 new: land-order gating, `tile_quadrant`, the home-quadrant animal-build gate, the two shed-animal-crash regression tests, both cash-reserve-floor tests) |
+| pre-submit validation gate | `['DONE', 'DONE']` |
+| `paired_compare.py` vs `starter`, 12 seeds | **+9,004 mean, 10/12 wins, t=2.89** - decisive by this repo's own win-count-first rule |
+| `head_to_head.py` vs Phase 2 control, 12 seeds x 2 seats | **+7,800 mean, 19/24 wins** - just under the ~20/24 "clean" bar (same language Phase 2's own result used), clearly a real win, not noise |
+| `selfplay_bench.py`, 12 seeds | candidate mean **61,303**, stdev **11,626**, floor **39,554** vs. a freshly-run Phase 2 control baseline (same 12 seeds, control-vs-control) of mean **54,097**, stdev **4,170**, floor **47,414** - a real **+7,206** mean gain, but stdev nearly triples and the floor drops ~8,000. **Not clean** - this is the same open question Phase 2 itself flagged (stdev/floor moving the wrong way), now more pronounced, not yet closed |
+| `head_to_head.py main.py experiments/bigfarm_opponent.py`, 12 seeds x 2 seats | candidate **-1,848 mean, 7/24 wins**, vs. a freshly-run Phase 2 control baseline of **-6,992 mean, 7/24 wins** against the same bridge opponent - still a net loss in absolute terms (bigfarm runs `MAX_HANDS_PER_DAY=15`, `MAX_ANIMALS=4`, half-price sell thresholds, day-10 liquidation - a deliberately scaled-up variant of our own logic), but the gap **closes by 5,144**, roughly three-quarters of it |
+
+**Honest verdict: a real, meaningful win, not a clean sweep of all four
+harnesses.** Two harnesses (`starter`-paired, head-to-head vs Phase 2
+control) are decisively positive by this repo's own win-count-first rule -
+notably, the head-to-head-vs-control result (19/24) clears the exact bar
+PR #17 and PR #29 both failed to clear (14/24 each) with a similar bundle,
+which is the strongest evidence this isn't a repeat of their "positive
+everywhere, convincing nowhere" pattern. But it is not a 4-for-4: self-play
+variance/floor move the wrong way (an open question, not a new one - Phase
+2 already flagged this direction), and the bigfarm bridge check still
+shows a net loss in absolute terms even though the gap versus control
+closed substantially. Per the plan's own gate language, this is reported
+rather than folded into Phase 4 or further re-tuned without new evidence.
+**Recommendation: this is shippable as a genuine improvement over Phase 2,
+with the self-play variance question and the bigfarm gap flagged as open
+follow-ups for whoever picks this up next** - not a "stop and revert"
+result, but also not one to declare fully closed.
+
+**Nothing committed this session** - `main.py`, `tests/test_nikaangukia_meroni.py`,
+and this `HANDOFF.md` update are working-tree changes on
+`refactor/phase3-land-and-second-animal`, pending explicit go-ahead per
+this project's standing practice.
+
+## Next session, if continuing past Phase 3
+
+Per `mydocs/Plan Phase 1-4.md` Phase 4 is independent (crop
+`occupancy_kind`) and has its own already-documented re-derivation risk
+(see that file's Phase 4 section - the exact `growth_days` substitution it
+would produce was already tried directly and decisively lost, -5,099/0-12
+vs `starter`). Before starting it, decide whether to first spend a session
+closing the two open items flagged above: the self-play variance/floor
+regression (try `selfplay_bench.py` at a larger seed count and/or isolate
+whether it's `BUY_LAND` or the animal bump driving it, by disabling each
+independently against the Phase 3 candidate), and/or a closer look at why
+`WORK_TILES_PER_HAND=4` - tuned at 25 tiles - produces a very large crew
+(hire counts roughly doubled, 161 -> 282 on the traced seed) once tile
+count triples to 75; `docs/ROADMAP.md`'s own §3b confound warning suggests
+this ratio itself may need re-deriving at the new tile count, not just the
+land/animal knobs this phase touched.
+
+---
+
+# Session handoff — 2026-08-19, even later (superseded above for ordering,
+but kept as accurate history of what was true when written)
+
+## This session: implemented Phase 2 (crew size as a derived function)
+
+Branched off `refactor/phase1-shared-ledger` (tip `d43d37a`) as
+**`refactor/phase2-derived-crew-size`**, per the prior session's own
+instruction and `mydocs/Plan Phase 1-4.md`'s Phase 2 scope. Still no
+`BUY_LAND`, still `MAX_ANIMALS=3`, `ACTIVE_ANIMALS=["SHEEP","COW"]`
+unchanged — only the crew-sizing formula changed.
+
+**What shipped**, both in `main.py`:
+
+1. `count_pending_work` (`main.py:1377`) now adds animal upkeep to the
+   work total via a new `_animal_tile_needs_attention(tile, day)` helper
+   (`main.py:1351`) that reuses the exact FEED/CARE/HARVEST/
+   COLLECT_FERTILIZER predicates `choose_unit_action`'s priority ladder
+   already reads (`main.py:1936-1974`: `fed_today`, `cared_today`,
+   `fertilizer_available`, `yield_units` vs `max_held`) rather than
+   re-deriving new field-name logic. One work unit per animal-structure
+   tile that needs attention today, same granularity as the existing
+   `PLANT` branch (one unit whether it needs watering or harvesting, not
+   one per action).
+2. `max_hands_ceiling(farm, board_size)` (`main.py:1408`) replaces
+   `MAX_HANDS_PER_DAY` as the sole cap in `decide_hire_orders`
+   (`main.py:1474`). Derived from currently-unlocked tile count (non-
+   `"LOCKED"` cells) plus one allowance per built animal structure,
+   divided by `WORK_TILES_PER_HAND`, floored at `MAX_HANDS_PER_DAY` so a
+   small board can never get a *lower* ceiling than today's shipped
+   behaviour. `MAX_HANDS_PER_DAY` itself stays as that floor/historical
+   minimum, not removed.
+
+At today's fixed 25 tiles / `MAX_ANIMALS=3`, `max_hands_ceiling` evaluates
+to exactly `8` on every seed (`(25 unlocked + up to 3 animal structures) //
+4 = 6 or 7`, floored up to `8`) — confirmed non-binding, i.e. the ceiling
+itself changes nothing today. It only grows once land or `MAX_ANIMALS`
+actually increase, which is the entire point (unblocks Phase 3's land +
+second-animal re-test without re-introducing the stale-crew confound
+`docs/ROADMAP.md` §3b names).
+
+**Tests**: added `TestDerivedCrewSize` (10 new cases) to
+`tests/test_nikaangukia_meroni.py` covering `_animal_tile_needs_attention`
+via `count_pending_work` (unfed/uncared/fertilizer-ready/harvest-ready
+animal tiles count as work; a fully-tended or unfilled structure tile does
+not) and `max_hands_ceiling` (never drops below `MAX_HANDS_PER_DAY`; grows
+with more unlocked tiles or more animal structures; `"LOCKED"` tiles don't
+count). All pre-existing `TestHireDecision` cases needed **no changes** —
+verified by hand that the floor design (`max(MAX_HANDS_PER_DAY,
+derived)`) makes every existing fixture's cap identical to before.
+`.venv/Scripts/python.exe -m unittest discover -s tests`: **145/145
+passing** (135 + 10 new). Pre-submit validation gate: `['DONE', 'DONE']`.
+
+**Measurement, this branch vs. the Phase 1 control checkpoint
+(`d43d37a`, `git show d43d37a:main.py`)** — confirmed via `git diff
+d43d37a -- main.py` that the actual diff is exactly and only the two
+functions above (123 lines, no drift):
+
+| harness | result |
+|---|---|
+| `paired_compare.py` vs `starter`, 12 seeds | **+2,629 mean, 10/12 wins** — decisive by this repo's own win-count-first rule, not a wash |
+| `head_to_head.py` vs Phase 1 control, 12 seeds x 2 seats | **+2,123 mean, 19/24 wins** — just under the ~20/24 "clean" bar but same direction, well above noise |
+| `selfplay_bench.py`, 6 seeds | mean **55,679**, stdev **4,242**, floor **50,538**, max 61,458 — vs. Phase 1's own recorded 56,876 / 2,159 / 53,894: mean within ~2% (noise at n=6), but stdev nearly doubled and floor dropped ~3,356 |
+
+**No loss on any harness** — the gate ("no regression vs. Phase 1
+control") passes cleanly on that reading. But this is **not** the flat,
+inert result the plan predicted for a "purely structural" phase: both
+built-in-adjacent harnesses show a real, consistent improvement. Mechanism,
+worked out from the diff rather than guessed: at 25 tiles the *cap*
+(`max_hands_ceiling`) is unchanged (still exactly 8, see above) — the
+actual behavioural change is that `count_pending_work`'s `work` total now
+counts an unfed/uncared/harvest-due animal as pending work for the first
+time, which occasionally pushes `work // WORK_TILES_PER_HAND` over a
+boundary and triggers one more hire on mornings several animals need
+attention at once. That's a legitimate, in-scope side effect of "crew
+size should account for animal upkeep too," not a bug — hiring against
+animal-upkeep demand is exactly what Phase 2 was for — but it means Phase
+2 delivered a small real strategy improvement alongside the structural
+refactor, not a no-op.
+
+**Open, not blocking**: the self-play stdev/floor move (stdev 2,159 →
+4,242, floor 53,894 → 50,538, both at n=6) is the one number that doesn't
+cleanly read as "flat or better." Given zero losses on the two
+higher-seed-count harnesses and self-play's own small sample size (a
+single low-outlier seed can double a 6-seed stdev), this reads as more
+likely sampling noise than a real self-play-specific regression, but it
+was not re-verified with a larger seed count this session (`selfplay_bench.py`
+always benchmarks whatever is currently at `main.py`, so isolating the
+control side requires a temporary swap-and-restore, not attempted here).
+If a future session wants to close this out before trusting Phase 2 fully:
+`.venv/Scripts/python.exe experiments/selfplay_bench.py 12` (or more) on
+the current `main.py`, and treat a repeat of the doubled-variance/lower-
+floor pattern at a larger n as the real signal to chase.
+
+**Nothing committed this session** — per this repo's own standing rule
+(and this project's explicit "ask before committing experiments, even
+mid-approved-plan" practice), `main.py`, `tests/test_nikaangukia_meroni.py`,
+and this `HANDOFF.md` update are working-tree changes on
+`refactor/phase2-derived-crew-size`, pending explicit go-ahead.
+
+## Next session: implement Phase 3 (and only Phase 3) — gate note
+
+Phase 2's gate is cleared (no regression, two harnesses show a real
+improvement) — Phase 3 (bundled land + second animal, per `mydocs/Plan
+Phase 1-4.md` and `docs/ROADMAP.md` §4) is now unblocked. Per the explicit
+sequential-and-gated instruction, **do not start Phase 3 in this same
+session.** Before starting Phase 3, decide whether to spend a few minutes
+closing the self-play open question above — it's cheap (one more
+`selfplay_bench.py 12` run) and Phase 3 will want a trustworthy self-play
+baseline to compare against given it changes both land and animal count
+together.
+
+---
+
+# Session handoff — 2026-08-19, later (superseded above for ordering, but
+kept as accurate history of what was true when written — implemented
+Phase 1)
+
+## This session: implemented Phase 1 (hiring + wheat-feed ledgers)
+
+Branched fresh off `main` @ `5180768` per the prior session's instruction:
+**`refactor/phase1-shared-ledger`**. Implemented both halves of Phase 1's
+scope from `mydocs/Plan Phase 1-4.md`, with real course-corrections on both
+found by reading the engine end to end and measuring, not assuming.
+
+**Hiring: no per-unit collision exists, but there was a related, smaller
+real bug worth fixing.** Read `kaggriculture.py`'s market processing in
+full: `HIRE` is never decided per-unit - `decide_hire_orders` is called
+exactly once a turn, after every per-unit action is already decided
+(`main.py`), and the engine's only cross-unit atomic-drop rule is PLANT's
+(`kaggriculture.py:920-933`) - nothing analogous exists for HIRE. So
+"generalize `plant_budget` to hiring" as literally stated in
+`Plan Phase 1-4.md` doesn't apply as a collision fix. What *is* real:
+`decide_hire_orders` checked `money >= MIN_MONEY_TO_HIRE` (a flat $20
+floor) once, then blindly offered up to `MAX_HIRES_PER_TURN` HIRE orders
+regardless of the Fibonacci cost curve on `hires_today` (a live counter) -
+so late in a hiring streak with tight cash, it could offer hires it can't
+afford, and the engine silently no-ops the ones it can't pay for (same
+class of silent failure as an unaffordable `BUY_PRODUCT`). Fixed: a real
+per-turn money ledger inside `decide_hire_orders` (`_hire_cost`, mirroring
+the engine's `_fib`/`_hire_cost` exactly), consulted-then-decremented per
+offered hire, stopping once the running total would exceed available
+money. Verified against `starter`: completely inert (every seed, delta
+exactly $0) - this scenario essentially never arises against a built-in
+that never sells and never competes for our cash. Kept anyway, per an
+explicit decision this session to ship the ledger shape even without an
+active collision to close, since it's a small, honest, real fix rather
+than code-shape theater.
+
+**Wheat-feed: closes a real (if smaller-than-PLANT's) collision, and the
+scope needed real measurement to get right, not just intuition.** Added
+`wheat_budget`, a shared `{"WHEAT": remaining}` dict built once per turn
+next to `plant_budget`, threaded through `choose_unit_action`/
+`choose_farmer_action` the same way. Two call sites read it: the
+shed-adjacent PICKUP-for-feed decision, and the "should I walk toward the
+shed" decision from elsewhere on the board.
+
+Measuring this surfaced a real disagreement between harnesses, worth
+recording in full because it's another instance of the same trap
+`CLAUDE.md` already documents for the second-sheep and hire-gate fixes:
+
+| variant | vs `starter`, 12 seeds (paired) | vs saved control, 12 seeds x 2 seats (head-to-head) |
+|---|---|---|
+| ledger gates only the atomic shed PICKUP; raw shed read for the walk decision | -566 mean, 5/12 (inconclusive) | **-2,039 mean, 1/24 (decisive loss)** |
+| ledger gates both the PICKUP and the walk decision (shipped) | -566 mean, 5/12 (identical - hiring's inert here too) | **+4,517 mean, 24/24 (decisive win)** |
+
+`starter` never sells, so a change whose real effect runs through FEED
+timing -> CARE bank payout -> wool/milk production -> SELL timing reads as
+a wash there regardless of which way it's built - exactly the built-in
+flattery `CLAUDE.md` already warns about for selling/production-timing
+changes. `head_to_head.py` (a contested, self-mirrored market) is what
+actually separates the two options, and it says gate both decisions.
+Gating only the atomic PICKUP looks more theoretically correct in
+isolation (walking is a multi-turn commitment, not an atomic one, so a
+transient per-turn ledger is a worse fit for it) - but it measures
+decisively worse in the harness that can actually see this change's real
+effect. Full mechanism and the exact numbers are in the docstring above
+`choose_unit_action` and the inline comment at the walk-to-shed call site
+in `main.py` - read those before touching this again.
+
+**Full verification, this branch vs. the frozen control checkpoint
+(`5180768`, unmodified):**
+
+| harness | result |
+|---|---|
+| `.venv/Scripts/python.exe -m unittest discover -s tests` | 135/135 passing (4 new: 2 hiring-affordability cases in `TestHireDecision`, 2 in a new `TestWheatBudget`) |
+| pre-submit validation gate (`main.py` vs itself, seeded) | `['DONE', 'DONE']` |
+| `paired_compare.py` vs `starter`, 12 seeds | -566 mean, 5/12 wins, t=-0.79 - not a regression by this repo's own "read wins before t-value" rule, just inconclusive on a harness that can't see this change's real effect |
+| `head_to_head.py` vs saved control, 12 seeds x 2 seats | **+4,517 mean, 24/24 wins** |
+| `selfplay_bench.py`, 6 seeds | **56,876 mean** (control 54,536), stdev **2,159** (control 3,481), floor **53,894** (control 51,410) - better mean, tighter spread, higher floor than the control on the harness this repo calls the honest ladder-predicting number |
+
+**A git mistake this session, caught and fixed - flagging so it doesn't
+recur.** Branching fresh off `main` via `git checkout -b
+refactor/phase1-shared-ledger main` (as instructed by the prior session)
+silently overwrote this very file's working-tree content, because `main`
+still tracks an old (2026-08-17, 254-line) committed blob of
+`mydocs/HANDOFF.md` - the `git rm --cached mydocs/` that stopped tracking
+it (commit `1b80d13`) only ever landed on `chore/roadmap-phase-spine-setup`,
+never merged into `main`. Recovered this file from the assistant's own
+conversation context (it had been read in full moments before the
+checkout); lost nothing but a trailing newline. Checked every other
+`mydocs/` file for the same exposure - `Plan Phase 1-4.md` was never
+tracked in `main`'s history so it was untouched, and
+`rules.md`/`SETUP_PLAN.md`/the `FIX_*.md` files are already-committed
+archives whose tracked content already matches their intended final
+state, so nothing there was actually lost either. **Anyone else branching
+fresh off `main` is still exposed to this same silent overwrite** until
+the untracking commit actually lands on `main` - worth a small, low-risk,
+docs-only PR (`git rm --cached mydocs/`, confirming the `.gitignore` rule
+carries over) rather than leaving this as a trap for the next session.
+
+`main.py` and `tests/test_nikaangukia_meroni.py` on
+`refactor/phase1-shared-ledger` are committed as of this note. This
+`HANDOFF.md` update stays local/uncommitted per the standing rule.
+
+## Next session: implement Phase 2 (and only Phase 2)
+
+Read `mydocs/Plan Phase 1-4.md`'s Phase 2 section first. Extend the
+derived-crew logic (`count_pending_work`) to include animal upkeep
+alongside tile work, and replace the hardcoded `MAX_HANDS_PER_DAY=8`
+ceiling with something that scales - this is the prerequisite Phase 3
+(bundled land + second animal) depends on. Still no `BUY_LAND`, still
+`MAX_ANIMALS=3`. Same three-harness measurement, same "no regression vs.
+control" gate (note: the control to compare against is now this session's
+Phase 1 result, not the raw `5180768` checkpoint - Phase 2 builds on
+Phase 1, per the roadmap's explicit sequencing).
+
+---
+
+# Session handoff — 2026-08-19 (superseded by the section above for
+ordering; kept as accurate history of what was true when written)
+
+## This session: set up the ROADMAP.md Phase 1-4 cross-session spine
+
+No `main.py` change happened this session — this was setup/handoff work only,
+done because the team decided to implement `docs/ROADMAP.md`'s Phases 1-4
+sequentially, one phase per (separate) chat session, using this file as the
+running numbers archive and `mydocs/Plan Phase 1-4.md` as the high-level
+spine plan.
+
+**What happened:**
+
+- Checked out `origin/main`, tip **`5180768`** ("Merge pull request #27 from
+  Kinjuriu/experiment/bigfarm-opponent") — 25 commits ahead of the
+  `2114390` this repo's docs were previously written against. Local `main`
+  fast-forwarded cleanly (0 unique local commits).
+- Verified `mydocs/Plan Phase 1-4.md` against current `origin/main` state and
+  the actual GitHub issue/PR history (`gh issue view`/`gh pr view` on
+  #16,#17,#19,#20,#21,#22,#23,#25,#26,#27,#29). It holds up as the spine.
+  5 corrections applied directly into that file (read it, not this summary):
+  1. Issue #20's "Phase B1" (force real SHEEP+COW species diversity) is
+     already done and merged (PR #26, `pick_next_animal_species` /
+     `species_owned_counts`, main.py:1166-1207) — don't redo it in Phase 3.
+  2. The `MAX_ANIMALS=4`→65,640/3-3, `=5`→356/0-3 cliff table is from PR
+     #27's `bigfarm_opponent.py` reference config, not yet measured on our
+     own agent at an expanded tile count — re-derive it in Phase 3.
+  3. PR #17 and PR #29 are named explicitly as the two-time-repeated
+     "bundle land+crew+selling/crop-windows together, get an ambiguous
+     result" precedent — neither is merged, both are cited by number so a
+     future session doesn't quietly repeat the pattern a third time in
+     Phase 3.
+  4. New flag on Phase 4: the `occupancy_kind` refactor risks silently
+     reproducing an already-decisively-refuted result (the `growth_days`
+     substitution tried directly on `fix/ongoing-crop-growth-days`,
+     -5,099 mean, 0/12 vs `starter`). Needs a reason the structural framing
+     changes the *outcome*, not just the code shape, before re-measuring.
+- Working branch for this setup: **`chore/roadmap-phase-spine-setup`**
+  (off updated `main`). Untracked `mydocs/` on this branch
+  (`git rm -r --cached mydocs/` — the `.gitignore` `/mydocs/` rule already
+  existed on `origin/main`, the files just hadn't been untracked from the
+  index yet), so these documents stay local-only working notes per this
+  file's own established "`mydocs/` is genuinely private" rule from the
+  correction below. **The next session's Phase 1 code should branch fresh
+  off `main`** (e.g. `refactor/phase1-shared-ledger`), not off this branch —
+  this branch is doc/setup only and was never intended to carry `main.py`
+  changes.
+- Deleted `main_origin_tmp.py` (a stale scratch comparison snapshot from
+  before this session's checkout, no longer useful once actually on `main`).
+
+## Control checkpoint — frozen against unmodified `origin/main` (`5180768`)
+
+Every number below is `main.py` **exactly as shipped on `origin/main`**, no
+changes. Phase 1 (and later phases) should be paired-compared against this
+same commit — `git show 5180768:main.py > /tmp/control_main.py` reproduces
+the exact file if a session needs it as `paired_compare.py`'s baseline arg.
+
+**Correction to `Plan Phase 1-4.md`'s "Setup" step**, worth noting here
+since it's a methodology point, not a numbers one: `paired_compare.py`
+needs two agent files to diff, and at this control-freezing point there is
+no Phase 1 candidate yet to pair against — so "freeze the control
+checkpoint" here means the three *absolute* harnesses below (plus the
+commit hash above for later pairing), not a paired-compare run.
+
+- `experiments/seeded_batch.py` (12 seeds x pass/random/starter):
+
+  | vs | mean | stdev | min | max | wins | escapes |
+  |---|---|---|---|---|---|---|
+  | pass | 66,279 | ±2,516 | 62,758 | 70,443 | 12/12 | 0 |
+  | random | 65,729 | ±2,436 | 61,631 | 69,179 | 12/12 | 0 |
+  | starter | 66,014 | ±3,292 | 59,942 | 70,030 | 12/12 | 0 |
+
+- `experiments/selfplay_bench.py` (6 seeds, default) — **the honest,
+  ladder-predicting number**: mean **54,536**, stdev **3,481**, min 51,410,
+  max 60,094. End prices: WHEAT 52, CARROT 48, TOMATO 86, STRAWBERRY 268,
+  MELON 138.
+- `experiments/head_to_head.py experiments/bigfarm_opponent.py main.py 12`
+  (12 seeds x 2 seats = 24 matches) — **the gap Phase 3 exists to close**:
+  bigfarm_opponent +5,865 mean, wins **23/24**. (The file's own docstring
+  quotes a 6-seed number, +7,181/6-6; this 12-seed run is the one to treat
+  as current.)
+- `.venv/Scripts/python.exe -m unittest discover -s tests`: **131 passed**,
+  0 failures (no code changed, sanity check only).
+
+## Next session: implement Phase 1 (and only Phase 1)
+
+Read `mydocs/Plan Phase 1-4.md`'s Setup + Phase 1 sections first. **Do not
+implement Phase 2, 3, or 4 in the same session** — strictly sequential and
+gated, one phase per session, by explicit team decision.
+
+**Scope:** generalize `plant_budget`'s shared-ledger pattern — built once
+per turn as `dict(seeds)` (main.py:2140), threaded by reference through
+every unit's decision function, consulted-then-decremented atomically right
+before committing to an action (main.py:2031-2033) — to **(a) hiring**
+(currently `decide_hire_orders`, main.py:1359-1380: a derived-quota function
+computed once per turn, `wanted = min(MAX_HANDS_PER_DAY, work //
+WORK_TILES_PER_HAND)`, not the ledger pattern) and **(b) wheat-feed
+reservation** (not yet located precisely this session — find where units
+independently decide to pull wheat from the shed to feed an animal, and
+check for the same multi-unit-collision exposure `plant_budget` was built to
+close).
+
+**No other change**: land, `MAX_HANDS_PER_DAY=8`, `MAX_ANIMALS=3`,
+`ACTIVE_ANIMALS=["SHEEP","COW"]` all stay exactly as shipped on `5180768`.
+
+**Gate to advance:** no regression vs. the control checkpoint above, on all
+of `seeded_batch.py` / `selfplay_bench.py` (mean+stdev+floor) /
+`head_to_head.py main.py <old-main>` (self vs. a saved copy of `5180768`'s
+`main.py`, expect ~0, confirms the ledger refactor is behaviorally neutral)
+/ a real `paired_compare.py` run vs `starter` (12 seeds) once there's an
+actual candidate file. This phase is structural — "no worse" is success, not
+expected to move the bank number much.
+
+---
 
 Personal file, historically not committed on other branches (see
-`chore/env-bootstrap-v2-sync`'s pending `.gitignore` rule for `/mydocs/`,
-not yet merged to `main`). **On this branch, `causality-mapping`, it and
-the rest of `mydocs/` are deliberately committed** — this branch exists
-specifically to archive the Fix B research trail so it survives even
-though the underlying code changes did not. Read this before picking
-work back up in a new chat.
+`chore/env-bootstrap-v2-sync`'s `.gitignore` rule for `/mydocs/` — now
+also applied directly to this branch's `.gitignore`). **Correction below
+(2026-08-17, even later) overturns the very next sentence** — `mydocs/` is
+private and does not get committed from this branch either, despite what
+this paragraph originally said. Read the top section first.
 
-## Session close-out (read this first)
+## Correction — 2026-08-17, even later (read this section first — supersedes
+everything below it, including the "read this first" correction further
+down; that one is itself now superseded on two points)
+
+A live session picked this file up to reconcile it (and `CLAUDE.md`,
+`docs/ROADMAP.md`, `docs/CONCEPTS.md`) against `origin/main`, which had
+moved 6 commits ahead since the correction below was written. Two things
+from that correction are now wrong and are corrected here instead of
+edited in place, per this file's own stated convention of appending
+rather than rewriting history:
+
+- **`mydocs/` is not committed from this branch after all.** The original
+  framing above ("deliberately committed anyway") and the correction
+  below (which explicitly staged `ROADMAP.md`/`Kaggriculture_Strategic_Brief.md`/
+  `REFACTOR_GUIDE.md` with `git add -f` against the `.gitignore` rule) are
+  both superseded by explicit instruction: `mydocs/` is genuinely private,
+  full stop. The pattern for sharing something that starts in `mydocs/` is
+  to move it out first — exactly what happened with `ROADMAP.md`, which is
+  now `docs/ROADMAP.md` (moved after teammate review) and no longer lives
+  in `mydocs/` at all. This file (`HANDOFF.md`) and `mydocs/rules.md` stay
+  as local, uncommitted working notes going forward.
+- **`origin/main` is no longer at `8477dfe`; it's at `da8cdea`.** Two new
+  commits landed same-day, after the correction below was written:
+  - `3b8d36f` (Spidey) — retuned `MIN_CASH_RESERVE_FOR_SEED_BUYING` 100→450.
+    This closes the days 3-7 cash trough directly (day-5 bank $17 → $392 on
+    seed 0 vs `starter`) and resolves two things this repo had recorded as
+    settled: PR #13/#14's sub-additivity (+4,166, 24/24 head-to-head;
+    +5,389, 10/12, t=3.84 paired, vs. the trough-era +598/7-12), and the
+    second-sheep "dead end" (now +900, 8/12 vs `starter` post-fix, was
+    -19,514, 0/12 — still only t=0.61, not a clean win, but no longer a
+    heavy loss either). No `CLAUDE.md` entry exists for this fix upstream.
+  - `da8cdea` (Spidey) — added a root-level `ROADMAP.md` ("Kevin's
+    ROADMAP.md" — confirmed **byte-identical** to this branch's
+    `docs/ROADMAP.md`, i.e. the same document, not independent work),
+    `docs/REPLAY_ANALYSIS.md` (an independent verification using 2 more
+    contested-market replay episodes, different dates/teams than our
+    original 6), and `experiments/replay_shape.py`. Verdict, confirmed
+    twice now: **`BUY_LAND` and multi-animal were never real dead ends** —
+    every test we ran held crew size fixed while varying land/animals, and
+    the top of the ladder scales both together (75 tiles, 12-15 units,
+    COW+SHEEP). `da8cdea` also flagged two things in `docs/ROADMAP.md`
+    itself as stale (the §3c sub-additivity caveat, resolved by `3b8d36f`;
+    the "Us today" column, predates several changes) — both corrected in
+    this branch's copy this session (see below).
+  - Also new: two remote-only branches, `experiment/land-and-crew` (1
+    commit — `BUY_LAND` + derived crew cap + crop windows + day-10
+    liquidation, touches `main.py`+tests) and `experiment/second-animal`
+    (1 commit — `MAX_ANIMALS` 1→2). Neither is ours; not touched, just
+    logged here since they're directly testing what `docs/ROADMAP.md`
+    proposes.
+- **`ROADMAP.md` now exists at two paths with diverging content, by
+  explicit decision, not oversight.** `origin/main`'s root `ROADMAP.md`
+  (from `da8cdea`) does not yet have the two corrections above applied;
+  this branch's `docs/ROADMAP.md` does. Chose to keep both rather than
+  drop ours, since `causality-mapping` is explicitly a docs/research
+  archive branch — reconciling the two (apply the same corrections
+  upstream, or delete one) is a follow-up for whoever picks this up.
+- **This session also added correction notes directly to `CLAUDE.md`**
+  (after the `BUY_LAND is a loss` bullet and after the `MAX_ANIMALS`
+  second-sheep section) rather than only flagging the staleness here —
+  same content as the `docs/ROADMAP.md`/`da8cdea` points above, in
+  `CLAUDE.md`'s own established retraction style.
+- `mydocs/rules.md`'s `main.py:N`/`CLAUDE.md:N` pointers were stale again
+  (written against `8477dfe`; `3b8d36f` alone added ~36 lines to
+  `main.py`, and the two `CLAUDE.md` correction notes above shifted
+  everything after them). Re-pointed this session — see the file itself.
+
+**Nothing from this session is staged or committed except**
+`CLAUDE.md`, `.gitignore`, `docs/CONCEPTS.md`, and `docs/ROADMAP.md` —
+by explicit instruction, `mydocs/HANDOFF.md` and `mydocs/rules.md` stay
+local-only working-tree edits.
+
+## Correction — 2026-08-17, later (previously "read this first" —
+superseded above on the `mydocs/`-commit point and the `origin/main` tip;
+the entries themselves are left unedited as an accurate log of what was
+true at the time they were written)
+
+A repo-hygiene pass (validating `HANDOFF.md`/`ROADMAP.md`/`docs/CONCEPTS.md`
+against real current state, ahead of sharing the latter two with the team)
+found several things below are now out of date:
+
+- **`gh` is authenticated.** `gh auth status` now reports logged in as
+  `future-centaur`. The "Priority — do this first" items below about
+  running `gh auth login` are done; ignore them.
+- **PR #13 is merged**, not pending review. It landed via **PR #14**
+  (`8477dfe`), which bundled it with a second change
+  (`e8cf43e`, `MIN_MONEY_TO_HIRE` 150→20) and re-measured both together —
+  worth knowing in passing: the combination scored sub-additive
+  (**+598, 7/12**) versus #13's own isolated **+2,271, 10/12**. Not being
+  tracked as a new action item this pass; noted here so nobody re-derives
+  it from scratch. Full detail in PR #14's description on GitHub.
+- **The local `main` branch pointer was stale** (`2114390`) — `origin/main`
+  had moved 6 commits ahead to `8477dfe` and nobody had run `git fetch` on
+  this machine since. Anything below that says "current main" was written
+  against the stale pointer; treat `origin/main` as ground truth going
+  forward and re-fetch before trusting any "main tip" claim.
+- **Branch/worktree audit results** (full detail: three parallel read-only
+  investigations this session), **corrected by explicit user instruction:
+  only delete branches the user (`future-centaur`) actually authored.**
+  Checked every branch's commit authorship — the six "confirmed dead"
+  remote branches below are all teammate-authored (Stephane
+  Njoki/`Kinjuriu`, `Spidey-Acer`, `billymwangidev`), so **none of them get
+  touched, dead or not**, regardless of what the git-history audit found.
+  - User-authored, confirmed dead, safe to delete whenever: local
+    `fix/ongoing-crop-growth-days` (empty vs. main, zero unique commits);
+    worktree `fix-seed-plant-budget` (clean, its branch — `future-centaur`'s
+    PR #13 — is already merged).
+  - **User-authored, content now fully carried over onto this branch —
+    also safe to delete whenever:** `chore/env-bootstrap-v2-sync` (its
+    `/mydocs/` `.gitignore` line is now on `causality-mapping` directly —
+    see below) and `fix/tomato-fertilizer-yield-bonus` (its implementation
+    was cherry-picked in — implement/docs/revert, net zero on `main.py`,
+    full write-up with the real `FERTILIZER_YIELD_BONUS` implementation
+    detail now merged into this branch's `CLAUDE.md`). Both branches are
+    redundant now, not just dead.
+  - **Teammate-authored — do not delete regardless of staleness:**
+    `experiment/forward-pricing-crop-selection`,
+    `experiment/forward-pricing-integration`, `feat/animal-expansion-integration`,
+    `feat/fertilizer`, `feat/three-goose-animal-expansion`,
+    `research/forward-pricing-v0` (all confirmed zero unique commits ahead
+    of `origin/main`, but not this user's branches to remove).
+  - Needs inspection, don't touch: the 4 `agent-*` worktrees under
+    `.claude/worktrees/` all have **uncommitted, uninspected diffs to
+    `main.py`** pinned at the stale `2114390` tip. Pruning them now would
+    silently discard those diffs. Not resolved this session.
+  - `mydocs/rules.md`'s line-number pointers (flagged stale multiple times
+    below, never fixed) were confirmed off by 315-580 lines against
+    `origin/main`, plus two outright content errors (`ACTIVE_ANIMALS`
+    listed `["GOOSE"]`, actually `["SHEEP"]`; a reference to
+    `SELF_SUPPLY_EXPONENT`, which no longer exists in `main.py` at all).
+    Fixed this session — see the file itself. Its `CLAUDE.md:line` pointers
+    now target *this branch's own* `CLAUDE.md` (a superset of
+    `origin/main`'s after the carry-over below), not `origin/main`'s copy —
+    the file itself explains why.
+
+**Follow-up in the same session: carried the above content onto
+`causality-mapping` directly, still all uncommitted working-tree changes.**
+- `.gitignore` now has the `/mydocs/` rule. Side effect: new `mydocs/`
+  files stop showing up in plain `git status`/`git add .` on this branch,
+  since this branch deliberately commits `mydocs/` against the rule's
+  intent. `ROADMAP.md`, `Kaggriculture_Strategic_Brief.md`, and
+  `REFACTOR_GUIDE.md` were force-added (`git add -f`) so they're staged
+  and won't get silently dropped — still need an actual commit.
+- `fix/tomato-fertilizer-yield-bonus`'s three commits (implement, docs,
+  revert) were cherry-picked in. `main.py`/tests land back at exactly their
+  pre-existing content (net zero, confirmed via diff and the 118-test
+  suite still passing); `CLAUDE.md` keeps the docs commit's full write-up.
+- `CLAUDE.md` was also reconciled against `origin/main`'s own content
+  since the `2114390` merge-base (the hire-gate section, the second-sheep
+  cash-trough finding, the crew/`BUY_LAND` re-test, PR #13's three
+  dead-end variants, and the corrected "more than one animal" entry) —
+  this branch's `CLAUDE.md` is now a full superset of `origin/main`'s, plus
+  this branch's own growth_days/fertilizer-bonus write-ups. `mydocs/rules.md`
+  was re-pointed to the new line numbers (295 → 350 lines).
+- `mydocs/ROADMAP.md`'s Phase 0 line about "two pending docs-only PRs" was
+  removed by the user directly — accurate, since that content is no longer
+  pending, it's merged into this branch's `CLAUDE.md` now.
+
+None of the above changed any strategy or code — this was a docs/repo-state
+reconciliation pass only, done because `mydocs/ROADMAP.md` and
+`docs/CONCEPTS.md` are about to go to the team and needed to be checked
+against reality first. **As of this note, `causality-mapping`'s working
+tree is the fullest, most current single source of truth in the repo** —
+it has everything `origin/main` has (`CLAUDE.md`-wise; `main.py` itself is
+still deliberately untouched, matching `2114390`) plus everything from
+`chore/env-bootstrap-v2-sync` and `fix/tomato-fertilizer-yield-bonus`, plus
+its own growth_days/Fix-B research archive. Nothing has been committed or
+pushed.
+
+---
+
+## Session close-out (supersedes the "Session close-out"
+section below, which is retitled "Prior session close-out" and kept for
+history)
+
+This session picked up right after the TOMATO/STRAWBERRY investigation
+closed (see "Prior session close-out" below — unchanged, still accurate)
+and did something new: **looked outward at the competition for the first
+time**, instead of continuing to iterate on our own agent in isolation.
+
+**What happened, in order:**
+
+1. Confirmed there's no structured feature-coverage tracker anywhere in the
+   repo (checked `README.md`, `CONTRIBUTING.md`, `docs/`, `mydocs/`,
+   `docs/checkpoints/`) — closest things are the checkpoint docs' "Known
+   limitations" sections and `CLAUDE.md`'s own narrative. Parked per user
+   direction; not built this session.
+2. Read `mydocs/Kaggriculture_Strategic_Brief.md` and
+   `mydocs/REFACTOR_GUIDE.md` (both dated 2026-08-15, written before the
+   current imperative-priority-ladder `main.py` was built instead) at the
+   user's request, to assess whether the brief's scoring-engine
+   architecture is still worth adopting given how "hectic" the
+   TOMATO/STRAWBERRY patching became. Assessment: the brief's *diagnosis*
+   (this is a joint resource-allocation problem needing explicit valuation,
+   not ad-hoc thresholds) reads as more validated now, not less — but a
+   full rewrite is disproportionate given how much measured, working logic
+   already exists in `main.py`. `REFACTOR_GUIDE.md`'s own benchmark numbers
+   are also stale (predate essentially every fix in `CLAUDE.md`).
+3. Cross-referenced our own "measured dead ends" against the brief's
+   concept categories (constants/causal-links/state-relationships) —
+   conclusion: some real dead ends (TOMATO/STRAWBERRY's ongoing-crop tile
+   lifecycle, sheep's CARE-bank mechanic, melon's zero-shop-demand
+   structure) were genuine missing-concept gaps that a living concepts doc
+   would have caught faster. But at least two dead ends (daily feeding,
+   `WORK_TILES_PER_HAND`) were pure evaluation-methodology mistakes
+   (across-seed stdev instead of paired comparison), and the TOMATO/
+   STRAWBERRY saga's final lesson — a mechanically *correct* fix still lost
+   because it broke implicit compensation elsewhere in the heuristic — is a
+   real limitation of "just get the causal links right," not something a
+   concepts doc alone fixes.
+4. **The pivotal move**: pulled and analyzed six real top-ladder replay
+   episodes from the host-maintained
+   [`kaggriculture-episodes-index`](https://www.kaggle.com/datasets/kaggle/kaggriculture-episodes-index)
+   Kaggle dataset (documented in `docs/kaggriculture_context.md` §4.5 but
+   never previously used by this project). Confirmed it's real, current,
+   and cheap to sample — per-episode JSON files (~25-32MB, standard
+   `kaggle_environments` replay format) are individually downloadable
+   without pulling a whole day's ~21GB dump:
+   ```
+   kaggle datasets files kaggle/kaggriculture-episodes-<YYYY-MM-DD>
+   kaggle datasets download kaggle/kaggriculture-episodes-<YYYY-MM-DD> -f <episode_id>.json -p <dest>
+   ```
+   Also confirmed `melon_maxxer` (our long-standing "hard opponent"
+   benchmark) is just the official starter notebook's reference agent, not
+   a tuned competitor — so "beats melon_maxxer 25%+" was never actually a
+   proxy for "beats a good player."
+5. Sampled 6 episodes across **Aug 1, Aug 10, and Aug 16 (×3)** — 8 distinct
+   player pairings. Findings (detailed in `mydocs/ROADMAP.md` §1-2 and now
+   also indexed in `docs/CONCEPTS.md` §4):
+   - Final money **$71,757 – $126,015**, vs. our local ceiling of ~$28k
+     (self-play) / ~$42k (vs. built-ins).
+   - `BUY_LAND` used exactly twice, every single episode, always in the day
+     6-11 window — directly contradicts our own "BUY_LAND is a loss"
+     conclusion, which was measured only against an undersized, fixed crew.
+   - Crew scales to 10-14 hands sustained from day ~8 through ~day 27 — far
+     beyond anything we've tried.
+   - Every episode runs 2+ animal species (COW + SHEEP, sometimes + GOOSE)
+     — directly contradicts "more than one animal is a heavy loss," same
+     root cause (fixed-crew confound).
+   - Per-crop planting windows, not a global day-gated phase machine: MELON
+     only days 0-7, STRAWBERRY only days 5-12 (planted once per tile,
+     matching its "ongoing crop" tile lifecycle), CARROT only days 21-25
+     (late filler), WHEAT continuous. **TOMATO planted in zero of the 6
+     episodes** — this independently validates the just-closed
+     TOMATO/STRAWBERRY investigation's conclusion.
+   - Selling ramps hard from day ~10 and stays heavy (15-48 orders/day)
+     straight through day 29 — no day-22 "liquidation" discontinuity, which
+     argues against ever building a rigid `SETUP→GROWTH→LIQUIDATE` global
+     state machine like the Strategic Brief proposed.
+   - 5 of the 6 episodes were near-identical down to exact unit counts
+     across unrelated player names — most of the top of the ladder is very
+     likely running one dominant shared strategy (a widely forked public
+     notebook), not diverse independent approaches.
+6. Wrote `mydocs/ROADMAP.md` — an architecture roadmap built from both
+   evidence sources above, framed per explicit user instruction as
+   **prescriptive, not a critique**: for each past failure mode, it shows
+   the code structure that would make that class of bug unreachable,
+   paired with the evidence that the structure is aimed at the right
+   target (the user was explicit mid-session that structure is necessary
+   but not sufficient — evidence still has to justify where a given
+   structural choice points). Read that file for the actual phase sequence
+   (0 through 7) before starting any new PR.
+7. Created `docs/CONCEPTS.md` — a living structured reference (constants,
+   causal links, synergies/anti-synergies, evaluation discipline, and the
+   replay-derived target shape), seeded from the Strategic Brief's §3
+   skeleton but corrected against everything actually measured/traced in
+   `CLAUDE.md` plus this session's replay findings. Lives in `docs/` (not
+   `mydocs/`) because it's meant to be a permanent, continuously-updated
+   team reference — same role as `docs/ARCHITECTURE.md` and
+   `docs/CHECKPOINTS.md`. Recommended and created based on: at least four
+   mechanics this project already paid real cost to discover (ongoing-crop
+   tile lifecycle, CARE-bank timing, melon's shop-demand structure, the
+   plant-request-drop-on-oversupply rule) were previously indexed nowhere.
+
+**Nothing was committed this session.** `mydocs/ROADMAP.md`,
+`docs/CONCEPTS.md`, and this `HANDOFF.md` update are all working-tree
+changes on `causality-mapping`, pending explicit user go-ahead per standing
+commit-approval practice.
+
+### Priority — do this first next session
+
+1. **`gh auth login` is still pending** (carried over from before — untouched
+   this session; see "Prior session close-out" below for why it's blocked
+   headless). Confirm with `gh pr view 13 --repo Kinjuriu/washamba_bots`
+   once done.
+2. **Review `mydocs/ROADMAP.md` and greenlight which phase to start on.**
+   Phase 0 (merge PR #13, land the two pending docs-only PRs, freeze V3) is
+   pure housekeeping and doesn't need much discussion. Phase 1-3 (shared
+   hiring/wheat ledger → derived crew size → bundled land+animal re-test)
+   is where the actual strategy-content work begins and should be discussed
+   before starting.
+3. Decide whether/when to commit `mydocs/ROADMAP.md`, `docs/CONCEPTS.md`,
+   and this `HANDOFF.md` update — currently just working-tree changes.
+
+---
+
+## Prior session close-out (2026-08-17, earlier — superseded above for
+priority ordering, but still accurate and unchanged)
 
 Took the retry-2 assessment's own recommended "legitimate next step" —
 fix `growth_days` for ongoing crops (TOMATO/STRAWBERRY) to reflect real
@@ -53,7 +826,7 @@ gate), and a deeper diagnostic found a plausible root cause: TOMATO's
 real tile-occupancy is ~12 days, not the 8 the score formula assumes,
 because it's an "ongoing" crop that decays into a WEED after its last
 tick instead of clearing on harvest. `mydocs/FIX_B_RETRY_2_ASSESSMENT.md`
-recommended fixing `growth_days` instead of boosting TOMATO further —
+recommended fixing `growth_days` instead of boosting TOMATO further -
 that recommendation has now been tried and also failed, see above.
 
 ## Priority — do this first, before anything else next session
@@ -167,7 +940,7 @@ code), couldn't run it headless this session. Run it yourself next time
 Implemented, tested, and measured against current `main` tip (`2114390`)
 this session, on branch `fix/tomato-fertilizer-yield-bonus` (pushed to
 origin). Full writeup is now in `CLAUDE.md`'s "Measured dead ends"
-section — short version:
+section - short version:
 
 - Added `FERTILIZER_YIELD_BONUS = {"TOMATO": 1.0}` + `has_active_fertilizer_source(farm)`
   (gated on a placed/filled sheep, not held stock — see the CLAUDE.md
