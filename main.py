@@ -2201,7 +2201,16 @@ def nikaangukia_meroni(obs):
         market = decide_land_orders(farm, day)
         market += decide_hire_orders(farm, board_size, day, hour, seeds)
         filled_animals, _ = scan_animal_structures(farm, board_size)
-        reserved_wheat = filled_animals * MIN_WHEAT_RESERVE_FOR_FEEDING
+        # Animals we own but have not placed yet still have to eat the moment
+        # they land, and placement lags purchase by a build/pickup/place round
+        # trip. Reserving against PLACED animals only means the sell loop can
+        # dump the very wheat just bought to feed them - measured directly while
+        # testing the opening book in #32: BUY_PRODUCT WHEAT 6 at hour 1,
+        # SELL WHEAT 6 at hour 2, with four animals sitting in inventory.
+        reserved_wheat = (
+            count_owned_animals(farm, private, board_size)
+            * MIN_WHEAT_RESERVE_FOR_FEEDING
+        )
         market += decide_market_actions(
             farm,
             private,
