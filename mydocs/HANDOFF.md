@@ -1,7 +1,88 @@
-# Session handoff — 2026-08-19, latest (read this section first —
-supersedes the "Next session: implement Phase 3" instructions below, which
-are now done; everything below stays as accurate history of what was true
-when written)
+# Session handoff — 2026-08-19, even later (read this section first —
+supersedes the Phase 3 section below only on "what to do next"; that
+section's own content is unchanged and accurate)
+
+## This session: ran the Step 0 diagnostic from `mydocs/experiment
+retest-animal-feed-scaling-on-phase3.md` — gate does not clear, stopped
+before Step 1
+
+Branched `experiment/retest-animal-feed-scaling-on-phase3` off Phase 3's tip
+(`11d6dcc`). The retest doc's own Step 0 asks one question before touching
+any code: does Phase 3's land-funded, reserve-gated animal economy already
+sit on healthier cash through the days 0-10 trough than the pre-Phase-3
+`main.py` PR #32 (open, unmerged, `experiment/herd-feed-buffer`) measured
+against when it found every single-constant animal-feed fix collapsing the
+bank to $10-$331? If not, there's no basis to expect a different result from
+re-testing PR #32's three prerequisites now, and the honest move is to
+report that rather than re-run a known failure.
+
+**It does not clear, and it's not close.** Ported `experiments/
+animal_timeline.py` (PR #32's own diagnostic tool - a replay-JSON reader, not
+a live-run harness) from `origin/experiment/herd-feed-buffer`, generated
+seed 0/1/2 replays of current `main.py` vs `starter` (throwaway, not
+committed), and read the day-by-day cash column:
+
+| day | seed 0 | seed 1 | seed 2 |
+|---|---|---|---|
+| 3 | $168 | $171 | $171 |
+| 4 | $75 | $81 | $81 |
+| 5 | $11 | $19 | $19 |
+| 6 | $11 | $19 | $19 |
+| 7 | $11 (recovers to $1,055 same day) | $19 (-> $1,064) | $19 (-> $1,160) |
+| 8 | $475 | **$3** | $64 |
+
+The floor is **$11-$19** across all three seeds, deterministic through day 7
+(seed only starts differentiating around day 8) - the same trough PR #32
+recorded at ~$17, not meaningfully higher, and seed 1 dips even lower ($3) a
+day later. Mechanism, read directly off the trace: all four animals get
+bought in one shot on day 0 (`SHEEx2 COWx2`, hitting `MAX_ANIMALS=4`
+immediately), taking cash straight to $433 before the trough even starts -
+`MIN_CASH_RESERVE_FOR_ANIMAL_BUYING=450` is a per-purchase floor, not a
+running one, so it does nothing to protect the days that follow. `BUY_LAND`
+doesn't touch this window either - land buys land on days 8-9 and 11 in all
+three traces, strictly *after* the trough has already bottomed out and started
+recovering (cash is back above $1,000 by day 7-9 before the first `BUY_LAND`
+fires). Phase 3's two changes and this trough are simply non-overlapping in
+time; there was never a mechanism by which they could have helped it.
+
+**Per the doc's own explicit gate, stopped here.** Did not implement or
+measure PR #32's per-animal wheat buffer (Step 1) - re-testing it now would
+be re-running a change against the identical crop-first cash mechanics PR #32
+already falsified it against, with literally no new variable in the window
+that matters. `docs/ANIMAL_ECONOMY.md`'s (PR #32's) own conclusion stands
+unweakened: **this needs an opening book (a scripted first-days sequence that
+tolerates day-3 poverty on purpose), not another constant** - and Phase 3
+didn't create or remove that need, because it doesn't touch this trough.
+
+**Nothing committed.** `experiments/animal_timeline.py` (ported, kept - it's
+generically useful, reusable diagnostic tooling, not the throwaway part) is a
+new untracked file on `experiment/retest-animal-feed-scaling-on-phase3`; the
+three generated replay JSONs and the one-off generator script used to
+produce them were deleted after reading, per this repo's "don't commit
+replay JSONs" convention. `main.py` is untouched. Pending explicit go-ahead
+before committing anything, per this project's standing practice.
+
+## Next session, if picking this up
+
+The retest doc's Step 1-3 (per-animal wheat buffer, parallel pens,
+herd-fertilizer-first) are now known to not be worth trying as isolated
+constant changes on Phase 3 either, for the same reason they weren't worth
+trying on pre-Phase-3 `main` - nothing about Phase 3 changes the mechanism.
+If this is revisited, the actual next step is what PR #32/`docs/
+ANIMAL_ECONOMY.md` names: design an explicit opening book (a scripted first
+2-3 days, before the normal priority ladder takes over, that buys pens and
+animals out of the starting stake and deliberately tolerates a poor crop
+economy through day 3-10) - and PR #32 already tried a first pass at that on
+pre-Phase-3 `main` and documented exactly where it broke (order-within-turn
+sequencing, feed outranking the seed reserve, the sell-side reserve counting
+*placed* vs *owned* animals, pens serialising against a fresh guard). Read
+`docs/ANIMAL_ECONOMY.md`'s "opening book was tried" section in full before
+starting - it is the most detailed the failure story around this table gets.
+
+---
+
+# Session handoff — 2026-08-19, latest (superseded above only on
+"what to do next" - this section's own content is unchanged and accurate)
 
 ## This session: implemented Phase 3 (bundled land + second-animal re-test)
 
