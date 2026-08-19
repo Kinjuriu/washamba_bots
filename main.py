@@ -456,16 +456,19 @@ PLANTABLE_CROPS = ["WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON"]
 # simple, per-product thresholds so the team can tune them independently
 # as we learn more about how each product's price tends to move.
 # Any product not listed here falls back to DEFAULT_SELL_THRESHOLD.
+# Halved alongside the land/crew/animal build: a 75-tile farm with four animals
+# produces more than the old thresholds could clear, and unsold inventory scores
+# nothing. Holding out for the old prices left produce in the shed at turn 720.
 SELL_PRICE_THRESHOLDS = {
-    "WHEAT": 20,
-    "CARROT": 25,
-    "TOMATO": 40,
-    "STRAWBERRY": 90,
-    "MELON": 180,
-    "EGG": 35,
-    "WOOL": 140,
+    "WHEAT": 10,
+    "CARROT": 12,
+    "TOMATO": 20,
+    "STRAWBERRY": 45,
+    "MELON": 90,
+    "EGG": 17,
+    "WOOL": 70,
 }
-DEFAULT_SELL_THRESHOLD = 50
+DEFAULT_SELL_THRESHOLD = 25
 
 # MILK is deliberately absent, and that was checked rather than assumed.
 # Adding a new species normally needs its own threshold and per-turn cap or
@@ -497,7 +500,7 @@ MAX_SELL_PER_TURN = {
 # threshold, right up until it overflows and evaporates for free. Once the
 # shed gets this full, force a sale regardless of price - a mediocre sale
 # beats a guaranteed $0.
-SHED_FORCE_SELL_THRESHOLD = 70
+SHED_FORCE_SELL_THRESHOLD = 40
 
 # Anything still sitting in the shed when the season ends is worth exactly
 # nothing - there is no scoring credit for inventory, only for bank balance.
@@ -518,7 +521,7 @@ SHED_FORCE_SELL_THRESHOLD = 70
 # head-to-head number is the one that predicts it (experiments/head_to_head.py).
 #
 # Swept 13/16/19/21/23/25/27: 19 is an interior peak, not an edge effect.
-LIQUIDATION_START_DAY = 19
+LIQUIDATION_START_DAY = 10
 
 # ---------------------------------------------------------------------
 # Seed buying
@@ -634,7 +637,7 @@ FERTILIZER_LAST_USEFUL_DAY = 24
 # Cumulative day cost by crew size: 4 hands $7, 6 hands $20, 8 hands $54.
 # Even eight is under $1,700 for a full season, which is small against the
 # extra tiles they keep alive.
-MAX_HANDS_PER_DAY = 8
+MAX_HANDS_PER_DAY = 15
 
 # Hands are cleared at the end of every day and must be re-hired each
 # morning, so hire in the first few turns - a hand bought at hour 20 costs
@@ -743,7 +746,14 @@ ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a i
 # and three sheep the market ends BELOW the 10,000 baseline (9,822 / 9,855 /
 # 9,743) at a price ABOVE the $200 base (244 / 243 / 248), with nothing left
 # unsold. The town eats wool faster than three sheep can make it.
-MAX_ANIMALS = 3
+MAX_ANIMALS = 4
+# Four, not more, and this is a cliff rather than a dial. Measured on the land
+# build against main.py, seeds 0-2, everything else fixed: 2 -> 48,345 (1/3),
+# 3 -> 50,796 (2/3), 4 -> 65,640 (3/3), 5 -> 356 (0/3). Five does not degrade,
+# it collapses - the days 3-7 trough empties, there is no money for feed, and
+# the whole herd starves and escapes. The top-ladder replays run 8-9, so
+# whatever sustains that herd is something we have not identified yet; do not
+# reach for their number without finding it first.
 
 # Never buy an animal that eats more than this fraction of current cash in
 # one shot - same reasoning as SEED_SPEND_CAP_FRACTION.
@@ -1354,6 +1364,39 @@ def count_pending_work(farm, board_size, day, seeds=None):
             elif tile is None and have_any_seed:
                 work += 1
     return work
+
+
+LAND_PRICES = [1000, 2000, 4000]     # engine kaggriculture.py:96-97
+LAND_BUY_DAYS = [6, 11]              # two quadrants only, 25 tiles -> 75
+LAND_CASH_RESERVE = 450              # never re-open the days 3-7 trough
+
+
+def decide_land_orders(farm, day):
+    """Buy the next quadrant as a ["BUY_LAND"] order, or nothing.
+
+    Two purchases, not three: every top-ladder episode sampled buys the $1,000
+    and the $2,000 and never the $4,000 third (docs/REPLAY_ANALYSIS.md).
+
+    The day gates track when the money actually exists rather than an arbitrary
+    schedule - peak bank is ~$350 on day 6, ~$1,379 on day 7 and ~$19,600 on
+    day 11 - which is why the sampled replays buy on days 6-7 and 11.
+
+    LAND_CASH_RESERVE is the same lesson as MIN_CASH_RESERVE_FOR_SEED_BUYING:
+    a purchase that empties the early-season trough starves the animals, and
+    land is worth far less than a live herd.
+
+    Land on its own is a loss - it was measured as one, twice. It only pays
+    alongside the crew to tend it and the animals to use it, which is why this
+    ships as one change and not four.
+    """
+    bought = len(farm.get("unlocked_quadrants") or ["NW"]) - 1
+    if bought >= len(LAND_BUY_DAYS) or day < LAND_BUY_DAYS[bought]:
+        return []
+    if remaining_season_days(day) < 8:
+        return []  # no season left to grow anything on it
+    if farm.get("money", 0) < LAND_PRICES[bought] + LAND_CASH_RESERVE:
+        return []
+    return [["BUY_LAND"]]
 
 
 def decide_hire_orders(farm, board_size, day, hour, seeds=None):
@@ -2155,7 +2198,8 @@ def nikaangukia_meroni(obs):
         # silently dropped if we ever brush the per-turn cap. Animal orders
         # go last - buying one or topping up feed reserve is less
         # time-critical turn-to-turn than hiring or selling at a good price.
-        market = decide_hire_orders(farm, board_size, day, hour, seeds)
+        market = decide_land_orders(farm, day)
+        market += decide_hire_orders(farm, board_size, day, hour, seeds)
         filled_animals, _ = scan_animal_structures(farm, board_size)
         reserved_wheat = filled_animals * MIN_WHEAT_RESERVE_FOR_FEEDING
         market += decide_market_actions(
