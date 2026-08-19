@@ -521,7 +521,7 @@ SHED_FORCE_SELL_THRESHOLD = 40
 # head-to-head number is the one that predicts it (experiments/head_to_head.py).
 #
 # Swept 13/16/19/21/23/25/27: 19 is an interior peak, not an edge effect.
-LIQUIDATION_START_DAY = 10
+LIQUIDATION_START_DAY = SEASON_DAYS + 1
 
 # ---------------------------------------------------------------------
 # Seed buying
@@ -1668,6 +1668,119 @@ def seed_restock_quantity(crop, farm, private):
     return quantity
 
 
+
+# ---------------------------------------------------------------------
+# Sell-or-hold cadence (@Kinjuriu, experiment/pricing-cadence-v1)
+#
+# Replaces two blunt instruments at once: a fixed per-product price floor,
+# and LIQUIDATION_START_DAY's hard cliff. Instead of "is the spot price above
+# a number I picked", it asks "is selling now worth more than holding, given
+# the engine's own price decay, our pipeline, the opponent's visible pipeline
+# and the town demand still to arrive". Urgency then ramps continuously as the
+# season runs out, which is what the ladder replays show - no day-22 cliff.
+#
+# Ported onto the current agent because the branch it lives on predates land:
+# every one of its candidates loses 0/3 head to head purely on acreage, which
+# says nothing about whether the selling model is right.
+# ---------------------------------------------------------------------
+SELL_HORIZON_DAYS = 3
+INVENTORY_PRESSURE_WEIGHT = 1.0
+CADENCE_URGENCY_PRICE_WEIGHT = 0.6
+CADENCE_URGENCY_CAP_WEIGHT = 1.0
+
+
+def estimate_sell_or_hold_value(
+    item,
+    quantity,
+    inventory,
+    day,
+    pipeline_supply=0,
+    opponent_pipeline_supply=0,
+    unlocked_shops=(),
+    start_step=None,
+    horizon_days=SELL_HORIZON_DAYS,
+):
+    """
+    Compare selling `quantity` units of `item` right now against holding
+    them for `horizon_days` more days, using the same deterministic price
+    model choose_crop() already relies on - no financial futures-curve
+    assumption, just the engine's own mechanics run forward from the
+    current state.
+
+        value_now  = revenue from price_path_for_sale() at the current
+                     inventory - this turn's real per-unit price decay,
+                     not just the spot price.
+        value_hold = quantity * estimate_future_price()'s forecast at
+                     the horizon, given our own pipeline and the
+                     opponent's visible pipeline landing in between, and
+                     town demand draining the market in between.
+
+    Pure and deterministic - same inputs, same answer, no I/O. Returns a
+    dict distinguishing value_now / value_hold (total and per-unit) and
+    `hold_is_better`.
+    """
+    if start_step is None:
+        start_step = day * TURNS_PER_DAY
+
+    if quantity <= 0:
+        return {
+            "value_now": 0.0,
+            "value_hold": 0.0,
+            "value_now_per_unit": 0.0,
+            "value_hold_per_unit": 0.0,
+            "hold_is_better": False,
+        }
+
+    now = price_path_for_sale(item, inventory, quantity)
+    value_now = float(sum(now["prices"]))
+
+    forecast = estimate_future_price(
+        item,
+        inventory,
+        turns_ahead=horizon_days * TURNS_PER_DAY,
+        our_pipeline_supply=pipeline_supply,
+        opponent_pipeline_supply=opponent_pipeline_supply,
+        unlocked_shops=unlocked_shops,
+        start_step=start_step,
+    )
+    value_hold_per_unit = float(forecast["future_price"])
+    value_hold = value_hold_per_unit * quantity
+
+    return {
+        "value_now": value_now,
+        "value_hold": value_hold,
+        "value_now_per_unit": value_now / quantity,
+        "value_hold_per_unit": value_hold_per_unit,
+        "hold_is_better": value_hold > value_now,
+    }
+
+
+def inventory_pressure(item, shed_quantity, pipeline_supply, remaining_days):
+    """
+    How much of `item` we're carrying relative to what we could plausibly
+    still move before season end, at this product's own per-turn cap and
+    roughly one selling opportunity a day. >=1 means we are structurally
+    overcommitted - even selling flat-out every remaining day at the cap
+    would not clear it in time. Products with no listed per-turn cap
+    (MAX_SELL_PER_TURN only lists the ones that need one) get a generous
+    synthetic ceiling instead of an unbounded one, so pressure is ~0
+    unless the pile is genuinely enormous.
+    """
+    cap = MAX_SELL_PER_TURN.get(item, 10_000)
+    capacity = max(1, cap * max(1, remaining_days))
+    carried = shed_quantity + pipeline_supply
+    return carried / capacity
+
+
+def cadence_urgency(day):
+    """
+    0 at day 0, rising smoothly toward 1 as the season ends - the
+    continuous replacement for LIQUIDATION_START_DAY's hard switch.
+    Matches the replay evidence of no day-22 selling cliff
+    (docs/REPLAY_ANALYSIS.md): urgency should ramp, not flip.
+    """
+    return min(1.0, max(0.0, day) / (SEASON_DAYS - 1))
+
 def decide_market_actions(
     farm, private, market_state, day, reserved_wheat=0, unlocked_shops=(), start_step=None,
     opponent_pipeline=None,
@@ -1683,7 +1796,16 @@ def decide_market_actions(
     inventory = market_state.get("inventory", {})
     liquidating = day >= LIQUIDATION_START_DAY
 
+    pipeline = count_pipeline_supply(farm, private)
+
     for product, quantity in shed.items():
+        # The shed also holds animals awaiting placement, which are not market
+        # products at all. should_sell()'s dict .get() no-opped on those;
+        # estimate_sell_or_hold_value() calls market_price() unconditionally
+        # and would raise, so the guard has to be explicit here.
+        if product not in MARKET_PARAMS:
+            continue
+
         # Fertilizer is an input, not produce - and with a Goose on the farm
         # it arrives free via COLLECT_FERTILIZER. Its price clears the default
         # sell threshold comfortably, so without this guard the agent dumps
@@ -1705,9 +1827,12 @@ def decide_market_actions(
 
         # Near the end of the season, price thresholds stop mattering:
         # unsold stock scores nothing, so any sale beats holding out.
-        if sell_quantity > 0 and (
-            liquidating or should_sell(product, sell_quantity, market_state)
-        ):
+        # The sell/hold decision is now the model's, not should_sell()'s: a
+        # fixed per-product floor cannot know whether this particular pile,
+        # against this much pipeline and this much remaining demand, is worth
+        # more sold now or held. should_sell() stays in the module for the
+        # tests and the shed-overflow valve below.
+        if sell_quantity > 0:
             # FORWARD-PRICING EXPERIMENT: the *quantity* sold this turn now
             # comes from recommend_sell_quantity() (pricing.py) instead of a
             # blind min(sell_quantity, cap). It walks the same per-unit price
@@ -1721,15 +1846,44 @@ def decide_market_actions(
             # only bar there, which makes this numerically identical to the
             # old min(sell_quantity, cap) in that mode (see
             # experiments/forward_pricing_experiment.py's report).
+            stock = inventory.get(product, 10000)
             cap = MAX_SELL_PER_TURN.get(product, quantity)
-            min_price = (
-                PRICE_FLOOR
-                if liquidating
-                else SELL_PRICE_THRESHOLDS.get(product, DEFAULT_SELL_THRESHOLD)
+
+            # What holding for SELL_HORIZON_DAYS is worth per unit, forecast
+            # with the engine's own decay against our pipeline, the opponent's
+            # visible pipeline, and the town demand still to arrive.
+            sh = estimate_sell_or_hold_value(
+                product,
+                sell_quantity,
+                stock,
+                day,
+                pipeline_supply=pipeline.get(product, 0),
+                opponent_pipeline_supply=(opponent_pipeline or {}).get(product, 0),
+                unlocked_shops=unlocked_shops,
+                start_step=start_step,
             )
+            min_price = sh["value_hold_per_unit"]
+
+            # A pile bigger than the season can absorb lowers the bar: holding
+            # out for a peak is a bad bet when the stock cannot move in time
+            # at any price.
+            pressure = inventory_pressure(
+                product, quantity, pipeline.get(product, 0), remaining_season_days(day)
+            )
+            min_price = min_price / (1 + INVENTORY_PRESSURE_WEIGHT * pressure)
+
+            # Continuous replacement for LIQUIDATION_START_DAY's cliff -
+            # urgency ramps as the season runs out, lowering the accepted price
+            # and raising the per-turn cap together instead of flipping both on
+            # one fixed day.
+            urgency = cadence_urgency(day)
+            min_price = min_price * (1 - CADENCE_URGENCY_PRICE_WEIGHT * urgency)
+            cap = max(1, round(cap * (1 + CADENCE_URGENCY_CAP_WEIGHT * urgency)))
+            min_price = PRICE_FLOOR if liquidating else max(PRICE_FLOOR, min_price)
+
             amount = recommend_sell_quantity(
                 product,
-                inventory.get(product, 10000),
+                stock,
                 sell_quantity,
                 min_acceptable_price=min_price,
                 max_per_turn=cap,
