@@ -23,18 +23,21 @@ from main import (
     MIN_CASH_RESERVE_FOR_SEED_BUYING,
     SEASON_DAYS,
     WHEAT_CARRY_BATCH,
+    WORK_TILES_PER_HAND,
     carried_animal,
     choose_animal_to_build,
     choose_crop,
     choose_farmer_action,
     choose_unit_action,
     count_owned_animals,
+    count_pending_work,
     decide_animal_market_actions,
     decide_hire_orders,
     decide_market_actions,
     has_plantable_seed,
     is_harvestable,
     is_shed_adjacent,
+    max_hands_ceiling,
     nearest_shed_tile,
     nikaangukia_meroni,
     pick_next_animal_species,
@@ -788,6 +791,87 @@ class TestHireDecision(unittest.TestCase):
         farm = self._farm(tiles=self._work_tiles(100), money=100, hires_today=0)
         orders = decide_hire_orders(farm, 100, day=5, hour=0, seeds={})
         self.assertEqual(orders, [["HIRE"]] * 3)
+
+
+class TestDerivedCrewSize(unittest.TestCase):
+    """
+    Phase 2: crew size should be derived from live tile/animal state, not
+    a stale constant - see main.py's max_hands_ceiling() and the
+    animal-upkeep branch in count_pending_work().
+    """
+
+    def _farm(self, tiles):
+        return {"tiles": tiles, "unlocked_quadrants": ["NW"]}
+
+    def _animal_tile(self, **overrides):
+        tile = {
+            "kind": TEST_STRUCTURE,
+            "animal": TEST_ANIMAL,
+            "fed_today": True,
+            "cared_today": True,
+            "yield_units": 0,
+            "fertilizer_available": False,
+        }
+        tile.update(overrides)
+        return tile
+
+    def test_unfed_animal_tile_counts_as_pending_work(self):
+        farm = self._farm([[self._animal_tile(fed_today=False)]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 1)
+
+    def test_uncared_animal_tile_counts_as_pending_work(self):
+        farm = self._farm([[self._animal_tile(cared_today=False)]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 1)
+
+    def test_fertilizer_ready_animal_tile_counts_as_pending_work(self):
+        farm = self._farm([[self._animal_tile(fertilizer_available=True)]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 1)
+
+    def test_harvest_ready_animal_tile_counts_as_pending_work(self):
+        max_held = ANIMALS[TEST_ANIMAL].get("max_held", 1)
+        farm = self._farm([[self._animal_tile(yield_units=max_held)]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 1)
+
+    def test_fully_tended_animal_tile_is_not_pending_work(self):
+        farm = self._farm([[self._animal_tile()]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 0)
+
+    def test_unfilled_structure_is_not_pending_work(self):
+        farm = self._farm([[{"kind": TEST_STRUCTURE}]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 0)
+
+    def test_ceiling_never_drops_below_the_old_flat_cap(self):
+        # A small board still floors at MAX_HANDS_PER_DAY - no regression
+        # against the constant this replaces as the sole cap.
+        farm = self._farm([[None]])
+        self.assertGreaterEqual(max_hands_ceiling(farm, 1), MAX_HANDS_PER_DAY)
+
+    def test_ceiling_grows_with_more_unlocked_tiles(self):
+        small = self._farm([[None] * 4])
+        big = self._farm([[None] * 400])
+        self.assertGreater(
+            max_hands_ceiling(big, 400), max_hands_ceiling(small, 4)
+        )
+
+    def test_ceiling_grows_with_more_animal_structures(self):
+        # Enough unlocked tiles that the tile term alone already exceeds
+        # the floor, so adding animal structures on top is visible.
+        board_size = 400
+        no_animals = self._farm([[None] * board_size])
+        with_animals = self._farm(
+            [[self._animal_tile() for _ in range(10)] + [None] * (board_size - 10)]
+        )
+        self.assertGreater(
+            max_hands_ceiling(with_animals, board_size),
+            max_hands_ceiling(no_animals, board_size),
+        )
+
+    def test_locked_tiles_do_not_count_toward_the_ceiling(self):
+        unlocked = self._farm([[None] * 40])
+        locked = self._farm([["LOCKED"] * 40])
+        self.assertGreater(
+            max_hands_ceiling(unlocked, 40), max_hands_ceiling(locked, 40)
+        )
 
 
 class TestHandCoordination(unittest.TestCase):

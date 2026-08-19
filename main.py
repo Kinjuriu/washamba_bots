@@ -634,6 +634,11 @@ FERTILIZER_LAST_USEFUL_DAY = 24
 # Cumulative day cost by crew size: 4 hands $7, 6 hands $20, 8 hands $54.
 # Even eight is under $1,700 for a full season, which is small against the
 # extra tiles they keep alive.
+#
+# This is now a floor, not the ceiling itself - see max_hands_ceiling(),
+# which derives the real cap from live unlocked-tile/animal-structure
+# count so it scales automatically once land or animal count changes,
+# instead of staying a stale constant (docs/ROADMAP.md's Phase 2).
 MAX_HANDS_PER_DAY = 8
 
 # Hands are cleared at the end of every day and must be re-hired each
@@ -1343,14 +1348,44 @@ def decide_animal_market_actions(farm, private, board_size, day):
 # Labour
 # ---------------------------------------------------------------------
 
+def _animal_tile_needs_attention(tile, day):
+    """
+    Does this placed animal need a unit's attention today - the same
+    single-unit-of-work granularity count_pending_work gives a PLANT tile
+    (one work unit whether it needs watering or harvesting, not one per
+    action). Mirrors the FEED/CARE/HARVEST/COLLECT_FERTILIZER predicates
+    choose_unit_action's priority ladder already reads for a real decision
+    (main.py:1936-1974) - reused here rather than re-derived, so the two
+    never drift apart on what "needs attention" means.
+    """
+    if not tile.get("fed_today"):
+        return True
+    if not tile.get("cared_today"):
+        return True
+    if tile.get("fertilizer_available"):
+        return True
+    animal = ANIMALS.get(tile.get("animal"), {})
+    max_held = animal.get("max_held", 1)
+    held = tile.get("yield_units", 0)
+    if held >= max_held:
+        return True
+    if held > 0 and (held >= max_held - 2 or day >= SEASON_DAYS - 2):
+        return True
+    return False
+
+
 def count_pending_work(farm, board_size, day, seeds=None):
     """
     How many tiles currently need a unit standing on them: a ripe crop to
-    pick, a thirsty crop to water, a weed to dig, or plantable ground we
-    hold a usable seed for.
+    pick, a thirsty crop to water, a weed to dig, plantable ground we hold
+    a usable seed for, or a placed animal due for feed/care/harvest today.
 
     This is the demand side of the hiring decision - hire against real
-    work, not against a fixed schedule.
+    work, not against a fixed schedule. Animal upkeep is counted here (not
+    just tile work) so crew size can scale with animal count too, per
+    docs/ROADMAP.md's Phase 2: a fixed hand cap tested against a fixed
+    animal count is exactly the confound that made "more than one animal"
+    look like a dead end.
     """
     seeds = seeds or {}
     tiles = farm.get("tiles") or []
@@ -1368,9 +1403,47 @@ def count_pending_work(farm, board_size, day, seeds=None):
                         work += 1
                 elif kind == "WEED":
                     work += 1
+                elif kind in ANIMAL_STRUCTURE_KINDS:
+                    if "animal" in tile and _animal_tile_needs_attention(tile, day):
+                        work += 1
             elif tile is None and have_any_seed:
                 work += 1
     return work
+
+
+def max_hands_ceiling(farm, board_size):
+    """
+    A scaling safety ceiling for decide_hire_orders's `wanted` quota,
+    replacing the flat MAX_HANDS_PER_DAY constant as the sole cap. Derived
+    from currently unlocked tile count (each one potentially needing a
+    hand's attention) plus one allowance per built animal structure,
+    divided by WORK_TILES_PER_HAND - the same ratio that already sets real
+    crew size (see WORK_TILES_PER_HAND's comment: the ratio, not the cap,
+    is the knob that binds).
+
+    Floored at MAX_HANDS_PER_DAY rather than replacing it outright, so a
+    small board can never end up with a *lower* ceiling than today's
+    shipped behaviour - this makes the ceiling scale upward automatically
+    once a later phase buys land or raises MAX_ANIMALS, instead of staying
+    a stale constant someone has to remember to bump by hand. That stale-
+    constant confound is exactly what made every earlier BUY_LAND/
+    multi-animal test misleading (CLAUDE.md, docs/ROADMAP.md §3b): crew
+    size was held fixed while land or animals were varied.
+    """
+    tiles = farm.get("tiles") or []
+    unlocked_tiles = 0
+    animal_structures = 0
+    for y in range(board_size):
+        row = tiles[y] if y < len(tiles) else []
+        for x in range(len(row)):
+            tile = row[x]
+            if tile == "LOCKED":
+                continue
+            unlocked_tiles += 1
+            if isinstance(tile, dict) and tile.get("kind") in ANIMAL_STRUCTURE_KINDS:
+                animal_structures += 1
+    derived = (unlocked_tiles + animal_structures) // WORK_TILES_PER_HAND
+    return max(MAX_HANDS_PER_DAY, derived)
 
 
 def decide_hire_orders(farm, board_size, day, hour, seeds=None):
@@ -1401,7 +1474,7 @@ def decide_hire_orders(farm, board_size, day, hour, seeds=None):
         return []
 
     work = count_pending_work(farm, board_size, day, seeds)
-    wanted = min(MAX_HANDS_PER_DAY, work // WORK_TILES_PER_HAND)
+    wanted = min(max_hands_ceiling(farm, board_size), work // WORK_TILES_PER_HAND)
     already_working = len(farm.get("hands") or [])
     shortfall = min(max(0, wanted - already_working), MAX_HIRES_PER_TURN)
 
