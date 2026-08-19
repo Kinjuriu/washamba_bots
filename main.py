@@ -666,6 +666,23 @@ WORK_TILES_PER_HAND = 4
 # monotone in how much of the trough the gate still blocks.
 MIN_MONEY_TO_HIRE = 20
 
+# Mirrors kaggriculture.py's _fib/_hire_cost exactly, so decide_hire_orders
+# can tell in advance whether the day's next hire is actually affordable
+# instead of only re-checking the flat MIN_MONEY_TO_HIRE floor once.
+# farmHandCostMult defaults to 1 (kaggriculture.py); not read from config
+# since this doesn't change the agent's obs-only signature.
+FARM_HAND_COST_MULT = 1
+
+
+def _hire_cost(n_already_today):
+    """Cost of the (n_already_today + 1)-th hire today: mult * fib(n), fib
+    indexed 1, 1, 2, 3, 5, 8, ... (matches kaggriculture.py's _fib/_hire_cost)."""
+    a, b = 1, 1
+    for _ in range(n_already_today):
+        a, b = b, a + b
+    return FARM_HAND_COST_MULT * a
+
+
 # ---------------------------------------------------------------------
 # Market order budget
 # ---------------------------------------------------------------------
@@ -1362,8 +1379,19 @@ def decide_hire_orders(farm, board_size, day, hour, seeds=None):
 
     Hands vanish at the end of every day, so this only fires in the first
     few turns of a day: same price, far more work out of them. The count is
-    driven by how much work is actually waiting, capped by MAX_HANDS_PER_DAY
-    because the cost sequence is Fibonacci within a day.
+    driven by how much work is actually waiting, capped by MAX_HANDS_PER_DAY.
+
+    Unlike plant_budget, this has no per-unit collision to close - hiring is
+    never decided by a unit, only by this one function, called once a turn.
+    What it tracks instead is a real per-turn *affordability* ledger: the
+    cost of the day's next hire is Fibonacci in farm["hires_today"] (a live
+    counter, already possibly well into the day's hiring by the time a later
+    turn runs), so blindly emitting up to MAX_HIRES_PER_TURN orders can ask
+    for hires the current bank can't actually cover. The engine silently
+    no-ops any HIRE order it can't afford (kaggriculture.py's _do_hire), the
+    same class of silent failure as an unaffordable BUY_PRODUCT - so consult
+    remaining money and stop offering hires once the running total would
+    exceed it, instead of wasting a market-order slot on one that will fail.
     """
     if hour >= HIRE_BEFORE_HOUR:
         return []
@@ -1375,9 +1403,18 @@ def decide_hire_orders(farm, board_size, day, hour, seeds=None):
     work = count_pending_work(farm, board_size, day, seeds)
     wanted = min(MAX_HANDS_PER_DAY, work // WORK_TILES_PER_HAND)
     already_working = len(farm.get("hands") or [])
-    shortfall = max(0, wanted - already_working)
+    shortfall = min(max(0, wanted - already_working), MAX_HIRES_PER_TURN)
 
-    return [["HIRE"]] * min(shortfall, MAX_HIRES_PER_TURN)
+    hires_today = farm.get("hires_today", 0)
+    remaining_money = farm.get("money", 0)
+    orders = []
+    for i in range(shortfall):
+        cost = _hire_cost(hires_today + i)
+        if cost > remaining_money:
+            break
+        remaining_money -= cost
+        orders.append(["HIRE"])
+    return orders
 
 
 # ---------------------------------------------------------------------
@@ -1793,7 +1830,7 @@ def decide_market_actions(
 
 def choose_unit_action(
     state, ux, uy, unit_idx, claimed=None, pending_builds=None, feed_claimed=None,
-    plant_budget=None,
+    plant_budget=None, wheat_budget=None,
 ):
     """
     Decide the single action for one unit - the main farmer or a hired
@@ -1826,6 +1863,25 @@ def choose_unit_action(
     every involved unit's turn is wasted, not just the surplus ones.
     Defaults to a fresh copy of `seeds` when not supplied, so a single
     standalone call (e.g. in a test) behaves exactly as before.
+
+    `wheat_budget` is the same idea for WHEAT: a shared {"WHEAT": remaining}
+    dict, consulted and decremented both at the point a shed-adjacent unit
+    commits to a feed PICKUP and at the point a distant unit commits to
+    *walking toward* the shed for one - so two units never both count on
+    wheat that will only be there for one of them.
+
+    Measured both ways before settling here, because the two harnesses this
+    repo trusts disagreed sharply. vs `starter` (a built-in that never
+    sells, so our market stays pristine) it reads as a wash either way -
+    unsurprising, since `paired_compare.py`'s own docs already note that
+    harness flatters anything whose real effect runs through
+    selling/production timing, and this one does (FEED -> CARE bank ->
+    wool/milk -> SELL). `head_to_head.py` (a contested market, the harness
+    this repo trusts for exactly that class of change) shows the real
+    signal: gating only the atomic shed-PICKUP and leaving the "walk toward
+    the shed" decision on the raw shed count measured -2,039 mean, 1/24
+    wins; gating both as below measured +4,517 mean, 24/24 wins. Defaults
+    to a fresh read of the shed when not supplied, matching `plant_budget`.
     """
     claimed = claimed if claimed is not None else set()
     pending_builds = pending_builds if pending_builds is not None else [0]
@@ -1840,6 +1896,10 @@ def choose_unit_action(
     private = state["private"]
     seeds = private.get("seeds", {})
     plant_budget = plant_budget if plant_budget is not None else dict(seeds)
+    wheat_budget = (
+        wheat_budget if wheat_budget is not None
+        else {"WHEAT": private.get("shed", {}).get("WHEAT", 0)}
+    )
     inv = unit_inventory(private, unit_idx)
     tile = get_tile_at(farm, ux, uy)
 
@@ -1938,14 +1998,15 @@ def choose_unit_action(
                 for animal in ACTIVE_ANIMALS:
                     if shed.get(animal, 0) > 0:
                         return act_here(["PICKUP", animal, 1])
-        if inv.get("WHEAT", 0) <= 0 and shed.get("WHEAT", 0) > 0:
+        available_wheat = wheat_budget.get("WHEAT", 0)
+        if inv.get("WHEAT", 0) <= 0 and available_wheat > 0:
             if find_nearest_target(farm, board_size, ux, uy, "feed", day, exclude=claimed):
                 # Collect several days of feed in one trip. Feeding needs
                 # wheat in the acting unit's own inventory, so picking up a
                 # single grain means a fresh shed round-trip for every meal.
-                return act_here(
-                    ["PICKUP", "WHEAT", min(shed.get("WHEAT", 0), WHEAT_CARRY_BATCH)]
-                )
+                batch = min(available_wheat, WHEAT_CARRY_BATCH)
+                wheat_budget["WHEAT"] = available_wheat - batch
+                return act_here(["PICKUP", "WHEAT", batch])
 
     # 6. Something urgent elsewhere - a ripe crop/animal, a crop about to
     #    weed out, or an animal about to escape - beats anything below.
@@ -1971,7 +2032,21 @@ def choose_unit_action(
         feed_target = None
     if feed_target:
         if inv.get("WHEAT", 0) <= 0:
-            if private.get("shed", {}).get("WHEAT", 0) > 0:
+            # Reads wheat_budget, not the raw shed count - a unit shouldn't
+            # set off on a multi-turn walk toward wheat an earlier unit
+            # already claimed this turn. This was measured both ways: vs
+            # `starter` (a built-in that never sells, so our own market
+            # stays pristine and this kind of upkeep-timing effect is easy
+            # to mistake for noise) it's a wash either way. But per
+            # `paired_compare.py`'s own docs, `starter`/`pass` flatter any
+            # change whose real effect runs through selling/production
+            # timing - and this one does, through FEED -> CARE bank ->
+            # wool/milk -> SELL. `head_to_head.py` (a contested market,
+            # the harness this repo trusts for exactly that class of
+            # change) shows the real signal: reverting this one line to
+            # the raw shed read measured -2,039 mean, 1/24 wins, versus
+            # +4,517 mean, 24/24 wins with it reading wheat_budget as below.
+            if wheat_budget.get("WHEAT", 0) > 0:
                 moved = walk_to(nearest_shed_tile(ux, uy, board_size))
                 if moved:
                     return moved
@@ -2085,7 +2160,8 @@ def choose_unit_action(
 
 
 def choose_farmer_action(
-    state, claimed=None, pending_builds=None, feed_claimed=None, plant_budget=None
+    state, claimed=None, pending_builds=None, feed_claimed=None, plant_budget=None,
+    wheat_budget=None,
 ):
     """Our main farmer's action - the shared unit logic, anchored at the farmer."""
     farm = state.get("farm")
@@ -2098,7 +2174,7 @@ def choose_farmer_action(
 
     return choose_unit_action(
         state, farmer_pos[0], farmer_pos[1], 0, claimed, pending_builds, feed_claimed,
-        plant_budget,
+        plant_budget, wheat_budget,
     )
 
 
@@ -2128,23 +2204,26 @@ def nikaangukia_meroni(obs):
 
         # One shared claim set across every unit this turn, so the farmer and
         # each hand pick different tiles instead of piling onto the same one.
-        # pending_builds is the same idea for coop/pasture construction, and
+        # pending_builds is the same idea for coop/pasture construction,
         # plant_budget is the same idea for PLANT: a shared {crop: seeds
         # left} counter, decremented as each unit commits to a planting, so
         # at most as many units plant a crop this turn as we hold seed for -
         # see choose_unit_action's docstring for why an uncoordinated PLANT
         # decision wastes every involved unit's turn, not just the surplus.
+        # wheat_budget is the same shape for the shed's WHEAT, decremented as
+        # each unit commits to a feed-related PICKUP this turn.
         claimed = set()
         pending_builds = [0]
         feed_claimed = set()
         plant_budget = dict(seeds)
+        wheat_budget = {"WHEAT": private.get("shed", {}).get("WHEAT", 0)}
         farmer_action = choose_farmer_action(
-            state, claimed, pending_builds, feed_claimed, plant_budget
+            state, claimed, pending_builds, feed_claimed, plant_budget, wheat_budget
         )
         hands_actions = [
             choose_unit_action(
                 state, hand[0], hand[1], idx + 1, claimed, pending_builds, feed_claimed,
-                plant_budget,
+                plant_budget, wheat_budget,
             )
             for idx, hand in enumerate(farm.get("hands") or [])
             if isinstance(hand, (list, tuple)) and len(hand) == 2

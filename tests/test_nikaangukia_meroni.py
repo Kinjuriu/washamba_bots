@@ -721,7 +721,7 @@ def _ripe_wheat():
 
 
 class TestHireDecision(unittest.TestCase):
-    def _farm(self, tiles, money=3000, hands=None):
+    def _farm(self, tiles, money=3000, hands=None, hires_today=None):
         hands = hands or []
         return {
             "money": money,
@@ -729,7 +729,7 @@ class TestHireDecision(unittest.TestCase):
             "farmer": [0, 0],
             "hands": [list(h) for h in hands],
             "unlocked_quadrants": ["NW"],
-            "hires_today": len(hands),
+            "hires_today": len(hands) if hires_today is None else hires_today,
         }
 
     def _work_tiles(self, n):
@@ -770,6 +770,24 @@ class TestHireDecision(unittest.TestCase):
             hands=[(4, 4)] * MAX_HANDS_PER_DAY,
         )
         self.assertEqual(decide_hire_orders(farm, 12, day=5, hour=0, seeds={}), [])
+
+    def test_stops_offering_hires_it_cannot_afford(self):
+        # Six hires already happened today (hires_today=6), so the next
+        # three cost fib(6)+fib(7)+fib(8) = 13+21+34 = 68 total. With only
+        # $25 on hand (comfortably above MIN_MONEY_TO_HIRE's $20 floor),
+        # only the first ($13) is affordable - the old flat floor check
+        # would have offered all 3 regardless, and the engine would have
+        # silently no-op'd the 2nd and 3rd.
+        farm = self._farm(tiles=self._work_tiles(100), money=25, hires_today=6)
+        orders = decide_hire_orders(farm, 100, day=5, hour=0, seeds={})
+        self.assertEqual(orders, [["HIRE"]])
+
+    def test_offers_every_hire_it_can_actually_afford(self):
+        # hires_today=0, plenty of money: fib(0)+fib(1)+fib(2) = 1+1+2 = 4,
+        # well under MAX_HIRES_PER_TURN's cap of 3 offers this turn.
+        farm = self._farm(tiles=self._work_tiles(100), money=100, hires_today=0)
+        orders = decide_hire_orders(farm, 100, day=5, hour=0, seeds={})
+        self.assertEqual(orders, [["HIRE"]] * 3)
 
 
 class TestHandCoordination(unittest.TestCase):
@@ -857,6 +875,66 @@ class TestHandCoordination(unittest.TestCase):
             "private": {"shed": {}, "seeds": {}, "inventories": [{}]},
         }
         self.assertEqual(nikaangukia_meroni(state_obs)["hands"], [])
+
+
+class TestWheatBudget(unittest.TestCase):
+    """wheat_budget is plant_budget's shape applied to shed WHEAT: shared
+    across every unit's decision this turn, decremented right as a unit
+    commits to a feed-related PICKUP, so a second unit doesn't also try to
+    draw from wheat an earlier unit already claimed in the same turn."""
+
+    def _state(self, board_size=10, shed_wheat=WHEAT_CARRY_BATCH):
+        tiles = [[None] * board_size for _ in range(board_size)]
+        tiles[0][0] = _unfed_goose_coop()  # a starving animal, far from the shed
+        tiles[4][5] = {"kind": "WEED"}  # deterministic fallback for the 2nd unit
+        return {
+            "farm": {
+                "money": 3000,
+                "tiles": tiles,
+                "farmer": [4, 4],
+                "hands": [[5, 4]],
+                "unlocked_quadrants": ["NW"],
+                "hires_today": 0,
+            },
+            "private": {
+                "shed": {"WHEAT": shed_wheat},
+                "seeds": {},
+                "inventories": [{}, {}],
+            },
+            "market_state": {"prices": {}, "inventory": {}},
+            "board_size": board_size,
+            "day": 5,
+        }
+
+    def test_second_unit_does_not_draw_wheat_the_first_already_claimed(self):
+        state = self._state(shed_wheat=WHEAT_CARRY_BATCH)
+        claimed = set()
+        feed_claimed = set()
+        wheat_budget = {"WHEAT": WHEAT_CARRY_BATCH}
+
+        first = choose_unit_action(
+            state, 4, 4, 0, claimed, [0], feed_claimed, {}, wheat_budget
+        )
+        second = choose_unit_action(
+            state, 5, 4, 1, claimed, [0], feed_claimed, {}, wheat_budget
+        )
+
+        self.assertEqual(first, ["PICKUP", "WHEAT", WHEAT_CARRY_BATCH])
+        self.assertEqual(wheat_budget, {"WHEAT": 0})
+        # Without the shared ledger, both units read the same un-decremented
+        # shed count and the second would also try to PICKUP wheat that's no
+        # longer there (or detour toward the shed for nothing) instead of
+        # falling through to real work.
+        self.assertEqual(second, ["DIG"])
+
+    def test_a_lone_unit_still_gets_its_full_batch(self):
+        # Sanity check: the ledger doesn't shortchange a unit acting alone.
+        state = self._state(shed_wheat=WHEAT_CARRY_BATCH)
+        wheat_budget = {"WHEAT": WHEAT_CARRY_BATCH}
+        action = choose_unit_action(
+            state, 4, 4, 0, set(), [0], set(), {}, wheat_budget
+        )
+        self.assertEqual(action, ["PICKUP", "WHEAT", WHEAT_CARRY_BATCH])
 
 
 class TestEndOfSeasonLiquidation(unittest.TestCase):
