@@ -1,162 +1,233 @@
-# Kaggriculture Farming Agents
+# Washamba Bots
 
-An autonomous agent for [Kaggriculture](https://kaggle.com/competitions/kaggriculture), a Kaggle simulation competition: two agents each run a virtual farm for a 30-day season (720 turns) and compete head-to-head for the highest bank balance.
+An autonomous decision-making agent for a two-player, turn-based resource-management simulation, built and evaluated with a strict emphasis on proving a change actually helps before trusting it.
 
-This file is a map. The detail lives in the documents it links to.
+<p>
+  <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img alt="NumPy" src="https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white" />
+  <img alt="Pandas" src="https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" />
+  <img alt="Jupyter" src="https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white" />
+  <img alt="unittest" src="https://img.shields.io/badge/Testing-unittest-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+</p>
 
-| I want to… | go to |
-|---|---|
-| know what the current agent is and what it scores | [docs/checkpoints/V2-sheep.md](docs/checkpoints/V2-sheep.md) |
-| prove a change is actually better | [docs/CHECKPOINTS.md](docs/CHECKPOINTS.md) |
-| contribute, and not repeat our mistakes | [CONTRIBUTING.md](CONTRIBUTING.md) |
-| understand the game's mechanics and traps | [CLAUDE.md](CLAUDE.md) |
-| read the compiled competition rules | [docs/kaggriculture_context.md](docs/kaggriculture_context.md) |
-| see how the agent is built | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| explore results and charts | [notebooks/washamba_bots_experiments_v0.ipynb](notebooks/washamba_bots_experiments_v0.ipynb) |
-| follow the experiment protocol step by step | [docs/EXPERIMENT_WORKFLOW.md](docs/EXPERIMENT_WORKFLOW.md) |
-| run an LLM-based experiment | [docs/LLM_EXPERIMENT_WORKFLOW.md](docs/LLM_EXPERIMENT_WORKFLOW.md) |
+## Table of Contents
 
-## Current checkpoint
+- [About the Project](#about-the-project)
+- [Why This Project](#why-this-project)
+  - [Why the project exists](#why-the-project-exists)
+  - [Why deterministic first, not learned](#why-deterministic-first-not-learned)
+- [Tech Stack](#tech-stack)
+- [Features](#features)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Usage](#usage)
+- [Environment Variables](#environment-variables)
+- [Project Structure](#project-structure)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Team](#team)
+- [License](#license)
+- [Contact](#contact)
+- [Acknowledgments](#acknowledgments)
 
-**V2 sheep** — commit `93d6bed`, frozen 2026-08-16. Crop economics, a sheep, daily feeding, fertilizer, day-19 liquidation, a denser crew, and demand-aware crop scoring. Self-play **35,583**. Full record with every metric: **[docs/checkpoints/V2-sheep.md](docs/checkpoints/V2-sheep.md)**.
+## About the Project
 
-V2 is the **deterministic control**. New strategy work is measured against that frozen commit, not against whatever happens to be on `main` today — otherwise someone else's merge lands inside your delta and you cannot see it. A frozen checkpoint is never edited.
+This project builds an autonomous agent for a two-player, turn-based resource-management simulation. On every turn, both agents observe the same shared world: which are their own holdings, a live trading market both sides affect, and a fixed amount of time remaining; and each independently commits to one action. The match runs for a fixed number of turns and whichever agent ends with the higher balance wins.
 
-> **Kaggle ratings are secondary evidence, and a single reading means nothing.** Every submission is seeded at **600** before it has played a game, then drifts ±120. One measured trajectory on unchanged code: `600 → 708 → 572 → 489 → 548 → 472`. Read the local self-play number; let the ladder confirm direction over days, not hours.
+The agent operates under two hard constraints that shape almost every design decision in this repository:
 
-## How we evaluate a change
+- **A strict, per-decision time budget.** The agent has a small fraction of a second to choose each action, which rules out expensive search or lookahead since every decision has to come from a fast, precomputed rule, not from exploring the future live.
+- **No network access once a match starts.** Whatever the agent needs to know about the world has to already be built into the code before the match begins; it cannot look anything up mid-match.
 
-Control versus treatment: both versions play **the same seeds**, and you compare them to each other — never a mean against the across-seed spread, which measures how much *seasons* differ from each other and cancels out anyway. That mistake caused us to reject two real gains.
+There is no static training or test dataset for this problem. The only way to know whether a change actually helps is to run real matches: locally, against a set of reference opponents and earlier versions of the agent itself, or in live scored matches on the hosting platform, and compare the outcomes properly. In practice, more of the engineering effort here has gone into making that comparison trustworthy than into the agent's decision logic itself; see [Why This Project](#why-this-project) below.
 
-```
-OBSERVE → HYPOTHESIZE → FREEZE CONTROL → CHANGE ONE THING
-   → TEST → SELF-PLAY → SEEDED BATCH → DIAGNOSTICS
-   → COMPARE → DOCUMENT → SUBMIT → NEW CHECKPOINT
-```
+## Why This Project
 
-Pick the harness by what you changed:
+Two things are worth explaining separately: why this problem is worth building an agent for, and why the team specifically chose to build a **deterministic, rule-based** agent before considering a **learned** one.
+
+### Why the project exists
+
+The simulation this project targets has no fixed, correct answer to memorize. Scoring is entirely relative: determined by how one agent's decisions play out against another's, turn by turn, in a shared world with a live market both agents affect. That makes it a genuinely interesting decision problem: what to produce, when to trade, when to expand, when to bring on more help all trade off against each other, under a time budget too tight for the agent to search its way out of a bad choice in the moment.
+
+### Why deterministic first, not learned
+
+It's worth being plain about what the two approaches actually mean, since the terms get used loosely:
+
+- A **deterministic (rule-based) agent** follows a fixed, human-written decision procedure. Given the same situation twice, it makes the same choice twice, and every decision traces back to an explicit rule in the code; if the agent does something wrong, you can point at the exact line responsible.
+
+- A **learned agent** is instead trained on data or simulated experience to discover its own decision procedure: a large set of numerical weights, adjusted automatically until its behaviour scores well. It can pick up patterns a human author wouldn't think to hand-write, but in exchange for losing that line-by-line traceability; when it underperforms, the honest first answer is often "retrain and see," not "here is the specific rule to fix."
+
+The team built the deterministic agent first, and the reason has less to do with the agent itself than with what building it forces you to get right first: **a trustworthy way of measuring whether a change actually worked.**
+
+This project's internal engineering notes are blunt about why that had to come first: almost everything that goes wrong in a system like this goes wrong *silently* — no exception, no failing test, no error in a log; and a single run of the simulation is not evidence of anything, because run-to-run variance is large enough to make a real improvement and pure noise look identical. We were burned by exactly this: we had a genuine improvement that was once misread as "no effect" because it was measured against the wrong baseline, and a lucky single run was once mistaken for a stable result. We had to build disciplined fixes, paired evaluation methodology - put both versions through the same conditions and compare the *difference* between them, not their raw scores in isolation — together with a frozen-checkpoint system, so a new idea is always measured against a fixed, known-good baseline rather than against whatever happens to be the latest code that day.
+
+Evaluation discipline is the prerequisite for the "real" agent work, and it matters even more once a learned agent enters the picture later. A rule-based agent's mistakes are visible directly in its code; you can read exactly why it did something. A learned agent's mistakes are visible only in its behaviour, and the only way to tell a real improvement from noise, or a genuine regression from bad luck, is the same measurement discipline this project built first. Getting that process right against a system you can fully audit — before ever pointing it at a system you can't — is the actual point of the deterministic phase.
+
+## Tech Stack
+
+**Core language**
+
+<p>
+  <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+</p>
+
+**Data / numerical computing**
+
+<p>
+  <img alt="NumPy" src="https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white" />
+  <img alt="Pandas" src="https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" />
+</p>
+
+**Analysis / visualization**
+
+<p>
+  <img alt="Matplotlib" src="https://img.shields.io/badge/Matplotlib-11557C?style=for-the-badge&logo=matplotlib&logoColor=white" />
+  <img alt="Seaborn" src="https://img.shields.io/badge/Seaborn-4C72B0?style=for-the-badge" />
+  <img alt="Jupyter" src="https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white" />
+</p>
+
+**Testing**
+
+<p>
+  <img alt="unittest" src="https://img.shields.io/badge/Testing-unittest-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+</p>
+
+## Features
+
+Since this is a single autonomous agent rather than a service with a frontend and backend, "features" means the real technical capabilities this repository provides:
+
+- **A four-stage decision pipeline** — state manager → strategy → planner → executor — that turns each raw observation into exactly one legal action every turn. See [Project Structure](#project-structure) for the diagram.
+- **A layered evaluation harness**, purpose-built because single-run scores are not trustworthy here: paired comparison (same conditions, two versions, compare the difference), self-play (the agent against itself, the number that best predicts a live match), and seeded batch runs against a set of reference opponents.
+- **A frozen-checkpoint system**, so a new idea is always measured against a fixed, known-good baseline rather than against whatever is currently on the main branch.
+- **A documented negative-results log** — strategies that were tried, measured, and rejected are written down alongside *why*, so the same dead end isn't re-explored by intuition months later.
+- **An in-progress forward-pricing module**, developed and validated as a standalone piece before being wired into the agent's live decisions.
+- **A unit test suite** covering the agent's decision logic in isolation, independent of running a full match.
+- **A single-file, deployable agent** — the entire decision logic ships as one self-contained file with no external service dependencies at run time.
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.13 or later
+- [`uv`](https://docs.astral.sh/uv/) for environment and dependency management — it also provisions the Python interpreter itself, so a separate Python install isn't required
+
+### Installation
 
 ```bash
-# farm upkeep, planting, movement, animals — paired, same seeds
-.venv/Scripts/python.exe experiments/paired_compare.py /tmp/base_main.py main.py
+git clone https://github.com/Kinjuriu/washamba_bots.git
+cd washamba_bots
 
-# anything about SELLING — needs a contested market to be visible at all
-.venv/Scripts/python.exe experiments/head_to_head.py variant.py main.py
+# Creates an isolated environment and provisions the interpreter
+uv venv --python 3.13 .venv
 
-# the headline number
-.venv/Scripts/python.exe experiments/selfplay_bench.py
-
-# wide regression sweep (inflated, but cheap)
-.venv/Scripts/python.exe experiments/seeded_batch.py
-```
-
-**The built-in opponents never sell**, so they leave the market pristine and flatter us badly — and on selling changes they can point the *wrong way*, not merely overstate. Full reasoning and worked examples: [docs/CHECKPOINTS.md](docs/CHECKPOINTS.md).
-
-Experiments — including the ones that lost — are recorded in [CLAUDE.md](CLAUDE.md) under "measured dead ends". **A negative result is worth as much as a feature, and only if it's written down.**
-
-Deterministic and LLM experiments differ, and no LLM experiment has been run here yet — see [docs/EXPERIMENT_WORKFLOW.md](docs/EXPERIMENT_WORKFLOW.md) and [docs/LLM_EXPERIMENT_WORKFLOW.md](docs/LLM_EXPERIMENT_WORKFLOW.md).
-
-## Repository layout
-
-```text
-washamba_bots/
-├── main.py                     # The agent. This single file IS the submission.
-├── tests/                      # stdlib-unittest cases for main.py's helpers
-├── experiments/                # Evaluation tooling
-│   ├── paired_compare.py       #   A/B two versions over one seed set
-│   ├── head_to_head.py         #   two agents in one contested market
-│   ├── selfplay_bench.py       #   the honest headline number
-│   ├── seeded_batch.py         #   mean / stdev / win-rate vs the built-ins
-│   ├── benchmark.py            #   adds melon_maxxer from the official notebook
-│   ├── replay_diagnostics.py   #   action histogram + end-of-farm state
-│   └── market_probe.py
-├── notebooks/                  # Experiments notebook (charts, diagnostics)
-├── docs/
-│   ├── CHECKPOINTS.md          #   how we freeze, measure and compare
-│   ├── checkpoints/            #   the frozen records themselves
-│   ├── ARCHITECTURE.md         #   agent anatomy and repo structure
-│   └── kaggriculture_context.md#   compiled competition reference
-├── CLAUDE.md                   # Mechanics, gotchas, measured dead ends
-├── CONTRIBUTING.md             # How we work; the silent-failure checklist
-└── LICENSE
-```
-
-`main.py` is deliberately one file — the competition accepts a single `main.py` at the root, which avoids packaging a tarball. There is no `agent/` package.
-
-> **The framework runs the *last callable in the module namespace*, not a function named `agent`.** A helper or class defined *below* the agent silently becomes the submission: the episode still reports `DONE`, every action is discarded, and the agent finishes on exactly its starting $3,000. The file ends with `agent = nikaangukia_meroni` — keep that line last, and treat a local score of exactly $3,000 as "my agent never acted".
-
-## Setup
-
-We use [`uv`](https://docs.astral.sh/uv/) — it manages the interpreter itself, so no `pyenv` needed:
-
-```bash
-uv venv --python 3.13.7 .venv
-uv pip install --python .venv/Scripts/python.exe \
-  "kaggle-environments>=1.32.6" kaggle \
+# Installs the numerical and analysis dependencies
+uv pip install --python .venv/bin/python \
   numpy pandas matplotlib seaborn jupyterlab ipykernel
 ```
 
-On macOS the interpreter is `.venv/bin/python` instead of `.venv/Scripts/python.exe`. **Don't commit either path** — the team is split across macOS and Windows, and a hardcoded interpreter path silently breaks the other half: VS Code falls back to the system Python and every `import kaggle_environments` fails while the venv sits there working.
+Running the agent locally also requires the third-party simulation package used to execute matches. Its exact name, pinned version, and one-time account setup are covered in [CONTRIBUTING.md](CONTRIBUTING.md) rather than repeated here; the version matters, since the simulation's rules have changed mid-project and an older version silently simulates different rules.
 
-`kaggle-environments>=1.32.6` is not optional. Staff shipped a mid-season balance patch (Town Center demand, shop sampling with replacement); anything older simulates different rules. The official starter notebook still pins `>=1.32.2` — don't copy that.
+*(On Windows, the interpreter path is `.venv\Scripts\python.exe` instead of `.venv/bin/python`.)*
 
-`requirements.txt` is a broad 190-package `pip freeze` from a wider ML workspace, not this agent's dependency set. Installing it wholesale isn't required.
-
-### Notebooks
-
-Select the **`Python 3.13 (washamba_bots)`** kernel. Register it once:
+### Usage
 
 ```bash
-.venv/Scripts/python.exe -m ipykernel install --user \
-  --name washamba-bots --display-name "Python 3.13 (washamba_bots)"
+# Run the test suite
+.venv/bin/python -m unittest discover -s tests
+
+# A/B two versions of the agent over the same fixed set of match seeds
+.venv/bin/python experiments/paired_compare.py path/to/baseline.py path/to/variant.py
+
+# Play two agent files directly against each other, needed for anything
+# that changes when or how much the agent trades, since single-sided
+# comparisons can't see a contested market at all
+.venv/bin/python experiments/head_to_head.py variant.py baseline.py
+
+# The agent against itself, over several match seeds, the single local
+# number that best predicts how a change performs in a live match
+.venv/bin/python experiments/selfplay_bench.py
 ```
 
-A kernelspec whose launch command is the bare word `python` starts whatever is first on `PATH` — which is how a notebook ends up on system Python reporting `No module named kaggle_environments`. Note this venv ships **no `pip`** (uv provisions it), so `%pip install` silently no-ops here; install from a terminal with `uv pip install` instead.
+A full match runs in a few seconds locally, so running hundreds of them for a proper comparison is a matter of minutes, not hours.
 
-Generate a Kaggle API token at kaggle.com/settings/api, or run `kaggle auth login`.
+## Environment Variables
 
-## Running and testing
+There is no `.env` file, and no secrets are stored anywhere in this repository. The only external setup step is a one-time, interactive command-line authentication with the platform that hosts the simulation environment and scores live matches, generated once from that platform's own account settings page. After that one-time step, no environment variables or further configuration are needed to run the agent or its tests locally.
 
-```bash
-.venv/Scripts/python.exe -m unittest discover -s tests
+## Project Structure
 
-# The pre-submit gate. Kaggle validates every upload with a self-play
-# episode; a crash rejects the submission regardless of strategy.
-.venv/Scripts/python.exe -c "
-from kaggle_environments import make
-env = make('kaggriculture', configuration={'episodeSteps': 720, 'seed': 0})
-env.run(['main.py', 'main.py'])
-print([s.status for s in env.steps[-1]])   # must be ['DONE', 'DONE']
-"
+```text
+washamba_bots/
+├── main.py            # The agent itself — a single file, deployable as-is
+├── pricing.py          # A more accurate standalone pricing model (research; not yet wired into the agent)
+├── tests/              # Unit tests for the agent's decision logic, run in isolation
+├── experiments/         # Evaluation tooling: paired comparison, self-play, seeded batches, diagnostics
+├── notebooks/           # Exploratory analysis and result visualization
+├── docs/                # Architecture notes, frozen checkpoints, and internal reference material
+├── CLAUDE.md            # Internal engineering notes: gotchas, decisions, and documented dead ends
+├── CONTRIBUTING.md       # How the team works, and the evaluation standard every change is held to
+├── ROADMAP.md           # Where the project has been and where it's headed
+└── LICENSE
 ```
 
-Built-in opponents are `pass`, `random` and `starter`. A full 720-turn episode takes about 7 seconds, so hundreds of games is minutes, not hours.
+### Decision pipeline
 
-## Submitting
-
-**Announce in the team channel first.** We get 5 submissions/day and **only the latest 2 stay active** — an upload can silently evict a better agent, with no undo. Keep one slot as an unchanged control while evaluating a new agent. Full protocol: [CONTRIBUTING.md](CONTRIBUTING.md).
-
-```bash
-kaggle competitions submit kaggriculture -f main.py -m "message"
-kaggle competitions submissions kaggriculture
-kaggle competitions logs <EPISODE_ID> 0    # debug a failed validation episode
+```
+        OBSERVATION
+             │
+             ▼
+      ┌───────────────┐
+      │ STATE MANAGER │  turns the raw observation into a model of
+      └───────┬───────┘  the world: own resources, market, time left
+              │
+              ▼
+      ┌───────────────┐
+      │   STRATEGY    │  what should the agent be trying to
+      └───────┬───────┘  accomplish right now?
+              │
+              ▼
+      ┌───────────────┐
+      │    PLANNER    │  what is the efficient way to get there?
+      └───────┬───────┘
+              │
+              ▼
+      ┌───────────────┐
+      │   EXECUTOR    │  emit exactly one legal action
+      └───────┬───────┘
+              │
+              ▼
+           ACTION  ──────▶  back into the simulation, which
+                            returns the next OBSERVATION, and
+                            the cycle repeats
 ```
 
-## Competition snapshot
+## Roadmap
 
-| | |
-|---|---|
-| Prizes | $50,000 — 10 places × $5,000 |
-| Entry & team-merger deadline | Sept 23, 2026 |
-| Final submission deadline | Sept 30, 2026 |
-| Scoring | Live episodes, then one final Bradley-Terry tournament |
-| Entrypoint | `main.py` at root, or `.tar.gz` with `main.py` at root. Max **100 MiB** |
-| Per-turn budget | **1 second**, plus a 60-second bank per episode |
-| Per-episode compute | 8 GiB HDD, 6.5 GiB RAM, 1.6 vCPUs |
-| Network | **None during an episode** — the agent sees only `obs` |
+- [x] **Deterministic agent** — a fully rule-based agent, plus the evaluation harness (paired comparison, self-play, frozen checkpoints, a documented negative-results log) needed to trust any claim made about it.
+- [ ] **Forward-pricing model** — a more accurate model of how trading a given quantity moves the market price, developed and validated as a standalone module before it's wired into the agent's live decisions.
+- [ ] **Learned agent** — a model trained on experience rather than hand-written rules, once the measurement process built above can be trusted to evaluate it fairly.
 
-Everyone contributing here must be on the Kaggle team: private sharing of competition code outside your team is a rules violation, and the roster cannot change after Sept 23.
+See open items and known gaps in [GitHub Issues](https://github.com/Kinjuriu/washamba_bots/issues).
+
+## Contributing
+
+This is currently a closed, private team project and isn't open to outside contributions. Team members: see [CONTRIBUTING.md](CONTRIBUTING.md) for how we work and the evaluation standard every change is held to.
+
+## Team
+
+<a href="https://github.com/Kinjuriu/washamba_bots/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Kinjuriu/washamba_bots" alt="Contributors" />
+</a>
 
 ## License
 
-**Code in this repository is CC BY 4.0**, matching the competition's requirement that winning submissions be released under that license. **The Kaggriculture environment and its game data are Apache 2.0** and are not ours. See [LICENSE](LICENSE).
+This repository's code is licensed under **CC BY 4.0** — see [LICENSE](LICENSE) for the full text. The third-party simulation environment and its game data are licensed separately by their own maintainers and are not covered by this repository's license.
+
+## Contact
+
+Questions or issues? Open a [GitHub issue](https://github.com/Kinjuriu/washamba_bots/issues), or reach the repository owner, [@Kinjuriu](https://github.com/Kinjuriu).
+
+## Acknowledgments
+
+(to be added)
