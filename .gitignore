@@ -13,3 +13,7 @@ experiments/*.json
 # Replay JSONs pulled from the host episode dumps (~30MB each)
 replays/
 *.json.zip
+
+# Fetched on demand by experiments/meta_opponent.py - never committed.
+experiments/.meta_agent.py
+experiments/.meta_kernel/
