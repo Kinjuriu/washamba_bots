@@ -450,6 +450,25 @@ TURNS_PER_DAY = 24
 # they come from animals rather than seeds.)
 PLANTABLE_CROPS = ["WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON"]
 
+# Per-crop [start, end] day window (inclusive) during which choose_crop()
+# will even consider planting that crop, on top of - not instead of - the
+# existing season-maturity gate. None means "never plant this crop at
+# all". A crop with no entry here is not gated (fail open). Deliberately
+# does NOT touch growth_days/expected_yield/future_price or the scoring
+# formula itself - see CLAUDE.md's closed-out TOMATO/STRAWBERRY
+# growth_days investigation for why that denominator is off limits.
+# Windows themselves are closed (measured, rejected, and re-confirmed as
+# the correct boundaries by mydocs/Plan-fill-priority-followup*.md) - do
+# not reopen them; what this branch changes is what fills the tile-time
+# the windows free up, not the windows.
+CROP_PLANTING_WINDOWS = {
+    "MELON": (0, 11),
+    "STRAWBERRY": (5, 12),
+    "CARROT": (21, 25),
+    "WHEAT": (0, 27),      # effectively continuous / no-op
+    "TOMATO": None,        # excluded entirely: never plant
+}
+
 # ---------------------------------------------------------------------
 # Selling and the shed
 # ---------------------------------------------------------------------
@@ -1754,6 +1773,14 @@ def choose_crop(
             continue
         if first_yield_day is not None and first_yield_day > remaining_days:
             continue  # can't reach even a first harvest before season end
+
+        window = CROP_PLANTING_WINDOWS.get(crop, "__no_gate__")
+        if window is None:
+            continue  # excluded entirely: never plant this crop
+        if window != "__no_gate__":
+            window_start, window_end = window
+            if day < window_start or day > window_end:
+                continue  # outside this crop's planting window
 
         have_seed = seeds.get(crop, 0) > 0
         can_afford = money >= seed_cost
