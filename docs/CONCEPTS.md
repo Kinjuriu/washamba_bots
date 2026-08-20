@@ -106,7 +106,7 @@ Land expansion + crew that does NOT scale up  → negative (measured: BUY_LAND i
 Land expansion + crew that DOES scale up      → unresolved locally, but this is the
                                                   universal pattern in every top-ladder
                                                   episode sampled — see §4 and
-                                                  mydocs/ROADMAP.md Phase 2/3
+                                                  docs/ROADMAP.md Phase 2/3
 Fertilizer + one-shot crops                   → strong positive (doubles bonus-window yield)
 Fertilizer + ongoing crops                    → moderate positive (doubles scheduled yield)
 Multiple animal structures + undersized crew  → heavy loss (measured: -16,634, 0/16
