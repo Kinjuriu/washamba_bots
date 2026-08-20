@@ -1,6 +1,172 @@
-# Session handoff — 2026-08-19, even later (read this section first —
-supersedes the Phase 3 section below only on "what to do next"; that
+# Session handoff — 2026-08-20 (read this section first — supersedes the
+2026-08-19 "latest of all" section below on "what to do next"; that
 section's own content is unchanged and accurate)
+
+## This session: ran `mydocs/Plan-phase3-aggressive-selling.md` Variant A —
+head-to-head is a real but not-clean win, paired-vs-starter reads as the
+expected built-in-flattery wash, self-play doesn't collapse; verdict is
+inconclusive per the plan's own decision table, not a ship/revert call
+
+Branched `experiment/phase3-aggressive-selling` off the current branch's
+tip (`d44950f`), confirming first that its `main.py` is byte-identical to
+Phase 3's own control (`refactor/phase3-land-and-second-animal`, no diff)
+— so this experiment isolates the selling-constant change on top of the
+real Phase 3 production base, per the plan's stated goal. Froze that
+control to `/tmp/phase3_control.py` before editing.
+
+Applied exactly the four constant changes Variant A specifies, confirming
+each "was" value in the plan matched what was actually in `main.py` before
+editing (all four did): `SELL_PRICE_THRESHOLDS` (WHEAT 20→10, CARROT
+25→12, TOMATO 40→20, STRAWBERRY 90→45, MELON 180→90, EGG 35→17, WOOL
+140→70), `DEFAULT_SELL_THRESHOLD` 50→25, `SHED_FORCE_SELL_THRESHOLD`
+70→40, `LIQUIDATION_START_DAY` 19→10. No other change — land, animals,
+crew, hire, plant/wheat budgets all untouched, per the plan's explicit
+out-of-scope list. Pre-submit validation gate: `['DONE', 'DONE']`.
+
+**Three-harness result, exactly as the plan's execution steps specify:**
+
+| harness | result |
+|---|---|
+| `head_to_head.py main.py /tmp/phase3_control.py 12` (the plan's primary decision harness) | **+1,685 mean, 17/24 wins** |
+| `paired_compare.py /tmp/phase3_control.py main.py` vs `starter`, 12 seeds | **-538 mean, 7/12 wins, t=-0.29** |
+| `selfplay_bench.py 8` | mean **63,982**, stdev **9,210**, min **48,170**, max **71,702**; end prices WHEAT 51 / CARROT 63 / TOMATO 93 / STRAWBERRY 218 / MELON 147 |
+
+**Reading this against the plan's own table: this doesn't clear either
+named bar.** 17/24 sits between the plan's own "clear win" bar (~19-20/24)
+and its own "inconclusive" example (~16/24) — closer to the inconclusive
+end, though the +1,685 mean is not small by this repo's usual scale. The
+plan's table calls for "increase seed count or move to Variant B" here,
+not a forced verdict either way.
+
+**The paired-vs-`starter` loss does not contradict the head-to-head win —
+it's the same built-in-flattery pattern `CLAUDE.md` already documents for
+selling-timing changes**, not a new finding. `starter` never sells, so
+(per `CLAUDE.md`'s wheat-feed-ledger precedent, which measured -566/5-12
+paired-vs-`starter` against +4,517/24-24 head-to-head for a change whose
+effect also ran through sell timing) a harness with no contested order
+book is expected to read as noise-level for exactly this class of change.
+`head_to_head.py` is the harness `CLAUDE.md` says to trust here ("Use
+`head_to_head.py` for anything that changes selling"), and t=-0.29/7-12 on
+the `starter` side doesn't clear its own significance bar either — it's
+not a corroborating loss, just an uninformative harness on this question.
+
+**Self-play doesn't show a collapse.** Mean 63,982 / floor 48,170 over 8
+seeds is not directly comparable to Phase 3's own recorded 12-seed
+self-play baseline (mean 61,303, floor 39,554 — different seed count) but
+gives no sign the more aggressive liquidation schedule is cratering prices
+against itself; melon and strawberry both finish well above their $1
+floors.
+
+**Verdict: inconclusive, not resolved.** Per this repo's own "read win
+count before t-value, don't force a verdict outside the win-count bar"
+discipline (the same rule the 2026-08-19 Phase-3-vs-`main` session applied
+to its own 16/24 result), this is reported as a real, probably-positive
+signal that isn't yet decisive. It does **not** justify adopting the
+aggressive selling constants as Phase 3's new default, and it does **not**
+show Phase 3's conservative selling being clearly right either.
+
+**Nothing committed this session.** `main.py` (the four constant edits) on
+`experiment/phase3-aggressive-selling`, and this `HANDOFF.md` update, are
+both working-tree changes pending explicit go-ahead, per this project's
+standing practice. `/tmp/phase3_control.py` is a throwaway control copy,
+not part of the repo.
+
+## Next session, if continuing this thread
+
+Per the plan's own order, the next move is either (a) re-run
+`head_to_head.py` at a larger seed count (e.g. 20-24 seeds) on the exact
+same two files to see whether 17/24 firms up toward the clean bar or
+regresses toward a coin flip, or (b) escalate directly to Variant B (the
+continuous `estimate_sell_or_hold_value` + `cadence_urgency` model from
+`experiment/sell-cadence`, disabling the hard liquidation cliff) if the
+team would rather test the more principled model than spend more seeds on
+Variant A's simple constant swap. The plan frames (b) as the fallback if
+Variant A doesn't give a clear signal, which is exactly what happened
+here.
+
+---
+
+# Session handoff — 2026-08-19, latest of all (superseded above by the
+2026-08-20 section on "what to do next"; still supersedes both sections
+below it; their own content is unchanged and accurate)
+
+## This session: executed steps 1-2 of `mydocs/Plan responding to 4s
+bigfarm_opponent retirement.md` — issue #21 reopened, Phase 3 vs. current
+`main` measured, result is inconclusive
+
+Picked up the retirement plan's first two steps (steps 3 and 4 — the
+selling-cadence experiment and the parked opening-book work — explicitly
+stayed out of scope this session).
+
+**Step 1 — reopened issue #21** (`gh issue reopen 21 --comment ...`),
+noting the PR #27 bridge expired a second time once PR #29 merged
+`bigfarm_opponent.py`'s constants into `main` directly, so Track C's real
+deliverable (replay evidence -> executable constraints) is still open
+independent of that file.
+
+**Step 2 — Phase 3 vs. current `main`, head-to-head.** Confirmed first
+that current branch (`experiment/retest-animal-feed-scaling-on-phase3`,
+tip `d44950f`) sits directly on the Phase 3 tip (`11d6dcc`) with a
+byte-identical `main.py` — no extra checkout needed, the working tree
+already *is* the Phase 3 candidate. Confirmed local/`origin` `main` is at
+`22c8e97`, which already includes PR #29 (`9c52c09`, merged via
+`f40781a`) — so this is genuinely "Phase 3 (diverged pre-#29 at `5180768`)
+vs. main (post-#29)," the comparison the retirement plan asks for.
+
+```
+git show main:main.py > /tmp/main_branch_main.py
+.venv/Scripts/python.exe experiments/head_to_head.py main.py /tmp/main_branch_main.py 12
+```
+
+**Result: +212 mean, 16/24 wins.** (Unrelated `OpenSpiel`/`pokerkit`
+import-time warnings printed ahead of the summary — cosmetic noise from a
+bundled dependency in the environment package, not from this script or
+our code; the actual result is the trailing 4 lines.)
+
+**Reading this against the plan's own explicit rule: neither branch
+applies cleanly.** The plan's two readings were "Phase 3 ≥ main
+comfortably -> selling change was dead weight, adopt Phase 3" or "main
+wins clearly -> the selling change carries real weight." 16/24 at +212
+mean is a real but modest win — nowhere near the ~20/24 "clean win" bar
+this repo uses elsewhere (e.g. Phase 3's own +7,800/19-24 vs. the Phase 2
+control, or the hire-gate fix's +2,072/9-12), and the mean itself is small
+relative to this repo's usual paired-comparison deltas (hundreds to
+thousands). **Per this repo's own "read win count before t-value, don't
+force a verdict outside the win-count bar" discipline, this is reported as
+inconclusive, not resolved either way.** It does *not* clear the bar to
+declare PR #29's selling-cadence change dead weight, and it does *not*
+show current `main` winning clearly either.
+
+**What this does and doesn't settle:** it does not, by itself, justify
+either adopting Phase 3 as the new foundation or treating step 3 (the
+selling-cadence experiment) as load-bearing. A future session wanting a
+real answer here should either re-run at a larger seed count (12 seeds is
+this repo's normal floor, not a large-n result) or run `paired_compare.py`
+Phase 3 vs. `starter`/`pass` alongside this head-to-head, the way Phase 3's
+own original measurement used multiple harnesses before calling anything
+decisive.
+
+**Nothing committed this session.** This `HANDOFF.md` edit is the only
+working-tree change (tracked file, per `git ls-files mydocs/`) — pending
+explicit go-ahead before committing, per this project's standing practice.
+`main.py` is untouched (no code change, comparison only). The reopened
+GitHub issue #21 is the only action with a side effect outside this repo's
+working tree.
+
+## Next session, if continuing this thread
+
+Per the plan doc's own ordering, step 3 (selling-cadence experiment) was
+meant to be "sequenced after step 2, now better justified" by a clean
+step-2 verdict — that verdict didn't materialize. Before running step 3,
+decide whether to first resolve step 2's inconclusive result (larger seed
+count, or corroborating harness) so step 3 has a known baseline to compare
+against rather than an ambiguous one, per the plan's own stated reasoning
+for the ordering.
+
+---
+
+# Session handoff — 2026-08-19, even later (superseded above on "what to
+do next"; this section's own content is unchanged and accurate)
 
 ## This session: ran the Step 0 diagnostic from `mydocs/experiment
 retest-animal-feed-scaling-on-phase3.md` — gate does not clear, stopped

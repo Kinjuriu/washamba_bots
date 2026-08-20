@@ -459,15 +459,15 @@ PLANTABLE_CROPS = ["WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON"]
 # as we learn more about how each product's price tends to move.
 # Any product not listed here falls back to DEFAULT_SELL_THRESHOLD.
 SELL_PRICE_THRESHOLDS = {
-    "WHEAT": 20,
-    "CARROT": 25,
-    "TOMATO": 40,
-    "STRAWBERRY": 90,
-    "MELON": 180,
-    "EGG": 35,
-    "WOOL": 140,
+    "WHEAT": 10,
+    "CARROT": 12,
+    "TOMATO": 20,
+    "STRAWBERRY": 45,
+    "MELON": 90,
+    "EGG": 17,
+    "WOOL": 70,
 }
-DEFAULT_SELL_THRESHOLD = 50
+DEFAULT_SELL_THRESHOLD = 25
 
 # MILK is deliberately absent, and that was checked rather than assumed.
 # Adding a new species normally needs its own threshold and per-turn cap or
@@ -499,7 +499,7 @@ MAX_SELL_PER_TURN = {
 # threshold, right up until it overflows and evaporates for free. Once the
 # shed gets this full, force a sale regardless of price - a mediocre sale
 # beats a guaranteed $0.
-SHED_FORCE_SELL_THRESHOLD = 70
+SHED_FORCE_SELL_THRESHOLD = 40
 
 # Anything still sitting in the shed when the season ends is worth exactly
 # nothing - there is no scoring credit for inventory, only for bank balance.
@@ -520,7 +520,7 @@ SHED_FORCE_SELL_THRESHOLD = 70
 # head-to-head number is the one that predicts it (experiments/head_to_head.py).
 #
 # Swept 13/16/19/21/23/25/27: 19 is an interior peak, not an edge effect.
-LIQUIDATION_START_DAY = 19
+LIQUIDATION_START_DAY = 10
 
 # ---------------------------------------------------------------------
 # Seed buying
