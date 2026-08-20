@@ -15,28 +15,40 @@ from main import (
     LIQUIDATION_START_DAY,
     ACTIVE_ANIMALS,
     ANIMALS,
+    LAND_BUY_LAST_USEFUL_DAY,
+    LAND_BUY_START_DAY,
+    LAND_ORDER,
+    LAND_PRICES,
     MAX_ANIMALS,
+    MAX_LAND_PURCHASES,
+    MAX_ANIMALS_ON_HOME_LAND,
     MAX_HANDS_PER_DAY,
     MAX_MARKET_ORDERS_PER_TURN,
     MAX_SELL_PER_TURN,
     SELL_PRICE_THRESHOLDS,
     SHED_FORCE_SELL_THRESHOLD,
     MAX_SEED_STOCKPILE,
+    MIN_CASH_RESERVE_FOR_ANIMAL_BUYING,
+    MIN_CASH_RESERVE_FOR_LAND_BUYING,
     MIN_CASH_RESERVE_FOR_SEED_BUYING,
     SEASON_DAYS,
     WHEAT_CARRY_BATCH,
+    WORK_TILES_PER_HAND,
     carried_animal,
     choose_animal_to_build,
     choose_crop,
     choose_farmer_action,
     choose_unit_action,
     count_owned_animals,
+    count_pending_work,
     decide_animal_market_actions,
     decide_hire_orders,
+    decide_land_orders,
     decide_market_actions,
     has_plantable_seed,
     is_harvestable,
     is_shed_adjacent,
+    max_hands_ceiling,
     nearest_shed_tile,
     nikaangukia_meroni,
     pick_next_animal_species,
@@ -46,6 +58,7 @@ from main import (
     should_sell,
     species_owned_counts,
     step_toward,
+    tile_quadrant,
 )
 
 # The animal logic is data-driven off ACTIVE_ANIMALS, so these tests are
@@ -270,26 +283,31 @@ class TestForwardPricingIntegration(unittest.TestCase):
         threshold = SELL_PRICE_THRESHOLDS["STRAWBERRY"]
         cap = MAX_SELL_PER_TURN["STRAWBERRY"]
         private = {"shed": {"STRAWBERRY": 20}, "seeds": {}}
-        market_state = {
-            # The quoted price is above threshold so should_sell() says yes,
-            # but recommend_sell_quantity() walks the price path down from the
-            # inventory level and stops where it would cross under. The band
-            # where that happens mid-cap is narrow (10,030 sells the full cap,
-            # 10,040 sells nothing) - 10,034 sits inside it. Asserting the
-            # behaviour rather than the exact quantity, because the quantity
-            # moves whenever the threshold is retuned, which is what made the
-            # previous version of this test fail for the wrong reason.
-            "prices": {"STRAWBERRY": threshold + 1},
-            "inventory": {"STRAWBERRY": 10034},
-        }
+        # The band where the price path crosses the threshold PART WAY through
+        # the cap is narrow, and it moves whenever the thresholds are retuned -
+        # pinning an inventory level here has now broken this test twice for
+        # reasons that had nothing to do with the behaviour under test. Find the
+        # band instead, and assert the property: somewhere between "sells the
+        # full cap" and "sells nothing" there is a level that sells a partial
+        # amount, which a blind min(sell_quantity, cap) could never produce.
+        partials = []
+        for excess in range(0, 120):
+            market_state = {
+                "prices": {"STRAWBERRY": threshold + 1},
+                "inventory": {"STRAWBERRY": 10000 + excess},
+            }
+            actions = decide_market_actions(
+                {"money": 0}, private, market_state, day=0
+            )
+            sold = [a for a in actions if a[1] == "STRAWBERRY"]
+            if sold and 0 < sold[0][2] < cap:
+                partials.append((excess, sold[0][2]))
 
-        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
-
-        sold = [a for a in actions if a[1] == "STRAWBERRY"]
-        self.assertEqual(len(sold), 1)
-        quantity = sold[0][2]
-        self.assertGreater(quantity, 0)
-        self.assertLess(quantity, cap)
+        self.assertTrue(
+            partials,
+            "no inventory level produced a partial sale - recommend_sell_quantity() "
+            "is no longer stopping the price path at the threshold",
+        )
 
     def test_liquidation_still_sells_the_full_cap_regardless_of_price(self):
         # Safety constraint that must survive the change: from
@@ -502,6 +520,32 @@ class TestDecideMarketActions(unittest.TestCase):
         actions = decide_market_actions({"money": 0}, private, market_state, day=0)
 
         self.assertEqual(actions.count(["SELL", "WHEAT", 95]), 1)
+
+    def test_ignores_a_live_animal_sitting_in_the_shed(self):
+        # A bought-but-not-yet-collected animal (see decide_animal_market_
+        # actions's BUY_ANIMAL) is a valid shed key but isn't a market
+        # product - it isn't in MARKET_PARAMS, only its produce (WOOL/MILK/
+        # EGG) is. Phase 3 made this reachable for real (an animal can now
+        # sit in the shed for a while waiting on new land to be built on),
+        # and treating it as sellable used to crash market_price() with a
+        # KeyError. Regression test for that fix.
+        private = {"shed": {TEST_ANIMAL: 1, "WHEAT": 10}, "seeds": {}}
+        market_state = self._market(prices={"WHEAT": 25})
+
+        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
+
+        self.assertNotIn(TEST_ANIMAL, [a[1] for a in actions if a[0] == "SELL"])
+        self.assertIn(["SELL", "WHEAT", 10], actions)
+
+    def test_ignores_a_live_animal_during_the_shed_overflow_valve_too(self):
+        # Same guard, the second (force-sell) shed loop - the overflow
+        # valve iterates the shed independently of the main sell loop above.
+        private = {"shed": {TEST_ANIMAL: 1, "MELON": 95}, "seeds": {}}
+        market_state = self._market(prices={"MELON": 10})
+
+        actions = decide_market_actions({"money": 0}, private, market_state, day=0)
+
+        self.assertNotIn(TEST_ANIMAL, [a[1] for a in actions if a[0] == "SELL"])
 
 
 class TestWeedReclamation(unittest.TestCase):
@@ -742,7 +786,7 @@ def _ripe_wheat():
 
 
 class TestHireDecision(unittest.TestCase):
-    def _farm(self, tiles, money=3000, hands=None):
+    def _farm(self, tiles, money=3000, hands=None, hires_today=None):
         hands = hands or []
         return {
             "money": money,
@@ -750,7 +794,7 @@ class TestHireDecision(unittest.TestCase):
             "farmer": [0, 0],
             "hands": [list(h) for h in hands],
             "unlocked_quadrants": ["NW"],
-            "hires_today": len(hands),
+            "hires_today": len(hands) if hires_today is None else hires_today,
         }
 
     def _work_tiles(self, n):
@@ -791,6 +835,105 @@ class TestHireDecision(unittest.TestCase):
             hands=[(4, 4)] * MAX_HANDS_PER_DAY,
         )
         self.assertEqual(decide_hire_orders(farm, 12, day=5, hour=0, seeds={}), [])
+
+    def test_stops_offering_hires_it_cannot_afford(self):
+        # Six hires already happened today (hires_today=6), so the next
+        # three cost fib(6)+fib(7)+fib(8) = 13+21+34 = 68 total. With only
+        # $25 on hand (comfortably above MIN_MONEY_TO_HIRE's $20 floor),
+        # only the first ($13) is affordable - the old flat floor check
+        # would have offered all 3 regardless, and the engine would have
+        # silently no-op'd the 2nd and 3rd.
+        farm = self._farm(tiles=self._work_tiles(100), money=25, hires_today=6)
+        orders = decide_hire_orders(farm, 100, day=5, hour=0, seeds={})
+        self.assertEqual(orders, [["HIRE"]])
+
+    def test_offers_every_hire_it_can_actually_afford(self):
+        # hires_today=0, plenty of money: fib(0)+fib(1)+fib(2) = 1+1+2 = 4,
+        # well under MAX_HIRES_PER_TURN's cap of 3 offers this turn.
+        farm = self._farm(tiles=self._work_tiles(100), money=100, hires_today=0)
+        orders = decide_hire_orders(farm, 100, day=5, hour=0, seeds={})
+        self.assertEqual(orders, [["HIRE"]] * 3)
+
+
+class TestDerivedCrewSize(unittest.TestCase):
+    """
+    Phase 2: crew size should be derived from live tile/animal state, not
+    a stale constant - see main.py's max_hands_ceiling() and the
+    animal-upkeep branch in count_pending_work().
+    """
+
+    def _farm(self, tiles):
+        return {"tiles": tiles, "unlocked_quadrants": ["NW"]}
+
+    def _animal_tile(self, **overrides):
+        tile = {
+            "kind": TEST_STRUCTURE,
+            "animal": TEST_ANIMAL,
+            "fed_today": True,
+            "cared_today": True,
+            "yield_units": 0,
+            "fertilizer_available": False,
+        }
+        tile.update(overrides)
+        return tile
+
+    def test_unfed_animal_tile_counts_as_pending_work(self):
+        farm = self._farm([[self._animal_tile(fed_today=False)]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 1)
+
+    def test_uncared_animal_tile_counts_as_pending_work(self):
+        farm = self._farm([[self._animal_tile(cared_today=False)]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 1)
+
+    def test_fertilizer_ready_animal_tile_counts_as_pending_work(self):
+        farm = self._farm([[self._animal_tile(fertilizer_available=True)]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 1)
+
+    def test_harvest_ready_animal_tile_counts_as_pending_work(self):
+        max_held = ANIMALS[TEST_ANIMAL].get("max_held", 1)
+        farm = self._farm([[self._animal_tile(yield_units=max_held)]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 1)
+
+    def test_fully_tended_animal_tile_is_not_pending_work(self):
+        farm = self._farm([[self._animal_tile()]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 0)
+
+    def test_unfilled_structure_is_not_pending_work(self):
+        farm = self._farm([[{"kind": TEST_STRUCTURE}]])
+        self.assertEqual(count_pending_work(farm, 1, day=5), 0)
+
+    def test_ceiling_never_drops_below_the_old_flat_cap(self):
+        # A small board still floors at MAX_HANDS_PER_DAY - no regression
+        # against the constant this replaces as the sole cap.
+        farm = self._farm([[None]])
+        self.assertGreaterEqual(max_hands_ceiling(farm, 1), MAX_HANDS_PER_DAY)
+
+    def test_ceiling_grows_with_more_unlocked_tiles(self):
+        small = self._farm([[None] * 4])
+        big = self._farm([[None] * 400])
+        self.assertGreater(
+            max_hands_ceiling(big, 400), max_hands_ceiling(small, 4)
+        )
+
+    def test_ceiling_grows_with_more_animal_structures(self):
+        # Enough unlocked tiles that the tile term alone already exceeds
+        # the floor, so adding animal structures on top is visible.
+        board_size = 400
+        no_animals = self._farm([[None] * board_size])
+        with_animals = self._farm(
+            [[self._animal_tile() for _ in range(10)] + [None] * (board_size - 10)]
+        )
+        self.assertGreater(
+            max_hands_ceiling(with_animals, board_size),
+            max_hands_ceiling(no_animals, board_size),
+        )
+
+    def test_locked_tiles_do_not_count_toward_the_ceiling(self):
+        unlocked = self._farm([[None] * 40])
+        locked = self._farm([["LOCKED"] * 40])
+        self.assertGreater(
+            max_hands_ceiling(unlocked, 40), max_hands_ceiling(locked, 40)
+        )
 
 
 class TestHandCoordination(unittest.TestCase):
@@ -878,6 +1021,66 @@ class TestHandCoordination(unittest.TestCase):
             "private": {"shed": {}, "seeds": {}, "inventories": [{}]},
         }
         self.assertEqual(nikaangukia_meroni(state_obs)["hands"], [])
+
+
+class TestWheatBudget(unittest.TestCase):
+    """wheat_budget is plant_budget's shape applied to shed WHEAT: shared
+    across every unit's decision this turn, decremented right as a unit
+    commits to a feed-related PICKUP, so a second unit doesn't also try to
+    draw from wheat an earlier unit already claimed in the same turn."""
+
+    def _state(self, board_size=10, shed_wheat=WHEAT_CARRY_BATCH):
+        tiles = [[None] * board_size for _ in range(board_size)]
+        tiles[0][0] = _unfed_goose_coop()  # a starving animal, far from the shed
+        tiles[4][5] = {"kind": "WEED"}  # deterministic fallback for the 2nd unit
+        return {
+            "farm": {
+                "money": 3000,
+                "tiles": tiles,
+                "farmer": [4, 4],
+                "hands": [[5, 4]],
+                "unlocked_quadrants": ["NW"],
+                "hires_today": 0,
+            },
+            "private": {
+                "shed": {"WHEAT": shed_wheat},
+                "seeds": {},
+                "inventories": [{}, {}],
+            },
+            "market_state": {"prices": {}, "inventory": {}},
+            "board_size": board_size,
+            "day": 5,
+        }
+
+    def test_second_unit_does_not_draw_wheat_the_first_already_claimed(self):
+        state = self._state(shed_wheat=WHEAT_CARRY_BATCH)
+        claimed = set()
+        feed_claimed = set()
+        wheat_budget = {"WHEAT": WHEAT_CARRY_BATCH}
+
+        first = choose_unit_action(
+            state, 4, 4, 0, claimed, [0], feed_claimed, {}, wheat_budget
+        )
+        second = choose_unit_action(
+            state, 5, 4, 1, claimed, [0], feed_claimed, {}, wheat_budget
+        )
+
+        self.assertEqual(first, ["PICKUP", "WHEAT", WHEAT_CARRY_BATCH])
+        self.assertEqual(wheat_budget, {"WHEAT": 0})
+        # Without the shared ledger, both units read the same un-decremented
+        # shed count and the second would also try to PICKUP wheat that's no
+        # longer there (or detour toward the shed for nothing) instead of
+        # falling through to real work.
+        self.assertEqual(second, ["DIG"])
+
+    def test_a_lone_unit_still_gets_its_full_batch(self):
+        # Sanity check: the ledger doesn't shortchange a unit acting alone.
+        state = self._state(shed_wheat=WHEAT_CARRY_BATCH)
+        wheat_budget = {"WHEAT": WHEAT_CARRY_BATCH}
+        action = choose_unit_action(
+            state, 4, 4, 0, set(), [0], set(), {}, wheat_budget
+        )
+        self.assertEqual(action, ["PICKUP", "WHEAT", WHEAT_CARRY_BATCH])
 
 
 class TestEndOfSeasonLiquidation(unittest.TestCase):
@@ -1061,6 +1264,60 @@ class TestChooseAnimalToBuild(unittest.TestCase):
             choose_animal_to_build(farm, self._private(), 1, day=SEASON_DAYS - 2)
         )
 
+    def test_never_builds_within_the_cash_reserve_floor(self):
+        # cost <= money * ANIMAL_SPEND_CAP_FRACTION alone isn't enough - a
+        # purchase must also leave MIN_CASH_RESERVE_FOR_ANIMAL_BUYING behind.
+        # Only meaningful if the reserve floor exceeds at least one active
+        # species' cost - assert that precondition so this test fails loudly
+        # rather than silently no-opping if the constants ever drift.
+        cost = min(ANIMALS[a]["cost"] for a in ACTIVE_ANIMALS)
+        self.assertGreater(MIN_CASH_RESERVE_FOR_ANIMAL_BUYING, cost)
+        money = cost * 2  # exactly the ANIMAL_SPEND_CAP_FRACTION boundary
+        farm = self._farm([[None]], money=money)
+        self.assertIsNone(choose_animal_to_build(farm, self._private(), 1, day=0))
+
+    def test_builds_once_money_clears_both_the_spend_cap_and_the_reserve_floor(self):
+        cost = min(ANIMALS[a]["cost"] for a in ACTIVE_ANIMALS)
+        money = cost + MIN_CASH_RESERVE_FOR_ANIMAL_BUYING  # exactly clears both
+        farm = self._farm([[None]], money=money)
+        self.assertIsNotNone(choose_animal_to_build(farm, self._private(), 1, day=0))
+
+    def _home_land_full_farm(self, board_size=10, money=10000):
+        tiles = [[None] * board_size for _ in range(board_size)]
+        for i in range(MAX_ANIMALS_ON_HOME_LAND):
+            tiles[0][i] = _unfed_goose_coop()
+        return self._farm(tiles, money=money), board_size
+
+    def test_refuses_the_extra_animal_at_home_once_home_land_is_full(self):
+        # MAX_ANIMALS_ON_HOME_LAND (3) structures already filled - the 4th
+        # (MAX_ANIMALS) can only be built on newly-bought land, not carved
+        # out of the original home ("NW") quadrant's cropland.
+        farm, board_size = self._home_land_full_farm()
+        self.assertIsNone(
+            choose_animal_to_build(
+                farm, self._private(), board_size, day=0, ux=1, uy=1
+            )
+        )
+
+    def test_allows_building_the_extra_animal_on_newly_bought_land(self):
+        farm, board_size = self._home_land_full_farm()
+        # NE quadrant (x >= board_size/2, y < board_size/2) - only reachable
+        # at all once BUY_LAND has unlocked it.
+        self.assertIsNotNone(
+            choose_animal_to_build(
+                farm, self._private(), board_size, day=0, ux=6, uy=1
+            )
+        )
+
+    def test_home_quadrant_gate_is_inert_without_location_context(self):
+        # A caller with no ux/uy (e.g. every other test in this class, or
+        # MAX_ANIMALS left at or below MAX_ANIMALS_ON_HOME_LAND) gets the
+        # old, location-blind behaviour.
+        farm, board_size = self._home_land_full_farm()
+        self.assertIsNotNone(
+            choose_animal_to_build(farm, self._private(), board_size, day=0)
+        )
+
 
 class TestDecideAnimalMarketActions(unittest.TestCase):
     def _farm(self, tiles, money):
@@ -1109,6 +1366,82 @@ class TestDecideAnimalMarketActions(unittest.TestCase):
         private = {"shed": {}, "inventories": [{}]}
         actions = decide_animal_market_actions(farm, private, 1, day=0)
         self.assertNotIn(["BUY_PRODUCT", "WHEAT", 1], actions)
+
+    def test_never_offers_a_purchase_within_the_cash_reserve_floor(self):
+        cost = min(ANIMALS[a]["cost"] for a in ACTIVE_ANIMALS)
+        self.assertGreater(MIN_CASH_RESERVE_FOR_ANIMAL_BUYING, cost)
+        farm = self._farm([[None]], money=cost * 2)  # spend-cap boundary
+        private = {"shed": {}, "inventories": [{}]}
+        actions = decide_animal_market_actions(farm, private, 1, day=0)
+        self.assertFalse([a for a in actions if a[0] == "BUY_ANIMAL"])
+
+
+class TestTileQuadrant(unittest.TestCase):
+    def test_matches_the_engines_own_quadrant_naming(self):
+        # kaggriculture.py's _quadrant_of: half = board_size // 2, then
+        # N/S by y, W/E by x. Confirm all four quadrants on a 10x10 board.
+        self.assertEqual(tile_quadrant(1, 1, 10), "NW")
+        self.assertEqual(tile_quadrant(6, 1, 10), "NE")
+        self.assertEqual(tile_quadrant(1, 6, 10), "SW")
+        self.assertEqual(tile_quadrant(6, 6, 10), "SE")
+
+    def test_boundary_tiles_belong_to_the_higher_half(self):
+        # half = 5 on a 10x10 board: x/y == 5 is already the E/S half.
+        self.assertEqual(tile_quadrant(5, 0, 10), "NE")
+        self.assertEqual(tile_quadrant(0, 5, 10), "SW")
+
+
+class TestDecideLandOrders(unittest.TestCase):
+    def _farm(self, money, unlocked_quadrants=("NW",)):
+        return {"money": money, "unlocked_quadrants": list(unlocked_quadrants)}
+
+    def test_buys_the_first_quadrant_once_affordable_inside_the_window(self):
+        money = LAND_PRICES[0] + MIN_CASH_RESERVE_FOR_LAND_BUYING
+        farm = self._farm(money)
+        self.assertEqual(
+            decide_land_orders(farm, day=LAND_BUY_START_DAY), [["BUY_LAND"]]
+        )
+
+    def test_does_not_buy_before_the_window_opens(self):
+        money = LAND_PRICES[0] + MIN_CASH_RESERVE_FOR_LAND_BUYING
+        farm = self._farm(money)
+        self.assertEqual(decide_land_orders(farm, day=LAND_BUY_START_DAY - 1), [])
+
+    def test_does_not_buy_past_the_last_useful_day(self):
+        money = LAND_PRICES[0] + MIN_CASH_RESERVE_FOR_LAND_BUYING
+        farm = self._farm(money)
+        self.assertEqual(
+            decide_land_orders(farm, day=LAND_BUY_LAST_USEFUL_DAY + 1), []
+        )
+
+    def test_does_not_breach_the_cash_reserve_floor(self):
+        money = LAND_PRICES[0] + MIN_CASH_RESERVE_FOR_LAND_BUYING - 1
+        farm = self._farm(money)
+        self.assertEqual(decide_land_orders(farm, day=LAND_BUY_START_DAY), [])
+
+    def test_prices_the_next_purchase_by_how_much_is_already_unlocked(self):
+        # One quadrant unlocked already - the next purchase is priced at
+        # LAND_PRICES[1], not LAND_PRICES[0].
+        money = LAND_PRICES[1] + MIN_CASH_RESERVE_FOR_LAND_BUYING
+        farm = self._farm(money, unlocked_quadrants=("NW", "NE"))
+        self.assertEqual(
+            decide_land_orders(farm, day=LAND_BUY_START_DAY), [["BUY_LAND"]]
+        )
+
+    def test_does_not_buy_past_max_land_purchases(self):
+        # MAX_LAND_PURCHASES already bought - stop there even though the
+        # engine itself would allow more (LAND_ORDER has 3 entries) and
+        # cash is no object. See MAX_LAND_PURCHASES's comment: buying past
+        # it is a measured loss, not just unobserved on the ladder.
+        money = 100000
+        unlocked = ["NW"] + LAND_ORDER[:MAX_LAND_PURCHASES]
+        farm = self._farm(money, unlocked_quadrants=unlocked)
+        self.assertEqual(decide_land_orders(farm, day=LAND_BUY_START_DAY), [])
+
+    def test_does_not_buy_once_every_quadrant_is_already_unlocked(self):
+        money = 100000
+        farm = self._farm(money, unlocked_quadrants=("NW", *LAND_ORDER))
+        self.assertEqual(decide_land_orders(farm, day=LAND_BUY_START_DAY), [])
 
 
 class TestAnimalPriority(unittest.TestCase):

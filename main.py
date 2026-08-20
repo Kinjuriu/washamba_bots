@@ -56,12 +56,14 @@ scored on spot price alone and once ranked crops by cheapness, planting
 wheat all season and never once planting a melon.
 
 NOT implemented in this version (on purpose, to keep V1 simple):
-  - COW / SHEEP (the animal logic is data-driven off ACTIVE_ANIMALS, so
-    enabling them is a config change, not new logic - though their
-    products, MILK and WOOL, still need SELL_PRICE_THRESHOLDS/
-    MAX_SELL_PER_TURN entries of their own before that's a good idea).
-  - Buying land / unlocking new quadrants.
   - Any multi-turn planning, lookahead, or opponent modelling.
+
+BUY_LAND (see decide_land_orders) buys the next quadrant in the engine's
+fixed NE -> SW -> SE order once cash allows without breaching a reserve
+floor. The capacity it funds is spent deliberately: MAX_ANIMALS beyond
+MAX_ANIMALS_ON_HOME_LAND can only be built outside the home ("NW")
+quadrant (see choose_animal_to_build), so a bigger animal count is paid
+for by newly-bought land rather than carved out of the original cropland.
 
 Every piece of environment metadata used here (CROPS, action names, the
 observation shape) comes from the official Kaggriculture "Getting
@@ -456,19 +458,16 @@ PLANTABLE_CROPS = ["WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON"]
 # simple, per-product thresholds so the team can tune them independently
 # as we learn more about how each product's price tends to move.
 # Any product not listed here falls back to DEFAULT_SELL_THRESHOLD.
-# Halved alongside the land/crew/animal build: a 75-tile farm with four animals
-# produces more than the old thresholds could clear, and unsold inventory scores
-# nothing. Holding out for the old prices left produce in the shed at turn 720.
 SELL_PRICE_THRESHOLDS = {
-    "WHEAT": 10,
-    "CARROT": 12,
-    "TOMATO": 20,
-    "STRAWBERRY": 45,
-    "MELON": 90,
-    "EGG": 17,
-    "WOOL": 70,
+    "WHEAT": 20,
+    "CARROT": 25,
+    "TOMATO": 40,
+    "STRAWBERRY": 90,
+    "MELON": 180,
+    "EGG": 35,
+    "WOOL": 140,
 }
-DEFAULT_SELL_THRESHOLD = 25
+DEFAULT_SELL_THRESHOLD = 50
 
 # MILK is deliberately absent, and that was checked rather than assumed.
 # Adding a new species normally needs its own threshold and per-turn cap or
@@ -500,7 +499,7 @@ MAX_SELL_PER_TURN = {
 # threshold, right up until it overflows and evaporates for free. Once the
 # shed gets this full, force a sale regardless of price - a mediocre sale
 # beats a guaranteed $0.
-SHED_FORCE_SELL_THRESHOLD = 40
+SHED_FORCE_SELL_THRESHOLD = 70
 
 # Anything still sitting in the shed when the season ends is worth exactly
 # nothing - there is no scoring credit for inventory, only for bank balance.
@@ -521,7 +520,7 @@ SHED_FORCE_SELL_THRESHOLD = 40
 # head-to-head number is the one that predicts it (experiments/head_to_head.py).
 #
 # Swept 13/16/19/21/23/25/27: 19 is an interior peak, not an edge effect.
-LIQUIDATION_START_DAY = 10
+LIQUIDATION_START_DAY = 19
 
 # ---------------------------------------------------------------------
 # Seed buying
@@ -637,7 +636,12 @@ FERTILIZER_LAST_USEFUL_DAY = 24
 # Cumulative day cost by crew size: 4 hands $7, 6 hands $20, 8 hands $54.
 # Even eight is under $1,700 for a full season, which is small against the
 # extra tiles they keep alive.
-MAX_HANDS_PER_DAY = 15
+#
+# This is now a floor, not the ceiling itself - see max_hands_ceiling(),
+# which derives the real cap from live unlocked-tile/animal-structure
+# count so it scales automatically once land or animal count changes,
+# instead of staying a stale constant (docs/ROADMAP.md's Phase 2).
+MAX_HANDS_PER_DAY = 8
 
 # Hands are cleared at the end of every day and must be re-hired each
 # morning, so hire in the first few turns - a hand bought at hour 20 costs
@@ -668,6 +672,23 @@ WORK_TILES_PER_HAND = 4
 # 60 is +402 (10/16), 20 is +1,025 (19/24, worst match -102), 0 is +1,144 -
 # monotone in how much of the trough the gate still blocks.
 MIN_MONEY_TO_HIRE = 20
+
+# Mirrors kaggriculture.py's _fib/_hire_cost exactly, so decide_hire_orders
+# can tell in advance whether the day's next hire is actually affordable
+# instead of only re-checking the flat MIN_MONEY_TO_HIRE floor once.
+# farmHandCostMult defaults to 1 (kaggriculture.py); not read from config
+# since this doesn't change the agent's obs-only signature.
+FARM_HAND_COST_MULT = 1
+
+
+def _hire_cost(n_already_today):
+    """Cost of the (n_already_today + 1)-th hire today: mult * fib(n), fib
+    indexed 1, 1, 2, 3, 5, 8, ... (matches kaggriculture.py's _fib/_hire_cost)."""
+    a, b = 1, 1
+    for _ in range(n_already_today):
+        a, b = b, a + b
+    return FARM_HAND_COST_MULT * a
+
 
 # ---------------------------------------------------------------------
 # Market order budget
@@ -746,18 +767,33 @@ ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a i
 # and three sheep the market ends BELOW the 10,000 baseline (9,822 / 9,855 /
 # 9,743) at a price ABOVE the $200 base (244 / 243 / 248), with nothing left
 # unsold. The town eats wool faster than three sheep can make it.
+#
+# Phase 3 correction (docs/ROADMAP.md's land + second-animal re-test): the
+# "3 is -2,618, 4 is -16,121, even head to head" reading above was measured
+# against the fixed 6-unit/25-tile crew this whole file used to run - the
+# exact stale-crew confound Phase 2's max_hands_ceiling() exists to remove.
+# MAX_ANIMALS is raised past that crew's own MAX_ANIMALS_ON_HOME_LAND only
+# once BUY_LAND (decide_land_orders) has actually funded somewhere to put
+# the extra structure - see MAX_ANIMALS_ON_HOME_LAND and the home-quadrant
+# gate in choose_animal_to_build.
+MAX_ANIMALS_ON_HOME_LAND = 3
 MAX_ANIMALS = 4
-# Four, not more, and this is a cliff rather than a dial. Measured on the land
-# build against main.py, seeds 0-2, everything else fixed: 2 -> 48,345 (1/3),
-# 3 -> 50,796 (2/3), 4 -> 65,640 (3/3), 5 -> 356 (0/3). Five does not degrade,
-# it collapses - the days 3-7 trough empties, there is no money for feed, and
-# the whole herd starves and escapes. The top-ladder replays run 8-9, so
-# whatever sustains that herd is something we have not identified yet; do not
-# reach for their number without finding it first.
 
 # Never buy an animal that eats more than this fraction of current cash in
 # one shot - same reasoning as SEED_SPEND_CAP_FRACTION.
 ANIMAL_SPEND_CAP_FRACTION = 0.5
+
+# A fixed post-purchase floor, same shape as MIN_CASH_RESERVE_FOR_SEED_BUYING
+# and for the same reason: ANIMAL_SPEND_CAP_FRACTION alone is a fraction of
+# *current* cash, so at the fraction's own boundary (money == cost / FRACTION)
+# it offers no floor below the purchase's own cost - documented above as the
+# exact mechanism that made a second animal a -19,514 loss before `3b8d36f`'s
+# unrelated seed-reserve retune incidentally patched it. Deliberately set
+# above the cheaper active species' cost (COW $400) so it can actually bind,
+# while staying at or below the pricier one (SHEEP $500) so it doesn't
+# refuse a purchase the fraction cap alone already allowed. Starting value,
+# not yet swept the way the seed reserve was.
+MIN_CASH_RESERVE_FOR_ANIMAL_BUYING = 450
 
 # Keep at least this much WHEAT on hand (shed + carried) whenever we own a
 # placed animal, buying more via BUY_PRODUCT if it ever hits zero. A missed
@@ -770,6 +806,47 @@ MIN_WHEAT_RESERVE_FOR_FEEDING = 2
 # so every meal otherwise costs a fresh shed round-trip. Carry a few days'
 # worth per trip instead.
 WHEAT_CARRY_BATCH = 3
+
+
+# ---------------------------------------------------------------------
+# Land
+# ---------------------------------------------------------------------
+
+# Mirrors kaggriculture.py's LAND_ORDER/LAND_PRICES exactly (fixed purchase
+# sequence, price per purchase) - neither is surfaced anywhere in obs beyond
+# farm["unlocked_quadrants"] itself, so this has to be read from the engine
+# rather than guessed, the same way _hire_cost mirrors the engine's fib.
+LAND_ORDER = ["NE", "SW", "SE"]
+LAND_PRICES = [1000, 2000, 4000]
+
+# docs/REPLAY_ANALYSIS.md / docs/ROADMAP.md Section 2: every sampled
+# top-ladder episode buys exactly *two* of the three purchasable quadrants
+# (25 -> 75 tiles), never the third - never observed running the full
+# 100-tile board. Measured directly on this agent: buying all three roughly
+# quadruples tile count against a crew ceiling (max_hands_ceiling) that
+# doesn't scale cleanly that far in one 30-day season - seed 3 vs `starter`
+# went 83,032 (2 quadrants would have given, not measured directly) down to
+# 54,786 once the agent bought the third $4,000 SE quadrant, despite hiring
+# far more (161 -> 282) and planting far more (58 -> 199): a bigger crew
+# spread over 100 tiles produced less bank than a smaller crew on 75 did.
+# Capped at the replay-observed count, not the engine's own limit.
+MAX_LAND_PURCHASES = 2
+
+# docs/REPLAY_ANALYSIS.md / docs/ROADMAP.md Section 2: every sampled
+# top-ladder episode buys both purchases in the day 6-11 window, never
+# later. LAND_BUY_LAST_USEFUL_DAY is a season-maturity-style cutoff, not
+# observed directly - past this there isn't enough season left for the
+# extra crop tiles or animal capacity land buys to pay back what they cost.
+# Both are starting hypotheses, not yet swept.
+LAND_BUY_START_DAY = 6
+LAND_BUY_LAST_USEFUL_DAY = 18
+
+# Same shape as MIN_CASH_RESERVE_FOR_SEED_BUYING/MIN_CASH_RESERVE_FOR_ANIMAL_
+# BUYING: a fixed floor a purchase can never drop cash below, not a fraction
+# of current cash - a $1,000-$4,000 lump sum is exactly the kind of spend
+# that emptied the days 3-7 trough before the seed-reserve fix. Starting
+# value, not yet swept.
+MIN_CASH_RESERVE_FOR_LAND_BUYING = 500
 
 
 # ---------------------------------------------------------------------
@@ -1217,7 +1294,7 @@ def species_owned_counts(farm, private, board_size):
     return counts
 
 
-def choose_animal_to_build(farm, private, board_size, day, pending_builds=0):
+def choose_animal_to_build(farm, private, board_size, day, pending_builds=0, ux=None, uy=None):
     """
     Pick which ACTIVE_ANIMALS species to build a structure for next, or
     None if we shouldn't build one right now.
@@ -1249,10 +1326,25 @@ def choose_animal_to_build(farm, private, board_size, day, pending_builds=0):
     pre-turn board, so without this a farmer plus several hands can each
     independently see "no coop built yet" and all build one in the same
     turn, blowing straight through the cap in one shot.
+
+    `ux`/`uy` are the tile coordinates of the unit standing here, used only
+    for the MAX_ANIMALS_ON_HOME_LAND gate below - optional so a caller with
+    no location context (a unit test, or MAX_ANIMALS left at or below
+    MAX_ANIMALS_ON_HOME_LAND) gets the plain cap-only behaviour.
     """
     filled, unfilled = scan_animal_structures(farm, board_size)
     if unfilled > 0 or pending_builds > 0 or filled >= MAX_ANIMALS:
         return None
+
+    # Phase 3: capacity beyond MAX_ANIMALS_ON_HOME_LAND has to be funded by
+    # land actually bought (decide_land_orders) - built on a non-home tile,
+    # not carved out of the original cropland the crop side already depends
+    # on. Without this, a bigger MAX_ANIMALS just as easily lands at home and
+    # reproduces the "land/animals compete with existing cropland" failure
+    # mode this phase exists to test a way out of.
+    if filled >= MAX_ANIMALS_ON_HOME_LAND and ux is not None and uy is not None:
+        if tile_quadrant(ux, uy, board_size) == "NW":
+            return None
 
     money = farm.get("money", 0)
     remaining_days = remaining_season_days(day)
@@ -1267,7 +1359,11 @@ def choose_animal_to_build(farm, private, board_size, day, pending_builds=0):
             continue
         if first_yield_day > remaining_days:
             continue  # can't reach even a first harvest before season end
-        if money >= cost and cost <= money * ANIMAL_SPEND_CAP_FRACTION:
+        if (
+            money >= cost
+            and cost <= money * ANIMAL_SPEND_CAP_FRACTION
+            and money - cost >= MIN_CASH_RESERVE_FOR_ANIMAL_BUYING
+        ):
             eligible.append(animal)
     return pick_next_animal_species(
         eligible, species_owned_counts(farm, private, board_size)
@@ -1295,6 +1391,8 @@ def decide_animal_market_actions(farm, private, board_size, day):
             if first_yield_day > remaining_days:
                 continue  # can't reach even a first harvest before season end
             if cost > money or cost > money * ANIMAL_SPEND_CAP_FRACTION:
+                continue
+            if money - cost < MIN_CASH_RESERVE_FOR_ANIMAL_BUYING:
                 continue
             affordable.append(animal)
 
@@ -1333,17 +1431,93 @@ def decide_animal_market_actions(farm, private, board_size, day):
 
 
 # ---------------------------------------------------------------------
+# Land
+# ---------------------------------------------------------------------
+
+def tile_quadrant(x, y, board_size):
+    """
+    Which quadrant (x, y) falls in - mirrors kaggriculture.py's own
+    _quadrant_of exactly, since farm["unlocked_quadrants"] and this need to
+    agree on quadrant names ("NW"/"NE"/"SW"/"SE") for decide_land_orders and
+    the home-quadrant animal-build gate in choose_animal_to_build to reason
+    about the same board.
+    """
+    half = board_size // 2
+    return ("N" if y < half else "S") + ("W" if x < half else "E")
+
+
+def decide_land_orders(farm, day):
+    """
+    Emit a BUY_LAND order once cash allows, inside the day window the top
+    of the ladder actually buys in, and never past MIN_CASH_RESERVE_FOR_
+    LAND_BUYING - see the Land constants section above for both.
+
+    Quadrant sequence and price are the engine's own LAND_ORDER/LAND_PRICES
+    (kaggriculture.py:96-97), mirrored locally the same way _hire_cost
+    mirrors the engine's fib - farm["unlocked_quadrants"] tells us how many
+    of the 3 purchasable quadrants are already bought (it always starts as
+    ["NW"], the free home quadrant). Stops at MAX_LAND_PURCHASES, not the
+    engine's own limit of 3 - see its comment above for why the third
+    quadrant is a measured loss, not just unobserved on the ladder.
+    """
+    if day < LAND_BUY_START_DAY or day > LAND_BUY_LAST_USEFUL_DAY:
+        return []
+
+    unlocked = farm.get("unlocked_quadrants") or ["NW"]
+    n_extra = len(unlocked) - 1
+    if n_extra >= MAX_LAND_PURCHASES:
+        return []
+
+    cost = LAND_PRICES[n_extra]
+    money = farm.get("money", 0)
+    if money - cost < MIN_CASH_RESERVE_FOR_LAND_BUYING:
+        return []
+
+    return [["BUY_LAND"]]
+
+
+# ---------------------------------------------------------------------
 # Labour
 # ---------------------------------------------------------------------
+
+def _animal_tile_needs_attention(tile, day):
+    """
+    Does this placed animal need a unit's attention today - the same
+    single-unit-of-work granularity count_pending_work gives a PLANT tile
+    (one work unit whether it needs watering or harvesting, not one per
+    action). Mirrors the FEED/CARE/HARVEST/COLLECT_FERTILIZER predicates
+    choose_unit_action's priority ladder already reads for a real decision
+    (main.py:1936-1974) - reused here rather than re-derived, so the two
+    never drift apart on what "needs attention" means.
+    """
+    if not tile.get("fed_today"):
+        return True
+    if not tile.get("cared_today"):
+        return True
+    if tile.get("fertilizer_available"):
+        return True
+    animal = ANIMALS.get(tile.get("animal"), {})
+    max_held = animal.get("max_held", 1)
+    held = tile.get("yield_units", 0)
+    if held >= max_held:
+        return True
+    if held > 0 and (held >= max_held - 2 or day >= SEASON_DAYS - 2):
+        return True
+    return False
+
 
 def count_pending_work(farm, board_size, day, seeds=None):
     """
     How many tiles currently need a unit standing on them: a ripe crop to
-    pick, a thirsty crop to water, a weed to dig, or plantable ground we
-    hold a usable seed for.
+    pick, a thirsty crop to water, a weed to dig, plantable ground we hold
+    a usable seed for, or a placed animal due for feed/care/harvest today.
 
     This is the demand side of the hiring decision - hire against real
-    work, not against a fixed schedule.
+    work, not against a fixed schedule. Animal upkeep is counted here (not
+    just tile work) so crew size can scale with animal count too, per
+    docs/ROADMAP.md's Phase 2: a fixed hand cap tested against a fixed
+    animal count is exactly the confound that made "more than one animal"
+    look like a dead end.
     """
     seeds = seeds or {}
     tiles = farm.get("tiles") or []
@@ -1361,42 +1535,47 @@ def count_pending_work(farm, board_size, day, seeds=None):
                         work += 1
                 elif kind == "WEED":
                     work += 1
+                elif kind in ANIMAL_STRUCTURE_KINDS:
+                    if "animal" in tile and _animal_tile_needs_attention(tile, day):
+                        work += 1
             elif tile is None and have_any_seed:
                 work += 1
     return work
 
 
-LAND_PRICES = [1000, 2000, 4000]     # engine kaggriculture.py:96-97
-LAND_BUY_DAYS = [6, 11]              # two quadrants only, 25 tiles -> 75
-LAND_CASH_RESERVE = 450              # never re-open the days 3-7 trough
-
-
-def decide_land_orders(farm, day):
-    """Buy the next quadrant as a ["BUY_LAND"] order, or nothing.
-
-    Two purchases, not three: every top-ladder episode sampled buys the $1,000
-    and the $2,000 and never the $4,000 third (docs/REPLAY_ANALYSIS.md).
-
-    The day gates track when the money actually exists rather than an arbitrary
-    schedule - peak bank is ~$350 on day 6, ~$1,379 on day 7 and ~$19,600 on
-    day 11 - which is why the sampled replays buy on days 6-7 and 11.
-
-    LAND_CASH_RESERVE is the same lesson as MIN_CASH_RESERVE_FOR_SEED_BUYING:
-    a purchase that empties the early-season trough starves the animals, and
-    land is worth far less than a live herd.
-
-    Land on its own is a loss - it was measured as one, twice. It only pays
-    alongside the crew to tend it and the animals to use it, which is why this
-    ships as one change and not four.
+def max_hands_ceiling(farm, board_size):
     """
-    bought = len(farm.get("unlocked_quadrants") or ["NW"]) - 1
-    if bought >= len(LAND_BUY_DAYS) or day < LAND_BUY_DAYS[bought]:
-        return []
-    if remaining_season_days(day) < 8:
-        return []  # no season left to grow anything on it
-    if farm.get("money", 0) < LAND_PRICES[bought] + LAND_CASH_RESERVE:
-        return []
-    return [["BUY_LAND"]]
+    A scaling safety ceiling for decide_hire_orders's `wanted` quota,
+    replacing the flat MAX_HANDS_PER_DAY constant as the sole cap. Derived
+    from currently unlocked tile count (each one potentially needing a
+    hand's attention) plus one allowance per built animal structure,
+    divided by WORK_TILES_PER_HAND - the same ratio that already sets real
+    crew size (see WORK_TILES_PER_HAND's comment: the ratio, not the cap,
+    is the knob that binds).
+
+    Floored at MAX_HANDS_PER_DAY rather than replacing it outright, so a
+    small board can never end up with a *lower* ceiling than today's
+    shipped behaviour - this makes the ceiling scale upward automatically
+    once a later phase buys land or raises MAX_ANIMALS, instead of staying
+    a stale constant someone has to remember to bump by hand. That stale-
+    constant confound is exactly what made every earlier BUY_LAND/
+    multi-animal test misleading (CLAUDE.md, docs/ROADMAP.md §3b): crew
+    size was held fixed while land or animals were varied.
+    """
+    tiles = farm.get("tiles") or []
+    unlocked_tiles = 0
+    animal_structures = 0
+    for y in range(board_size):
+        row = tiles[y] if y < len(tiles) else []
+        for x in range(len(row)):
+            tile = row[x]
+            if tile == "LOCKED":
+                continue
+            unlocked_tiles += 1
+            if isinstance(tile, dict) and tile.get("kind") in ANIMAL_STRUCTURE_KINDS:
+                animal_structures += 1
+    derived = (unlocked_tiles + animal_structures) // WORK_TILES_PER_HAND
+    return max(MAX_HANDS_PER_DAY, derived)
 
 
 def decide_hire_orders(farm, board_size, day, hour, seeds=None):
@@ -1405,8 +1584,19 @@ def decide_hire_orders(farm, board_size, day, hour, seeds=None):
 
     Hands vanish at the end of every day, so this only fires in the first
     few turns of a day: same price, far more work out of them. The count is
-    driven by how much work is actually waiting, capped by MAX_HANDS_PER_DAY
-    because the cost sequence is Fibonacci within a day.
+    driven by how much work is actually waiting, capped by MAX_HANDS_PER_DAY.
+
+    Unlike plant_budget, this has no per-unit collision to close - hiring is
+    never decided by a unit, only by this one function, called once a turn.
+    What it tracks instead is a real per-turn *affordability* ledger: the
+    cost of the day's next hire is Fibonacci in farm["hires_today"] (a live
+    counter, already possibly well into the day's hiring by the time a later
+    turn runs), so blindly emitting up to MAX_HIRES_PER_TURN orders can ask
+    for hires the current bank can't actually cover. The engine silently
+    no-ops any HIRE order it can't afford (kaggriculture.py's _do_hire), the
+    same class of silent failure as an unaffordable BUY_PRODUCT - so consult
+    remaining money and stop offering hires once the running total would
+    exceed it, instead of wasting a market-order slot on one that will fail.
     """
     if hour >= HIRE_BEFORE_HOUR:
         return []
@@ -1416,11 +1606,20 @@ def decide_hire_orders(farm, board_size, day, hour, seeds=None):
         return []
 
     work = count_pending_work(farm, board_size, day, seeds)
-    wanted = min(MAX_HANDS_PER_DAY, work // WORK_TILES_PER_HAND)
+    wanted = min(max_hands_ceiling(farm, board_size), work // WORK_TILES_PER_HAND)
     already_working = len(farm.get("hands") or [])
-    shortfall = max(0, wanted - already_working)
+    shortfall = min(max(0, wanted - already_working), MAX_HIRES_PER_TURN)
 
-    return [["HIRE"]] * min(shortfall, MAX_HIRES_PER_TURN)
+    hires_today = farm.get("hires_today", 0)
+    remaining_money = farm.get("money", 0)
+    orders = []
+    for i in range(shortfall):
+        cost = _hire_cost(hires_today + i)
+        if cost > remaining_money:
+            break
+        remaining_money -= cost
+        orders.append(["HIRE"])
+    return orders
 
 
 # ---------------------------------------------------------------------
@@ -1684,6 +1883,22 @@ def decide_market_actions(
     liquidating = day >= LIQUIDATION_START_DAY
 
     for product, quantity in shed.items():
+        # The shed can hold a bought-but-not-yet-collected live animal
+        # (ACTIVE_ANIMALS entries like "COW"/"SHEEP" - see
+        # decide_animal_market_actions's BUY_ANIMAL order and PICKUP in
+        # choose_unit_action) alongside real sellable products. An animal
+        # isn't in MARKET_PARAMS - only its product (MILK/WOOL/EGG) is - so
+        # treating it as sellable crashes market_price() with a KeyError.
+        # Phase 3 made this reachable in practice: MAX_ANIMALS beyond
+        # MAX_ANIMALS_ON_HOME_LAND can only be built on newly-bought land,
+        # so a bought animal can now sit in the shed for a real stretch
+        # waiting on a unit to reach and build that tile, not just a turn
+        # or two. Guard on the actual product table rather than special-
+        # casing ACTIVE_ANIMALS, so any future non-market shed item is
+        # equally safe.
+        if product not in MARKET_PARAMS:
+            continue
+
         # Fertilizer is an input, not produce - and with a Goose on the farm
         # it arrives free via COLLECT_FERTILIZER. Its price clears the default
         # sell threshold comfortably, so without this guard the agent dumps
@@ -1745,6 +1960,12 @@ def decide_market_actions(
     shed_total = sum(shed.values())
     if shed_total >= SHED_FORCE_SELL_THRESHOLD:
         for product, quantity in shed.items():
+            # Same non-market-item guard as the main sell loop above (see
+            # its comment) - a live animal sitting in the shed isn't
+            # sellable and would KeyError in market_price().
+            if product not in MARKET_PARAMS:
+                continue
+
             # Same exclusion as the main sell loop - the overflow valve
             # must not become the back door that dumps the fertilizer.
             # Fertilizer is an input, not produce - and with a Goose on the farm
@@ -1836,7 +2057,7 @@ def decide_market_actions(
 
 def choose_unit_action(
     state, ux, uy, unit_idx, claimed=None, pending_builds=None, feed_claimed=None,
-    plant_budget=None,
+    plant_budget=None, wheat_budget=None,
 ):
     """
     Decide the single action for one unit - the main farmer or a hired
@@ -1869,6 +2090,25 @@ def choose_unit_action(
     every involved unit's turn is wasted, not just the surplus ones.
     Defaults to a fresh copy of `seeds` when not supplied, so a single
     standalone call (e.g. in a test) behaves exactly as before.
+
+    `wheat_budget` is the same idea for WHEAT: a shared {"WHEAT": remaining}
+    dict, consulted and decremented both at the point a shed-adjacent unit
+    commits to a feed PICKUP and at the point a distant unit commits to
+    *walking toward* the shed for one - so two units never both count on
+    wheat that will only be there for one of them.
+
+    Measured both ways before settling here, because the two harnesses this
+    repo trusts disagreed sharply. vs `starter` (a built-in that never
+    sells, so our market stays pristine) it reads as a wash either way -
+    unsurprising, since `paired_compare.py`'s own docs already note that
+    harness flatters anything whose real effect runs through
+    selling/production timing, and this one does (FEED -> CARE bank ->
+    wool/milk -> SELL). `head_to_head.py` (a contested market, the harness
+    this repo trusts for exactly that class of change) shows the real
+    signal: gating only the atomic shed-PICKUP and leaving the "walk toward
+    the shed" decision on the raw shed count measured -2,039 mean, 1/24
+    wins; gating both as below measured +4,517 mean, 24/24 wins. Defaults
+    to a fresh read of the shed when not supplied, matching `plant_budget`.
     """
     claimed = claimed if claimed is not None else set()
     pending_builds = pending_builds if pending_builds is not None else [0]
@@ -1883,6 +2123,10 @@ def choose_unit_action(
     private = state["private"]
     seeds = private.get("seeds", {})
     plant_budget = plant_budget if plant_budget is not None else dict(seeds)
+    wheat_budget = (
+        wheat_budget if wheat_budget is not None
+        else {"WHEAT": private.get("shed", {}).get("WHEAT", 0)}
+    )
     inv = unit_inventory(private, unit_idx)
     tile = get_tile_at(farm, ux, uy)
 
@@ -1981,14 +2225,15 @@ def choose_unit_action(
                 for animal in ACTIVE_ANIMALS:
                     if shed.get(animal, 0) > 0:
                         return act_here(["PICKUP", animal, 1])
-        if inv.get("WHEAT", 0) <= 0 and shed.get("WHEAT", 0) > 0:
+        available_wheat = wheat_budget.get("WHEAT", 0)
+        if inv.get("WHEAT", 0) <= 0 and available_wheat > 0:
             if find_nearest_target(farm, board_size, ux, uy, "feed", day, exclude=claimed):
                 # Collect several days of feed in one trip. Feeding needs
                 # wheat in the acting unit's own inventory, so picking up a
                 # single grain means a fresh shed round-trip for every meal.
-                return act_here(
-                    ["PICKUP", "WHEAT", min(shed.get("WHEAT", 0), WHEAT_CARRY_BATCH)]
-                )
+                batch = min(available_wheat, WHEAT_CARRY_BATCH)
+                wheat_budget["WHEAT"] = available_wheat - batch
+                return act_here(["PICKUP", "WHEAT", batch])
 
     # 6. Something urgent elsewhere - a ripe crop/animal, a crop about to
     #    weed out, or an animal about to escape - beats anything below.
@@ -2014,7 +2259,21 @@ def choose_unit_action(
         feed_target = None
     if feed_target:
         if inv.get("WHEAT", 0) <= 0:
-            if private.get("shed", {}).get("WHEAT", 0) > 0:
+            # Reads wheat_budget, not the raw shed count - a unit shouldn't
+            # set off on a multi-turn walk toward wheat an earlier unit
+            # already claimed this turn. This was measured both ways: vs
+            # `starter` (a built-in that never sells, so our own market
+            # stays pristine and this kind of upkeep-timing effect is easy
+            # to mistake for noise) it's a wash either way. But per
+            # `paired_compare.py`'s own docs, `starter`/`pass` flatter any
+            # change whose real effect runs through selling/production
+            # timing - and this one does, through FEED -> CARE bank ->
+            # wool/milk -> SELL. `head_to_head.py` (a contested market,
+            # the harness this repo trusts for exactly that class of
+            # change) shows the real signal: reverting this one line to
+            # the raw shed read measured -2,039 mean, 1/24 wins, versus
+            # +4,517 mean, 24/24 wins with it reading wheat_budget as below.
+            if wheat_budget.get("WHEAT", 0) > 0:
                 moved = walk_to(nearest_shed_tile(ux, uy, board_size))
                 if moved:
                     return moved
@@ -2056,7 +2315,7 @@ def choose_unit_action(
     #    waiting for a tenant, otherwise plant a crop.
     if tile is None:
         animal_to_build = choose_animal_to_build(
-            farm, private, board_size, day, pending_builds[0]
+            farm, private, board_size, day, pending_builds[0], ux, uy
         )
         if animal_to_build:
             pending_builds[0] += 1
@@ -2128,7 +2387,8 @@ def choose_unit_action(
 
 
 def choose_farmer_action(
-    state, claimed=None, pending_builds=None, feed_claimed=None, plant_budget=None
+    state, claimed=None, pending_builds=None, feed_claimed=None, plant_budget=None,
+    wheat_budget=None,
 ):
     """Our main farmer's action - the shared unit logic, anchored at the farmer."""
     farm = state.get("farm")
@@ -2141,7 +2401,7 @@ def choose_farmer_action(
 
     return choose_unit_action(
         state, farmer_pos[0], farmer_pos[1], 0, claimed, pending_builds, feed_claimed,
-        plant_budget,
+        plant_budget, wheat_budget,
     )
 
 
@@ -2171,23 +2431,26 @@ def nikaangukia_meroni(obs):
 
         # One shared claim set across every unit this turn, so the farmer and
         # each hand pick different tiles instead of piling onto the same one.
-        # pending_builds is the same idea for coop/pasture construction, and
+        # pending_builds is the same idea for coop/pasture construction,
         # plant_budget is the same idea for PLANT: a shared {crop: seeds
         # left} counter, decremented as each unit commits to a planting, so
         # at most as many units plant a crop this turn as we hold seed for -
         # see choose_unit_action's docstring for why an uncoordinated PLANT
         # decision wastes every involved unit's turn, not just the surplus.
+        # wheat_budget is the same shape for the shed's WHEAT, decremented as
+        # each unit commits to a feed-related PICKUP this turn.
         claimed = set()
         pending_builds = [0]
         feed_claimed = set()
         plant_budget = dict(seeds)
+        wheat_budget = {"WHEAT": private.get("shed", {}).get("WHEAT", 0)}
         farmer_action = choose_farmer_action(
-            state, claimed, pending_builds, feed_claimed, plant_budget
+            state, claimed, pending_builds, feed_claimed, plant_budget, wheat_budget
         )
         hands_actions = [
             choose_unit_action(
                 state, hand[0], hand[1], idx + 1, claimed, pending_builds, feed_claimed,
-                plant_budget,
+                plant_budget, wheat_budget,
             )
             for idx, hand in enumerate(farm.get("hands") or [])
             if isinstance(hand, (list, tuple)) and len(hand) == 2
@@ -2198,19 +2461,12 @@ def nikaangukia_meroni(obs):
         # silently dropped if we ever brush the per-turn cap. Animal orders
         # go last - buying one or topping up feed reserve is less
         # time-critical turn-to-turn than hiring or selling at a good price.
-        market = decide_land_orders(farm, day)
-        market += decide_hire_orders(farm, board_size, day, hour, seeds)
+        # Land orders go last of all - at most 3 BUY_LAND orders in the
+        # entire season, so losing one to the per-turn cap on a crowded turn
+        # just delays it a turn, not a real cost.
+        market = decide_hire_orders(farm, board_size, day, hour, seeds)
         filled_animals, _ = scan_animal_structures(farm, board_size)
-        # Animals we own but have not placed yet still have to eat the moment
-        # they land, and placement lags purchase by a build/pickup/place round
-        # trip. Reserving against PLACED animals only means the sell loop can
-        # dump the very wheat just bought to feed them - measured directly while
-        # testing the opening book in #32: BUY_PRODUCT WHEAT 6 at hour 1,
-        # SELL WHEAT 6 at hour 2, with four animals sitting in inventory.
-        reserved_wheat = (
-            count_owned_animals(farm, private, board_size)
-            * MIN_WHEAT_RESERVE_FOR_FEEDING
-        )
+        reserved_wheat = filled_animals * MIN_WHEAT_RESERVE_FOR_FEEDING
         market += decide_market_actions(
             farm,
             private,
@@ -2222,6 +2478,7 @@ def nikaangukia_meroni(obs):
             opponent_pipeline=state.get("opponent_pipeline"),
         )
         market += decide_animal_market_actions(farm, private, board_size, day)
+        market += decide_land_orders(farm, day)
 
         return {
             "farmer": farmer_action,
