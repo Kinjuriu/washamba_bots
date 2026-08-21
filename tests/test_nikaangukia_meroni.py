@@ -110,6 +110,14 @@ class TestChooseCrop(unittest.TestCase):
         # one of them trading at normal supply (see the "prefers the
         # highest value crop" test below for why that would matter -
         # MELON alone beats WHEAT at parity).
+        #
+        # day=12, not 0: it's the one day inside STRAWBERRY's window
+        # (5-12) where MELON's window (0-11) and CARROT's window (21-25)
+        # are both already closed. That keeps this a genuine price-based
+        # test of STRAWBERRY losing to WHEAT on score - at day 0, MELON's
+        # fill-priority fallback (see the fallback tests below) would
+        # otherwise hand WHEAT's would-be win to MELON regardless of its
+        # own glut, which isn't what this test is checking.
         farm = {"money": 1000}
         market_state = self._market(
             prices={"STRAWBERRY": 400, "WHEAT": 30},
@@ -123,7 +131,7 @@ class TestChooseCrop(unittest.TestCase):
         )
         private = {"seeds": {}}
 
-        chosen = choose_crop(farm, market_state, private, day=0)
+        chosen = choose_crop(farm, market_state, private, day=12)
         self.assertEqual(chosen, "WHEAT")
 
     def test_prefers_the_highest_value_crop_at_normal_supply(self):
@@ -143,25 +151,34 @@ class TestChooseCrop(unittest.TestCase):
         self.assertEqual(choose_crop(farm, market_state, private, day=0), "MELON")
 
     def test_a_glut_still_loses_to_a_scarce_crop_of_similar_value(self):
-        # Same two crops, but melon is now heavily oversupplied: the
-        # forecast should hand it back to wheat. CARROT/TOMATO/STRAWBERRY
-        # are also put deep in glut (see the comment in
-        # test_avoids_oversupplied_high_price_crop above) so this stays a
-        # clean melon-vs-wheat comparison.
+        # A premium crop heavily oversupplied: the forecast should still
+        # hand the tile back to wheat. Uses STRAWBERRY rather than MELON
+        # here (unlike the pre-fallback version of this test) at day=12 -
+        # the one day inside STRAWBERRY's window (5-12) where MELON's
+        # (0-11) and CARROT's (21-25) are both closed. MELON specifically
+        # can't play this role any more: it's eligible for the Test 1a
+        # fill-priority fallback on every day inside its own window
+        # (0-11) whenever affordable, by design, regardless of how
+        # gluted it is - so a "MELON glut still loses to WHEAT" case is
+        # no longer constructible once that fallback is in place (see the
+        # fallback tests below, which cover exactly that override
+        # instead). CARROT/TOMATO are put deep in glut too (see the
+        # comment in test_avoids_oversupplied_high_price_crop above) so
+        # this stays a clean two-crop comparison.
         farm = {"money": 1000}
         market_state = self._market(
-            prices={"MELON": 250, "WHEAT": 25},
+            prices={"STRAWBERRY": 250, "WHEAT": 25},
             inventory={
-                "MELON": 100000,
+                "STRAWBERRY": 100000,
                 "WHEAT": 10000,
                 "CARROT": 200000,
                 "TOMATO": 200000,
-                "STRAWBERRY": 200000,
+                "MELON": 200000,
             },
         )
         private = {"seeds": {}}
 
-        self.assertEqual(choose_crop(farm, market_state, private, day=0), "WHEAT")
+        self.assertEqual(choose_crop(farm, market_state, private, day=12), "WHEAT")
 
     def test_returns_none_when_nothing_is_affordable_or_held(self):
         farm = {"money": 0}
@@ -196,6 +213,103 @@ class TestChooseCrop(unittest.TestCase):
         private = {"seeds": {"WHEAT": 2}}
 
         self.assertEqual(choose_crop(farm, market_state, private, day=27), "WHEAT")
+
+    # ---------------------------------------------------------------
+    # Fill-priority fallback (mydocs/Plan-fill-priority-followup.md,
+    # Test 1a): when the scoring loop's winner is WHEAT, prefer a
+    # currently-eligible windowed crop (MELON, then CARROT) instead of
+    # defaulting all freed tile-time to WHEAT.
+    # ---------------------------------------------------------------
+
+    def test_fallback_prefers_melon_over_wheat_when_melon_is_in_window(self):
+        # Day 5 is inside MELON's (0-11) and STRAWBERRY's (5-12) windows,
+        # but outside CARROT's (21-25) - so CARROT is excluded by the
+        # window gate regardless of inventory. MELON and STRAWBERRY are
+        # both gluted hard enough that the plain score-maximization loop
+        # picks WHEAT on real forward-priced score alone (verified: WHEAT
+        # 37.5 vs MELON ~0.5 vs STRAWBERRY ~0.4 at these inventory levels).
+        # The fallback should still override that score-based WHEAT win
+        # and hand the tile to MELON, since MELON remains eligible (in its
+        # window, affordable) even though it lost on score.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"WHEAT": 25, "MELON": 250, "STRAWBERRY": 300},
+            inventory={
+                "WHEAT": 10000,
+                "MELON": 100000,
+                "STRAWBERRY": 200000,
+            },
+        )
+        private = {"seeds": {}}
+
+        self.assertEqual(
+            choose_crop(farm, market_state, private, day=5), "MELON"
+        )
+
+    def test_fallback_prefers_carrot_over_wheat_when_melon_is_out_of_window(self):
+        # Day 22 is inside CARROT's (21-25) window but outside both
+        # MELON's (0-11) and STRAWBERRY's (5-12) windows, so MELON never
+        # enters the fallback chain regardless of affordability. CARROT
+        # itself is gluted hard enough to lose to WHEAT on raw score, but
+        # remains eligible (in-window, affordable), so the fallback should
+        # still hand the tile to CARROT over WHEAT.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"WHEAT": 25, "CARROT": 35},
+            inventory={"WHEAT": 10000, "CARROT": 100000},
+        )
+        private = {"seeds": {}}
+
+        self.assertEqual(
+            choose_crop(farm, market_state, private, day=22), "CARROT"
+        )
+
+    def test_fallback_falls_through_to_wheat_when_neither_filler_is_eligible(self):
+        # Day 15 sits outside every filler crop's window: MELON (0-11),
+        # STRAWBERRY (5-12), and CARROT (21-25) are all closed, and TOMATO
+        # is excluded entirely. WHEAT is the only crop the scoring loop
+        # can even consider, and the fallback chain must agree and hand
+        # back WHEAT rather than getting stuck or returning None.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"WHEAT": 25}, inventory={"WHEAT": 10000}
+        )
+        private = {"seeds": {}}
+
+        self.assertEqual(choose_crop(farm, market_state, private, day=15), "WHEAT")
+
+    def test_fallback_respects_affordability_not_just_the_window(self):
+        # Day 5 opens both MELON's and STRAWBERRY's windows, but with no
+        # cash and no held seed for either, MELON is not actually eligible
+        # for the fallback despite the window being open - it should not
+        # be handed the tile just because the calendar allows it. CARROT's
+        # window is closed on day 5 regardless. Only WHEAT is plantable
+        # (via a held seed), so it should come back unchanged.
+        farm = {"money": 0}
+        market_state = self._market(
+            prices={"WHEAT": 20}, inventory={"WHEAT": 0}
+        )
+        private = {"seeds": {"WHEAT": 2}}
+
+        self.assertEqual(choose_crop(farm, market_state, private, day=5), "WHEAT")
+
+    def test_strawberry_still_wins_outright_over_the_fallback_chain(self):
+        # Regression guard: the fallback only fires when the scoring
+        # loop's winner is WHEAT. STRAWBERRY at normal supply genuinely
+        # outscores WHEAT (verified: ~48 vs 37.5), so it must win outright
+        # and the fallback chain must never even be consulted. MELON is
+        # gluted hard so it can't interfere, and CARROT's window (21-25)
+        # is closed on day 6 anyway.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"WHEAT": 25, "STRAWBERRY": 300, "MELON": 250},
+            inventory={"WHEAT": 10000, "STRAWBERRY": 10000, "MELON": 200000},
+        )
+        private = {"seeds": {}}
+
+        self.assertEqual(
+            choose_crop(farm, market_state, private, day=6), "STRAWBERRY"
+        )
 
 
 class TestForwardPricingIntegration(unittest.TestCase):
@@ -247,9 +361,21 @@ class TestForwardPricingIntegration(unittest.TestCase):
         # crop at normal supply (see TestChooseCrop, above) - but 40 tiles
         # already growing MELON is enough pipeline supply (240 units) to
         # collapse its forecast price below WHEAT's by the time either
-        # could be harvested, so WHEAT should win instead. The other three
-        # crops are put in a deep glut so this stays a clean two-crop
-        # comparison (see TestChooseCrop's fixtures for why that matters).
+        # could be harvested. The raw scoring loop's winner does flip to
+        # WHEAT here (see test_pricing.py / the pipeline math itself,
+        # unchanged) - but MELON's own day-0 window (0-11) and
+        # affordability make it eligible for Test 1a's fill-priority
+        # fallback regardless of that collapsed forecast, and the
+        # fallback is deliberately price-blind (mydocs/
+        # Plan-fill-priority-followup.md: "in its window ... and either
+        # have_seed or can_afford" - no score/pipeline check), so it
+        # overrides the WHEAT win back to MELON. There is no day at which
+        # this scenario could still assert "WHEAT": any day inside
+        # MELON's window where it's otherwise eligible now routes through
+        # the same fallback that this suite tests directly below. The
+        # other three crops are put in a deep glut so this stays a clean
+        # two-crop comparison (see TestChooseCrop's fixtures for why that
+        # matters).
         market_state = {
             "prices": {},
             "inventory": {
@@ -269,7 +395,7 @@ class TestForwardPricingIntegration(unittest.TestCase):
 
         farm_heavy_pipeline = self._melon_pipeline_farm(40)
         self.assertEqual(
-            choose_crop(farm_heavy_pipeline, market_state, private, day=0), "WHEAT"
+            choose_crop(farm_heavy_pipeline, market_state, private, day=0), "MELON"
         )
 
     def test_sell_quantity_shrinks_below_the_cap_when_price_would_cross_threshold(self):

@@ -1817,6 +1817,39 @@ def choose_crop(
             best_score = score
             best_crop = crop
 
+    # Fill-priority fallback (mydocs/Plan-fill-priority-followup.md, Test
+    # 1a). CROP_PLANTING_WINDOWS narrows STRAWBERRY's window to free up
+    # tile-time, but the plain score-maximization above just handed all of
+    # that freed time to WHEAT (whose window is effectively unrestricted) -
+    # measured as a net loss even though the windows themselves work as
+    # designed. Only WHEAT winning the scoring loop is in scope here: if a
+    # premium crop already won on real forward-priced score, leave it
+    # alone. STRAWBERRY is deliberately not part of this chain - it already
+    # wins outright whenever it's genuinely the best eligible pick, so this
+    # only needs to catch what would otherwise default to WHEAT.
+    if best_crop != "WHEAT":
+        return best_crop
+
+    for fallback_crop in ("MELON", "CARROT"):
+        window = CROP_PLANTING_WINDOWS.get(fallback_crop)
+        if not window:
+            continue  # excluded entirely, or no window recorded
+        window_start, window_end = window
+        if day < window_start or day > window_end:
+            continue  # outside this crop's planting window today
+
+        fallback_info = CROPS.get(fallback_crop)
+        if not fallback_info:
+            continue
+        fallback_seed_cost = fallback_info.get("seed")
+        if fallback_seed_cost is None:
+            continue
+
+        have_seed = seeds.get(fallback_crop, 0) > 0
+        can_afford = money >= fallback_seed_cost
+        if have_seed or can_afford:
+            return fallback_crop
+
     return best_crop
 
 
