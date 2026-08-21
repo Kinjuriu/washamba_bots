@@ -197,6 +197,119 @@ class TestChooseCrop(unittest.TestCase):
 
         self.assertEqual(choose_crop(farm, market_state, private, day=27), "WHEAT")
 
+    def test_excludes_tomato_even_when_it_would_otherwise_win_on_score(self):
+        # TOMATO's CROP_PLANTING_WINDOWS entry is None - excluded entirely,
+        # regardless of how good it looks on price. Price it very high at
+        # normal supply (where it would win on score alone) and glut
+        # MELON/STRAWBERRY/CARROT so they can't win instead - WHEAT should
+        # win by elimination, and TOMATO must never be chosen.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"TOMATO": 500, "WHEAT": 25},
+            inventory={
+                "TOMATO": 10000,
+                "WHEAT": 10000,
+                "MELON": 200000,
+                "STRAWBERRY": 200000,
+                "CARROT": 200000,
+            },
+        )
+        private = {"seeds": {}}
+
+        chosen = choose_crop(farm, market_state, private, day=0)
+        self.assertNotEqual(chosen, "TOMATO")
+        self.assertEqual(chosen, "WHEAT")
+
+    def test_respects_melon_window_last_eligible_day(self):
+        # MELON's window is (0, 11) inclusive. On day 11 - its last eligible
+        # day - it should still be chosen over a gluted field.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"MELON": 250, "WHEAT": 25},
+            inventory={
+                "MELON": 10000,
+                "WHEAT": 200000,
+                "STRAWBERRY": 200000,
+                "CARROT": 200000,
+                "TOMATO": 200000,
+            },
+        )
+        private = {"seeds": {}}
+
+        self.assertEqual(choose_crop(farm, market_state, private, day=11), "MELON")
+
+    def test_excludes_melon_one_day_past_its_window(self):
+        # Same fixture, one day later: day 12 is past MELON's (0, 11)
+        # window, so it must fall through to WHEAT instead.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"MELON": 250, "WHEAT": 25},
+            inventory={
+                "MELON": 10000,
+                "WHEAT": 200000,
+                "STRAWBERRY": 200000,
+                "CARROT": 200000,
+                "TOMATO": 200000,
+            },
+        )
+        private = {"seeds": {}}
+
+        chosen = choose_crop(farm, market_state, private, day=12)
+        self.assertNotEqual(chosen, "MELON")
+        self.assertEqual(chosen, "WHEAT")
+
+    def test_respects_strawberry_window_boundaries(self):
+        # STRAWBERRY's window is (5, 12) inclusive. Day 4 is just before it
+        # opens (must not choose STRAWBERRY); day 5 is the first eligible
+        # day (must choose STRAWBERRY over WHEAT). MELON/CARROT/TOMATO are
+        # gluted out of contention so this stays a clean STRAWBERRY-vs-WHEAT
+        # comparison.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"STRAWBERRY": 400, "WHEAT": 25},
+            inventory={
+                "STRAWBERRY": 10000,
+                "WHEAT": 10000,
+                "MELON": 200000,
+                "CARROT": 200000,
+                "TOMATO": 200000,
+            },
+        )
+        private = {"seeds": {}}
+
+        before_window = choose_crop(farm, market_state, private, day=4)
+        self.assertNotEqual(before_window, "STRAWBERRY")
+        self.assertEqual(before_window, "WHEAT")
+
+        within_window = choose_crop(farm, market_state, private, day=5)
+        self.assertEqual(within_window, "STRAWBERRY")
+
+    def test_respects_carrot_window_boundaries(self):
+        # CARROT's window is (21, 25) inclusive. Day 20 is just before it
+        # opens (must not choose CARROT); day 21 is the first eligible day
+        # (must choose CARROT over WHEAT). MELON/STRAWBERRY/TOMATO are
+        # gluted out of contention so this stays a clean CARROT-vs-WHEAT
+        # comparison.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"CARROT": 100, "WHEAT": 25},
+            inventory={
+                "CARROT": 10000,
+                "WHEAT": 10000,
+                "MELON": 200000,
+                "STRAWBERRY": 200000,
+                "TOMATO": 200000,
+            },
+        )
+        private = {"seeds": {}}
+
+        before_window = choose_crop(farm, market_state, private, day=20)
+        self.assertNotEqual(before_window, "CARROT")
+        self.assertEqual(before_window, "WHEAT")
+
+        within_window = choose_crop(farm, market_state, private, day=21)
+        self.assertEqual(within_window, "CARROT")
+
 
 class TestForwardPricingIntegration(unittest.TestCase):
     """
