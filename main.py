@@ -469,6 +469,61 @@ CROP_PLANTING_WINDOWS = {
     "TOMATO": None,        # excluded entirely: never plant
 }
 
+# Test 1b (target-slot allocation, mydocs/Plan-fill-priority-followup-v2.md):
+# narrowing STRAWBERRY's window alone just handed the freed tile-time to
+# WHEAT, because choose_crop() picks tile-by-tile with no memory of how much
+# of each crop the farm already has. These give it that memory: an explicit
+# tile-count target per crop, expressed as a *share of currently owned
+# tiles* (not a fixed count) so it stays correct as BUY_LAND grows the farm
+# mid-season. Grounded in docs/REPLAY_ANALYSIS.md's observed top-ladder tile
+# counts - STRAWBERRY ~45-56% of owned tiles, MELON (its early window)
+# ~27-32% - starting points, not sacred; retune here if measurement says
+# otherwise. CARROT gets no target: REPLAY_ANALYSIS.md has no CARROT
+# tile-count data to ground one, so it keeps its existing window-only gate.
+STRAWBERRY_SHARE = 0.50
+MELON_SHARE = 0.30
+
+# MELON is one-shot: its tile frees up after HARVEST, so a live tile-walk
+# would undercount how many we've actually planted across the whole season -
+# and the target is meant to cap total plantings, not concurrent occupancy.
+# That needs a counter that survives across turns within one episode, which
+# nothing in this file has needed before now - hence this module-level dict.
+# STRAWBERRY doesn't need this: it's an "ongoing" crop that stays on its
+# tile, so a fresh tile-walk each call (count_planted_tiles()) already gives
+# the true current count with no persistence required.
+_SEASON_PLANT_COUNTS = {}  # {player: {crop: cumulative_count}}
+
+
+def season_plant_counts(player, day, hour):
+    """
+    Cumulative {crop: count} of PLANTs actually committed this season, for
+    crops whose fill-target needs a running seasonal total rather than a
+    live tile-occupancy count (currently just MELON - see the module-level
+    comment above choose_crop()'s STRAWBERRY_SHARE/MELON_SHARE for why).
+
+    Keyed by `player`: a self-play episode runs two seats of this same
+    file, and an unkeyed global would let one seat's MELON count leak into
+    the other's planting decisions if the harness ever shared one Python
+    module instance between them. Verified locally that it currently
+    doesn't (kaggle_environments.agent.build_agent() re-execs the source
+    into a fresh namespace per Agent instance, so the two seats never share
+    globals) - but keying by player makes this correct regardless of
+    whether that harness detail ever changes.
+
+    Cleared at day==0, hour==0 - the start of a fresh episode - so a batch
+    harness that imports this module once and loops many env.run() calls in
+    the same process can't carry one seed's MELON count into the next.
+    (In practice every harness under experiments/ calls make() + env.run()
+    fresh per seed, which itself re-execs a new module namespace - so this
+    reset is a second, independent guard against the same failure mode,
+    not the only thing standing between seeds.)
+    """
+    counts = _SEASON_PLANT_COUNTS.setdefault(player, {})
+    if day == 0 and hour == 0:
+        counts.clear()
+    return counts
+
+
 # ---------------------------------------------------------------------
 # Selling and the shed
 # ---------------------------------------------------------------------
@@ -1025,6 +1080,10 @@ def extract_state(obs):
         "board_size": len(tiles) if tiles else 0,
         "day": day,
         "hour": hour,
+        # Needed to key season_plant_counts() per-seat - see its docstring
+        # for why a self-play episode's two seats must never share one
+        # season's MELON tally.
+        "player": obs.get("player", 0),
         # obs["step"] is framework-supplied (see CLAUDE.md's I/O contract);
         # the day*TURNS_PER_DAY+hour fallback only matters for a malformed
         # observation. Both feed estimate_future_price()'s town-demand
@@ -1706,9 +1765,43 @@ def count_pipeline_supply(farm, private):
     return supply
 
 
+def count_planted_tiles(farm, crop):
+    """
+    Raw tile count of a single crop currently growing on our own farm - the
+    live-occupancy count Test 1b's STRAWBERRY target is checked against
+    (see choose_crop()'s fill_targets). Unlike count_pipeline_supply(),
+    this counts tiles directly: no max_yield weighting, no shed addition -
+    just "how many tiles right now hold this crop."
+    """
+    count = 0
+    for row in (farm.get("tiles") or []):
+        for tile in row:
+            if isinstance(tile, dict) and tile.get("kind") == "PLANT" and tile.get("crop") == crop:
+                count += 1
+    return count
+
+
+def count_owned_tiles(farm, board_size):
+    """
+    How many tiles we currently own (unlocked), regardless of what's on
+    them - the denominator for Test 1b's per-crop tile-share targets.
+    Reuses max_hands_ceiling()'s exact unlocked-tile-counting loop rather
+    than duplicating it with subtly different semantics.
+    """
+    tiles = farm.get("tiles") or []
+    owned = 0
+    for y in range(board_size):
+        row = tiles[y] if y < len(tiles) else []
+        for x in range(len(row)):
+            if row[x] == "LOCKED":
+                continue
+            owned += 1
+    return owned
+
+
 def choose_crop(
     farm, market_state, private, day, unlocked_shops=(), start_step=None,
-    opponent_pipeline=None,
+    opponent_pipeline=None, fill_targets=None, player=0, hour=0,
 ):
     """
     Pick the crop we'd most like to plant next, or None if nothing makes
@@ -1748,6 +1841,24 @@ def choose_crop(
     estimate_future_price() to phase-align its town-demand simulation with
     the real game (see pricing.py) - both default to "nothing unlocked,
     turn 0" so existing callers/tests keep working unchanged.
+
+    TEST 1B - TARGET-SLOT ALLOCATION (mydocs/Plan-fill-priority-followup-v2.md).
+    `fill_targets` is an optional {"strawberry_target", "melon_target",
+    "planted_strawberry", "melon_planted_season"} dict, computed once per
+    turn by the caller (see nikaangukia_meroni) and threaded through both
+    of this function's call sites so a speculative seed-restock check and
+    every idle unit's real planting decision this turn agree on the same
+    numbers. Any key missing/None falls back to a fresh computation here
+    (via count_owned_tiles/count_planted_tiles/season_plant_counts), so a
+    standalone call - a unit test, or a caller that predates this change -
+    still behaves sensibly. `player`/`hour` only matter for that fallback,
+    to key/gate season_plant_counts() correctly; real callers already have
+    both on hand via `state`.
+
+    A crop hitting its target is skipped outright (`continue`), even if it
+    would otherwise win on score - the whole point is to stop chasing a
+    crop's price advantage once the farm already holds its planned share
+    of that crop, and let the tile-time fall through to WHEAT instead.
     """
     money = farm.get("money", 0)
     inventory = market_state.get("inventory", {})
@@ -1756,6 +1867,30 @@ def choose_crop(
     pipeline = count_pipeline_supply(farm, private)
     if start_step is None:
         start_step = day * TURNS_PER_DAY
+
+    fill_targets = fill_targets or {}
+    board_size = len(farm.get("tiles") or [])
+    owned_tiles = count_owned_tiles(farm, board_size)
+
+    strawberry_target = fill_targets.get("strawberry_target")
+    if strawberry_target is None:
+        # owned_tiles == 0 means we have no real tile data to size a target
+        # off (a malformed observation, or a bare test fixture with no
+        # "tiles" key) - fail open rather than let a 0-tile farm round to a
+        # 0-unit target and gate the crop out unconditionally.
+        strawberry_target = round(STRAWBERRY_SHARE * owned_tiles) if owned_tiles > 0 else None
+
+    melon_target = fill_targets.get("melon_target")
+    if melon_target is None:
+        melon_target = round(MELON_SHARE * owned_tiles) if owned_tiles > 0 else None
+
+    planted_strawberry = fill_targets.get("planted_strawberry")
+    if planted_strawberry is None:
+        planted_strawberry = count_planted_tiles(farm, "STRAWBERRY")
+
+    melon_planted_season = fill_targets.get("melon_planted_season")
+    if melon_planted_season is None:
+        melon_planted_season = season_plant_counts(player, day, hour).get("MELON", 0)
 
     best_crop = None
     best_score = None
@@ -1781,6 +1916,17 @@ def choose_crop(
             window_start, window_end = window
             if day < window_start or day > window_end:
                 continue  # outside this crop's planting window
+
+        # Test 1b's target-slot gate: once the farm already holds (or has
+        # planted, for MELON's seasonal count) its allocated share of this
+        # crop, stop picking it even if it would otherwise win on score -
+        # let the freed tile-time fall through to WHEAT instead. See this
+        # function's TEST 1B docstring section and STRAWBERRY_SHARE/
+        # MELON_SHARE's comment for why these two crops specifically.
+        if crop == "STRAWBERRY" and strawberry_target is not None and planted_strawberry >= strawberry_target:
+            continue
+        if crop == "MELON" and melon_target is not None and melon_planted_season >= melon_target:
+            continue
 
         have_seed = seeds.get(crop, 0) > 0
         can_afford = money >= seed_cost
@@ -1896,9 +2042,16 @@ def seed_restock_quantity(crop, farm, private):
 
 def decide_market_actions(
     farm, private, market_state, day, reserved_wheat=0, unlocked_shops=(), start_step=None,
-    opponent_pipeline=None,
+    opponent_pipeline=None, fill_targets=None,
 ):
-    """Build the list of ["SELL", ...] / ["BUY_SEED", ...] actions for this turn."""
+    """Build the list of ["SELL", ...] / ["BUY_SEED", ...] actions for this turn.
+
+    `fill_targets` (Test 1b) is passed straight through to the choose_crop()
+    call below - this call site is speculative (it's the seed-restock
+    check, which may run without any unit ever actually planting), so it
+    must never itself mutate season_plant_counts(); only choose_unit_action's
+    actual PLANT commit does that. See choose_crop()'s docstring.
+    """
     actions = []
     already_selling = set()
 
@@ -2027,6 +2180,7 @@ def decide_market_actions(
     preferred_crop = choose_crop(
         farm, market_state, private, day, unlocked_shops=unlocked_shops,
         start_step=start_step, opponent_pipeline=opponent_pipeline,
+        fill_targets=fill_targets,
     )
     if preferred_crop:
         seed_quantity = seed_restock_quantity(preferred_crop, farm, private)
@@ -2084,12 +2238,18 @@ def decide_market_actions(
 
 def choose_unit_action(
     state, ux, uy, unit_idx, claimed=None, pending_builds=None, feed_claimed=None,
-    plant_budget=None, wheat_budget=None,
+    plant_budget=None, wheat_budget=None, fill_targets=None,
 ):
     """
     Decide the single action for one unit - the main farmer or a hired
     hand - standing at (ux, uy), following the fixed priority order
     described at the top of this file.
+
+    `fill_targets` (Test 1b, mydocs/Plan-fill-priority-followup-v2.md) is
+    the same per-turn target/counter dict choose_crop() consults - see its
+    docstring. Defaults to an empty dict (not None) when not supplied, so
+    choose_crop() falls back to computing everything itself and a
+    standalone call (e.g. a unit test) still behaves sensibly.
 
     `unit_idx` is this unit's index into private["inventories"] (0 = main
     farmer, i = the (i-1)th hand), needed to know what it's personally
@@ -2140,6 +2300,7 @@ def choose_unit_action(
     claimed = claimed if claimed is not None else set()
     pending_builds = pending_builds if pending_builds is not None else [0]
     feed_claimed = feed_claimed if feed_claimed is not None else set()
+    fill_targets = fill_targets if fill_targets is not None else {}
 
     farm = state["farm"]
     if not farm:
@@ -2356,9 +2517,21 @@ def choose_unit_action(
             unlocked_shops=state.get("unlocked_shops", ()),
             start_step=state.get("step"),
             opponent_pipeline=state.get("opponent_pipeline"),
+            fill_targets=fill_targets,
+            player=state.get("player", 0),
+            hour=state.get("hour", 0),
         )
         if crop and plant_budget.get(crop, 0) > 0:
             plant_budget[crop] -= 1
+            if crop == "MELON":
+                # Test 1b's seasonal MELON target is checked against real
+                # commits only - see choose_crop()'s docstring for why this
+                # must NOT also fire from decide_market_actions's
+                # speculative seed-restock call.
+                counts = season_plant_counts(
+                    state.get("player", 0), day, state.get("hour", 0)
+                )
+                counts["MELON"] = counts.get("MELON", 0) + 1
             return act_here(["PLANT", crop])
 
     # 10. Fertilizer logistics. Fertilizer reaches the shed either by
@@ -2415,7 +2588,7 @@ def choose_unit_action(
 
 def choose_farmer_action(
     state, claimed=None, pending_builds=None, feed_claimed=None, plant_budget=None,
-    wheat_budget=None,
+    wheat_budget=None, fill_targets=None,
 ):
     """Our main farmer's action - the shared unit logic, anchored at the farmer."""
     farm = state.get("farm")
@@ -2428,7 +2601,7 @@ def choose_farmer_action(
 
     return choose_unit_action(
         state, farmer_pos[0], farmer_pos[1], 0, claimed, pending_builds, feed_claimed,
-        plant_budget, wheat_budget,
+        plant_budget, wheat_budget, fill_targets,
     )
 
 
@@ -2466,18 +2639,37 @@ def nikaangukia_meroni(obs):
         # decision wastes every involved unit's turn, not just the surplus.
         # wheat_budget is the same shape for the shed's WHEAT, decremented as
         # each unit commits to a feed-related PICKUP this turn.
+        # fill_targets is Test 1b's target-slot allocation (see choose_crop's
+        # docstring): computed once here so the speculative seed-restock
+        # check in decide_market_actions and every unit's real planting
+        # decision this turn all agree on the same STRAWBERRY/MELON
+        # targets and counts, rather than each recomputing its own snapshot.
         claimed = set()
         pending_builds = [0]
         feed_claimed = set()
         plant_budget = dict(seeds)
         wheat_budget = {"WHEAT": private.get("shed", {}).get("WHEAT", 0)}
+        owned_tiles = count_owned_tiles(farm, board_size)
+        fill_targets = {
+            "strawberry_target": (
+                round(STRAWBERRY_SHARE * owned_tiles) if owned_tiles > 0 else None
+            ),
+            "melon_target": (
+                round(MELON_SHARE * owned_tiles) if owned_tiles > 0 else None
+            ),
+            "planted_strawberry": count_planted_tiles(farm, "STRAWBERRY"),
+            "melon_planted_season": season_plant_counts(
+                state["player"], day, hour
+            ).get("MELON", 0),
+        }
         farmer_action = choose_farmer_action(
-            state, claimed, pending_builds, feed_claimed, plant_budget, wheat_budget
+            state, claimed, pending_builds, feed_claimed, plant_budget, wheat_budget,
+            fill_targets,
         )
         hands_actions = [
             choose_unit_action(
                 state, hand[0], hand[1], idx + 1, claimed, pending_builds, feed_claimed,
-                plant_budget, wheat_budget,
+                plant_budget, wheat_budget, fill_targets,
             )
             for idx, hand in enumerate(farm.get("hands") or [])
             if isinstance(hand, (list, tuple)) and len(hand) == 2
@@ -2503,6 +2695,7 @@ def nikaangukia_meroni(obs):
             unlocked_shops=state["unlocked_shops"],
             start_step=state["step"],
             opponent_pipeline=state.get("opponent_pipeline"),
+            fill_targets=fill_targets,
         )
         market += decide_animal_market_actions(farm, private, board_size, day)
         market += decide_land_orders(farm, day)

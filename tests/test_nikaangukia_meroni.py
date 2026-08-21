@@ -25,6 +25,7 @@ from main import (
     MAX_HANDS_PER_DAY,
     MAX_MARKET_ORDERS_PER_TURN,
     MAX_SELL_PER_TURN,
+    MELON_SHARE,
     SELL_PRICE_THRESHOLDS,
     SHED_FORCE_SELL_THRESHOLD,
     MAX_SEED_STOCKPILE,
@@ -32,6 +33,7 @@ from main import (
     MIN_CASH_RESERVE_FOR_LAND_BUYING,
     MIN_CASH_RESERVE_FOR_SEED_BUYING,
     SEASON_DAYS,
+    STRAWBERRY_SHARE,
     WHEAT_CARRY_BATCH,
     WORK_TILES_PER_HAND,
     carried_animal,
@@ -40,7 +42,9 @@ from main import (
     choose_farmer_action,
     choose_unit_action,
     count_owned_animals,
+    count_owned_tiles,
     count_pending_work,
+    count_planted_tiles,
     decide_animal_market_actions,
     decide_hire_orders,
     decide_land_orders,
@@ -53,6 +57,7 @@ from main import (
     nikaangukia_meroni,
     pick_next_animal_species,
     scan_animal_structures,
+    season_plant_counts,
     seed_restock_quantity,
     shed_access_tiles,
     should_sell,
@@ -339,6 +344,260 @@ class TestForwardPricingIntegration(unittest.TestCase):
         actions = decide_market_actions({"money": 0}, private, market_state, day=0)
 
         self.assertEqual(actions, [])
+
+
+class TestFillPriorityTargetAllocation(unittest.TestCase):
+    """
+    Test 1b (mydocs/Plan-fill-priority-followup-v2.md): choose_crop() now
+    accepts an explicit fill_targets dict and skips a crop outright once
+    it hits its allocated tile-share, even if that crop would otherwise
+    win on score - see choose_crop()'s TEST 1B docstring section.
+    """
+
+    def _market(self, prices, inventory):
+        return {"prices": prices, "inventory": inventory}
+
+    def test_strawberry_is_skipped_once_it_hits_its_target_despite_winning_on_score(self):
+        # Same shape as TestChooseCrop's "prefers highest value crop" test,
+        # just with STRAWBERRY (in its planting window, day 6) standing in
+        # for MELON - at normal, equal supply the pricier crop wins absent
+        # a target gate.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"STRAWBERRY": 400, "WHEAT": 30},
+            inventory={
+                "STRAWBERRY": 10000,
+                "WHEAT": 10000,
+                "CARROT": 200000,
+                "TOMATO": 200000,
+                "MELON": 200000,
+            },
+        )
+        private = {"seeds": {}}
+
+        self.assertEqual(
+            choose_crop(farm, market_state, private, day=6), "STRAWBERRY"
+        )
+
+        # Once fill_targets says we already hold (or exceed) our STRAWBERRY
+        # allocation, it must be skipped even though it still wins on
+        # score - the freed tile-time falls through to WHEAT instead.
+        fill_targets = {
+            "strawberry_target": 2,
+            "planted_strawberry": 2,
+            "melon_target": None,
+            "melon_planted_season": 0,
+        }
+        self.assertEqual(
+            choose_crop(
+                farm, market_state, private, day=6, fill_targets=fill_targets
+            ),
+            "WHEAT",
+        )
+
+    def test_melon_is_skipped_once_its_seasonal_count_hits_target_despite_winning_on_score(self):
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"MELON": 250, "WHEAT": 25},
+            inventory={
+                "MELON": 10000,
+                "WHEAT": 10000,
+                "CARROT": 200000,
+                "TOMATO": 200000,
+                "STRAWBERRY": 200000,
+            },
+        )
+        private = {"seeds": {}}
+
+        self.assertEqual(choose_crop(farm, market_state, private, day=0), "MELON")
+
+        fill_targets = {
+            "strawberry_target": None,
+            "planted_strawberry": 0,
+            "melon_target": 2,
+            "melon_planted_season": 2,
+        }
+        self.assertEqual(
+            choose_crop(
+                farm, market_state, private, day=0, fill_targets=fill_targets
+            ),
+            "WHEAT",
+        )
+
+    def test_a_crop_under_its_target_is_still_chosen_normally(self):
+        # Sanity check on the other side of the gate: below target, the
+        # crop competes on score exactly as before.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"MELON": 250, "WHEAT": 25},
+            inventory={
+                "MELON": 10000,
+                "WHEAT": 10000,
+                "CARROT": 200000,
+                "TOMATO": 200000,
+                "STRAWBERRY": 200000,
+            },
+        )
+        private = {"seeds": {}}
+        fill_targets = {
+            "strawberry_target": None,
+            "planted_strawberry": 0,
+            "melon_target": 5,
+            "melon_planted_season": 4,
+        }
+
+        self.assertEqual(
+            choose_crop(
+                farm, market_state, private, day=0, fill_targets=fill_targets
+            ),
+            "MELON",
+        )
+
+
+class TestSeasonPlantCounts(unittest.TestCase):
+    """
+    season_plant_counts() backs Test 1b's MELON seasonal target - see its
+    docstring in main.py for why MELON (a one-shot crop whose tile frees
+    up after harvest) needs a running cumulative counter that survives
+    across turns, unlike STRAWBERRY's live tile-occupancy count.
+    """
+
+    def test_resets_at_day_zero_hour_zero_after_accumulating(self):
+        player = 900001  # unique key so other tests' player-0 state can't interfere
+        counts = season_plant_counts(player, 5, 3)
+        counts["MELON"] = 7
+
+        self.assertEqual(season_plant_counts(player, 0, 0), {})
+
+    def test_does_not_reset_on_any_other_day_hour_combination(self):
+        player = 900002
+        counts = season_plant_counts(player, 0, 0)  # start from a clean slate
+        counts["MELON"] = 4
+
+        self.assertEqual(season_plant_counts(player, 0, 1).get("MELON"), 4)
+        self.assertEqual(season_plant_counts(player, 3, 0).get("MELON"), 4)
+        self.assertEqual(season_plant_counts(player, 5, 5).get("MELON"), 4)
+
+    def test_is_keyed_per_player_so_two_seats_never_share_state(self):
+        season_plant_counts(900003, 0, 0)["MELON"] = 3
+        season_plant_counts(900004, 0, 0)["MELON"] = 9
+
+        self.assertEqual(season_plant_counts(900003, 1, 1).get("MELON"), 3)
+        self.assertEqual(season_plant_counts(900004, 1, 1).get("MELON"), 9)
+
+
+class TestFillPriorityHelpers(unittest.TestCase):
+    """count_planted_tiles()/count_owned_tiles() - the tile-count building
+    blocks fill_targets is computed from."""
+
+    def test_count_planted_tiles_counts_only_the_requested_crop(self):
+        tiles = [
+            [
+                {"kind": "PLANT", "crop": "STRAWBERRY"},
+                {"kind": "PLANT", "crop": "MELON"},
+            ],
+            [{"kind": "PLANT", "crop": "STRAWBERRY"}, None],
+        ]
+        farm = {"tiles": tiles}
+
+        self.assertEqual(count_planted_tiles(farm, "STRAWBERRY"), 2)
+        self.assertEqual(count_planted_tiles(farm, "MELON"), 1)
+        self.assertEqual(count_planted_tiles(farm, "WHEAT"), 0)
+
+    def test_count_planted_tiles_ignores_non_plant_tiles(self):
+        tiles = [[{"kind": "WEED"}, "LOCKED", None]]
+        farm = {"tiles": tiles}
+
+        self.assertEqual(count_planted_tiles(farm, "STRAWBERRY"), 0)
+
+    def test_count_owned_tiles_excludes_locked_tiles(self):
+        tiles = [
+            ["LOCKED", None, {"kind": "PLANT", "crop": "WHEAT"}],
+            [None, "LOCKED", None],
+        ]
+        farm = {"tiles": tiles}
+
+        self.assertEqual(count_owned_tiles(farm, board_size=2), 4)
+
+    def test_count_owned_tiles_is_zero_on_an_all_locked_board(self):
+        tiles = [["LOCKED", "LOCKED"], ["LOCKED", "LOCKED"]]
+        farm = {"tiles": tiles}
+
+        self.assertEqual(count_owned_tiles(farm, board_size=2), 0)
+
+
+class TestMelonSeasonCounterCommitPoint(unittest.TestCase):
+    """
+    The seasonal MELON counter must only move at the real PLANT commit
+    inside choose_unit_action - never from decide_market_actions's
+    speculative seed-restock choose_crop() call, which may run without any
+    unit ever actually planting. See main.py's comment at the commit point
+    (main.py ~2360, `if crop and plant_budget.get(crop, 0) > 0`).
+    """
+
+    def test_speculative_seed_restock_call_never_increments_the_season_count(self):
+        # decide_market_actions has no player param of its own, so its
+        # internal choose_crop() call always defaults to player 0 - reset
+        # that slate first so this is independent of test order.
+        season_plant_counts(0, 0, 0)
+
+        private = {"shed": {}, "seeds": {}}
+        market_state = {
+            "prices": {},
+            "inventory": {
+                "MELON": 10000,
+                "WHEAT": 10000,
+                "CARROT": 200000,
+                "TOMATO": 200000,
+                "STRAWBERRY": 200000,
+            },
+        }
+        farm = {"money": 5000}
+
+        for _ in range(5):
+            decide_market_actions(farm, private, market_state, day=0)
+
+        self.assertEqual(season_plant_counts(0, 5, 1).get("MELON", 0), 0)
+
+    def test_an_actual_plant_commit_increments_the_season_count(self):
+        player = 900005
+        season_plant_counts(player, 0, 0)  # clean slate
+
+        # 10 owned tiles so MELON_SHARE rounds to a non-zero target (3) -
+        # too small a board would round the target itself down to 0 and
+        # gate MELON out for the wrong reason.
+        state = {
+            "farm": {
+                "money": 0,
+                "tiles": [[None] * 10],
+                "farmer": [0, 0],
+                "hands": [],
+                "unlocked_quadrants": ["NW"],
+            },
+            "private": {"shed": {}, "seeds": {"MELON": 5}, "inventories": [{}]},
+            "market_state": {
+                "prices": {},
+                "inventory": {
+                    "MELON": 10000,
+                    "WHEAT": 10000,
+                    "CARROT": 200000,
+                    "TOMATO": 200000,
+                    "STRAWBERRY": 200000,
+                },
+            },
+            "board_size": 1,
+            "day": 0,
+            "hour": 3,
+            "player": player,
+            "unlocked_shops": (),
+            "step": 3,
+            "opponent_pipeline": {},
+        }
+
+        action = choose_farmer_action(state)
+
+        self.assertEqual(action, ["PLANT", "MELON"])
+        self.assertEqual(season_plant_counts(player, 0, 3).get("MELON", 0), 1)
 
 
 class TestHasPlantableSeed(unittest.TestCase):
