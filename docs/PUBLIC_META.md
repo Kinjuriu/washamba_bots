@@ -233,3 +233,40 @@ So both directions of the volume axis are now closed - more per pull
 does exactly what its header claims: **the same volume, three steps earlier.**
 That is a cleaner result than the alternative. Whatever comes next has to move
 *when* or *what* we sell, not *how much*.
+
+## The lead is not one number: it is four, and only two of them matter
+
+`_LEAD` applies one constant to MELON, MILK, STRAWBERRY and WOOL. Those markets
+have very different decay shapes, so a single constant is a compromise. Testing
+one item at a time against the shipped agent, 8 seeds x 2 seats:
+
+| arm | wins | mean margin | median |
+|---|---|---|---|
+| control | 5/16 | +0 | +0 |
+| MELON -> 1 | 5/16 | **+0** | +0 |
+| MELON -> 6 | 5/16 | **+0** | +0 |
+| STRAWBERRY -> 1 | **1/16** | **-1,414** | -1,656 |
+| **STRAWBERRY -> 6** | **15/16** | **+983** | +1,202 |
+| WOOL -> 6 | 12/16 | +194 | +152 |
+| MILK -> 6 | 4/16 | -938 | -1,057 |
+
+**MELON is never front-run, at any lead.** Both arms reproduce the control's
+numbers exactly, which can only happen if the code path never fires - and its
+emitted sell steps are byte-identical at leads 1, 3 and 6. The cause is the
+stock cap: `quantity = min(target, stock - reserve)`, and the harvest -> PICKUP
+-> SELL pipeline delivers MELON just in time, so the shed holds no spare when a
+pull is attempted. **Our most valuable premium good has been outside this
+mechanism the whole time.** Note this is also why the `_VOL` sweep above could
+not move MELON by a single unit - one cause, two dead sweeps.
+
+**STRAWBERRY is where the lead-3 win actually lives.** Reverting it alone to
+lead 1 gives back -1,414 at 1/16, close to the entire original gain, and
+pushing it to 6 is +983 at 15/16 - the same shape as the original lead-3
+discovery (8/8, +1,646).
+
+**MILK wants the opposite direction.** 4/16 at -938 when pushed to 6.
+
+So the uniform constant was averaging over items that want different answers.
+Generalises: **before tuning a constant, check how many distinct things it is
+applied to.** A single knob across four differently-shaped markets can only be
+right for one of them, and can be inert for another without anyone noticing.
