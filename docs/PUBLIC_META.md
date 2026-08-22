@@ -148,3 +148,64 @@ margins, so this is an acceptable trade - but it is a real one.
   notebook's saturated rating and puts us back in a mirror pool at 50%. The
   lead-3 result says the edge came from *modifying* the route, not from having
   it. Any newer base has to come with its own contested parameter.
+
+## Dead end: front-run *volume* is closed, because it is stock-bound
+
+The obvious follow-up to the lead was to pull more units forward, not just pull
+them earlier. `_VOL` multiplies the quantity `_front_run` moves; everything else
+is unchanged, so `_VOL = 1.0` reproduces the shipped agent exactly and rides
+along as a control.
+
+6 seeds x 2 seats against `agents/meta_lead3.py`:
+
+| `_VOL` | wins | mean margin | median |
+|---|---|---|---|
+| **1.0 (control)** | 3/12 | **+0** | +0 |
+| 1.25 | 6/12 | -71 | -30 |
+| 1.5 | 6/12 | -90 | +10 |
+| 2.0 | 6/12 | -89 | +18 |
+| 3.0 | 5/12 | -131 | -74 |
+
+The control returning exactly 0 is the harness telling the truth (its 3/12 is
+the documented seat asymmetry: three seeds tie exactly, three split one-all).
+Every real arm is a coin flip at a slightly negative mean. **No candidate.**
+
+**And the mechanism was visible before the sweep ran, by checking the counter
+the knob was meant to move.** `quantity = min(want, stock - reserve)` - the
+route already sells essentially everything it holds at the moment it sells, so
+asking for double buys a few percent:
+
+| item | base | `_VOL = 2.0` |
+|---|---|---|
+| MELON | 126 units | **126 - unchanged** |
+| MILK | 323 | 329 |
+| STRAWBERRY | 321 | 335 |
+| WOOL | 154 | 180 |
+
+MELON, the most valuable premium good, does not move at all. Generalises:
+**a multiplier on a quantity that is already inventory-limited is a no-op
+wearing a knob.** The lead works by selling the same units into a better price,
+not by selling more of them.
+
+## Open: our own change introduced an unrepaid-volume side effect nobody has isolated
+
+`_front_run` overwrites `state["due"]` wholesale every time it pulls, so a pull
+whose repayment has not yet come due is silently cancelled by the next pull.
+Counted directly against the route: **28 of 83 pulls never have their
+repayment executed.**
+
+**At the stock lead of 1 this cannot happen** - clobbering needs another pull
+strictly inside the repayment window, and a 1-step window has no interior. It
+exists only because we raised the lead to 3. So `_LEAD = 3` is really two
+changes at once:
+
+1. premium goods are sold three steps earlier, and
+2. a third of that volume is never given back, so we sell more premium goods
+   than the route plans - up to what the shed holds.
+
+**Which of the two is doing the winning is unmeasured.** The volume sweep above
+does not answer it: that added volume on *top* of the existing overshoot, while
+this is about whether the overshoot itself is the point. The test is a per-item
+repayment ledger, which fixes the clobbering without touching the lead - if the
+ledger version still beats the stock route, the timing is the edge; if it gives
+the gain back, the overshoot is.
