@@ -181,6 +181,19 @@ The fix that actually works: keep the shared per-turn budget (`plant_budget`, cl
 
 **Measured dead ends — don't re-run these without changing something first.** All lost on the full batch:
 
+- **`CROP_PLANTING_WINDOWS` is no longer the clear loss it is recorded as above - re-measure before acting on that entry.** The window gate is recorded here as **-3,689 mean, 3/12** paired vs `starter`. That number was measured on a base *without* `choose_crop(require_held_seed=True)`. Re-measured on current `main` with the fix in place, 12 seeds:
+
+  | harness | removing the windows |
+  |---|---|
+  | `paired_compare.py` vs `starter`, 12 seeds | **+2,125 mean, 7/12, t=1.20** |
+  | `head_to_head.py` vs current `main`, 12 seeds x 2 seats | **-1,368 mean, 7/24** |
+
+  **The two harnesses disagree and neither clears a bar**, so by this repo's win-count-first rule there is no case for reverting the gate *and* no case for calling it a proven win. It is unresolved on the current base.
+
+  The plausible reason they interact: the recorded mechanism for why windows lost was that freed tile-time gets refilled with cheap, fast-cycling WHEAT. `require_held_seed` changes exactly what fills a turn when the top pick has no seed in hand, so it is not surprising that it moves the windows result - but that link is a hypothesis, not something measured. Deltas here are enormously noisy (sd 6,129, seed 4 alone swings +19,178), so anything conclusive needs more seeds than 12.
+
+  Generalises, and this repo now has several instances of it: **a dead end is measured against a base, not in the abstract.** When a fix lands that plausibly touches the same mechanism, the recorded verdict is a hypothesis again, not a conclusion. Do not revert on a stale number - and do not trust one either.
+
 - **Aggressive selling on the Phase 3 base does not clear the bar, in either of the two forms it was tried — and the second form fails the same way on two independent bases.** Both were run by @future-centaur on `experiment/phase3-aggressive-selling` against a frozen Phase 3 control, on all three harnesses.
 
   **Variant A, four constants** (`SELL_PRICE_THRESHOLDS` halved again, `DEFAULT_SELL_THRESHOLD` 50→25, `SHED_FORCE_SELL_THRESHOLD` 70→40, `LIQUIDATION_START_DAY` 19→10): **+1,685 mean but 17/24 head to head**, -538 (7/12, t=-0.29) paired vs `starter`, self-play mean 63,982 / floor 48,170. 17/24 is between this repo's clean-win bar and a coin flip. The `starter` result is the built-in-flattery pattern already documented for selling changes, not a corroborating loss — it is an uninformative harness on this question. **Inconclusive, not shipped.**
