@@ -60,4 +60,15 @@ actually play in.
 Reproduce the base with `python experiments/meta_opponent.py`, which fetches the
 notebook on demand; the only diff from it is `_LEAD`.
 
+**Do not "fix" the repayment clobbering in this file.** `_front_run` overwrites
+its pending due wholesale, so a pull inside another pull's repayment window
+cancels it - a real defect, and automated review flags it. It is left in place
+for two reasons. First, this file must stay byte-identical to what was submitted
+as `55650592`, or it stops being a record of what scored 1755.5. Second, it was
+measured: a per-step ledger that removes the clobbering entirely plays
+byte-identical episodes (same banks, every seed and seat), because the un-repaid
+order asks for goods the shed no longer holds and the engine drops it. The
+correct queue is implemented in `meta_per_item_lead.py`, where per-item leads
+make it necessary rather than cosmetic.
+
 [nb]: https://www.kaggle.com/code/boatlee/v16-rc5-high-score-8c-4s-premium-market-lead
