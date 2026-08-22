@@ -394,7 +394,7 @@ Per-episode banks say the same thing less dramatically: mean 51,983 vs 52,886 (*
 What follows:
 
 - **Below ~10 episodes the rating carries no information at all.** Every number quoted from a fresh submission this week - the 637.1 that looked like a win, the 587.6 that looked like a regression - sits inside this range.
-- **Never compare two submissions at different episode counts.** The pair above is n=23 against n=8.
+- **Never compare two submissions at different episode counts.** The pair above is n=23 against n=8. **And equal episode count is not sufficient either - check the opponent field.** Matchmaking does not hand two submissions the same opposition: `55650592`'s first 52 episodes averaged an opponent rating of **1,684**, with 41 of them above 1700, while `55687852`'s first 52 averaged **1,211** with **none** above 1700. Their ratings at n=52 read **1,774 against 1,443** on near-identical banks (93,582 and 93,935) and a *worse* win rate for the higher-rated one (28/52 against 45/52). Beating a 1,200 opponent barely moves a rating; that gap is a difference in draw, not in agent. `experiments/ladder_episodes.py` now prints the mean opponent rating alongside each score and refuses to let the comparison pass silently when the two fields differ by more than 150 points.
 - **A change worth less than ~1,000 bank is invisible here** regardless of patience, because identical code varies by 903. Settle anything smaller with `paired_compare.py`, which controls seed variance by construction.
 - We do **not** yet have a converged estimate of the gap between two identical agents; `55606684` needs ~20 episodes before the pair can be compared honestly. Until then, treat every ladder delta under ~100 points as unmeasured.
 
