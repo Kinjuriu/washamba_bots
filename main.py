@@ -1708,12 +1708,25 @@ def count_pipeline_supply(farm, private):
 
 def choose_crop(
     farm, market_state, private, day, unlocked_shops=(), start_step=None,
-    opponent_pipeline=None,
+    opponent_pipeline=None, require_held_seed=False,
 ):
     """
     Pick the crop we'd most like to plant next, or None if nothing makes
     sense right now (nothing affordable/held, or nothing left has time to
     mature).
+
+    `require_held_seed=True` restricts eligibility to crops we already hold
+    at least one seed of, dropping the can_afford branch below entirely.
+    Used as a fallback at the PLANT call site in choose_unit_action: the
+    unrestricted call can name a crop via can_afford while holding zero seed
+    for it, which plant_budget (seeded only from currently-held counts) can
+    never satisfy - that turn's PLANT then silently does nothing, even
+    though a crop we DO hold seed for might have scored a close second.
+    Measured on a real engine trace across 3 seeds: 185-308 crew-turns a
+    season hit exactly this (vs. 171-206 that land), so it's not rare. This
+    reuses the same glut-aware score, just over a smaller eligible set - not
+    a fixed priority order like the already-failed price-blind MELON->
+    CARROT->WHEAT fallback (see CLAUDE.md's "Measured dead ends", Test 1a).
 
     FORWARD-PRICING EXPERIMENT (see docs/EXPERIMENT_WORKFLOW.md and the
     experiment report under experiments/). Previously scored by *today's*
@@ -1784,7 +1797,10 @@ def choose_crop(
 
         have_seed = seeds.get(crop, 0) > 0
         can_afford = money >= seed_cost
-        if not have_seed and not can_afford:
+        if require_held_seed:
+            if not have_seed:
+                continue  # fallback mode: only crops we can plant right now
+        elif not have_seed and not can_afford:
             continue  # can't get hold of this crop right now
 
         # Default to I0 (10,000), not 0: every product is always present in
@@ -2357,6 +2373,21 @@ def choose_unit_action(
             start_step=state.get("step"),
             opponent_pipeline=state.get("opponent_pipeline"),
         )
+        if crop and plant_budget.get(crop, 0) <= 0:
+            # Top pick can't be planted this turn (zero held seed, chosen
+            # via can_afford) - fall back to the best-scoring crop we
+            # actually hold seed for, rather than wasting the turn. See
+            # choose_crop's require_held_seed docstring.
+            crop = choose_crop(
+                farm,
+                state["market_state"],
+                private,
+                day,
+                unlocked_shops=state.get("unlocked_shops", ()),
+                start_step=state.get("step"),
+                opponent_pipeline=state.get("opponent_pipeline"),
+                require_held_seed=True,
+            )
         if crop and plant_budget.get(crop, 0) > 0:
             plant_budget[crop] -= 1
             return act_here(["PLANT", crop])

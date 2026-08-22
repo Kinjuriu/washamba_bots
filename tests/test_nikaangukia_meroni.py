@@ -197,6 +197,84 @@ class TestChooseCrop(unittest.TestCase):
 
         self.assertEqual(choose_crop(farm, market_state, private, day=27), "WHEAT")
 
+    def test_require_held_seed_drops_the_can_afford_branch(self):
+        # MELON outscores WHEAT at equal normal supply (see
+        # test_prefers_the_highest_value_crop_at_normal_supply), and we can
+        # afford its seed but hold none - the plant_budget/can_afford
+        # mismatch this parameter exists to let a caller route around.
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"MELON": 250, "WHEAT": 25},
+            inventory={"MELON": 10000, "WHEAT": 10000},
+        )
+        private = {"seeds": {"WHEAT": 1}}
+
+        self.assertEqual(choose_crop(farm, market_state, private, day=0), "MELON")
+        self.assertEqual(
+            choose_crop(farm, market_state, private, day=0, require_held_seed=True),
+            "WHEAT",
+        )
+
+    def test_require_held_seed_returns_none_if_nothing_is_held(self):
+        farm = {"money": 1000}
+        market_state = self._market(
+            prices={"MELON": 250, "WHEAT": 25},
+            inventory={"MELON": 10000, "WHEAT": 10000},
+        )
+        private = {"seeds": {}}
+
+        self.assertIsNone(
+            choose_crop(farm, market_state, private, day=0, require_held_seed=True)
+        )
+
+
+class TestPlantBudgetFallback(unittest.TestCase):
+    """The can_afford/plant_budget mismatch this fallback closes: choose_crop
+    can name a crop we hold zero seed for (via its can_afford branch), which
+    plant_budget - seeded only from currently-held counts - can never
+    satisfy. Measured on a real engine trace across 3 seeds: 185-308
+    crew-turns a season hit exactly this. Falling back to the best-scoring
+    crop we DO hold seed for plants something instead of wasting the turn."""
+
+    def _state(self, money=200, seeds=None):
+        tiles = [[None] * 10 for _ in range(10)]
+        return {
+            "farm": {
+                "money": money,
+                "tiles": tiles,
+                "farmer": [4, 4],
+                "hands": [],
+                "unlocked_quadrants": ["NW"],
+                "hires_today": 0,
+            },
+            "private": {"shed": {}, "seeds": seeds or {}, "inventories": [{}]},
+            "market_state": {
+                "prices": {"MELON": 250, "WHEAT": 25},
+                "inventory": {"MELON": 10000, "WHEAT": 10000},
+            },
+            "board_size": 10,
+            "day": 0,
+        }
+
+    def test_falls_back_to_a_held_seed_crop_when_top_pick_has_none(self):
+        # money=200 affords MELON's $80 seed but not either animal (SHEEP
+        # $500/COW $400), so this exercises the crop fallback specifically,
+        # not choose_animal_to_build's own eligibility check.
+        state = self._state(money=200, seeds={"WHEAT": 1})
+
+        action = choose_unit_action(state, 4, 4, 0)
+
+        self.assertEqual(action, ["PLANT", "WHEAT"])
+
+    def test_plants_the_top_pick_directly_when_we_hold_its_seed(self):
+        # Sanity check: holding the top-scoring crop's own seed should never
+        # need the fallback at all.
+        state = self._state(money=200, seeds={"MELON": 1})
+
+        action = choose_unit_action(state, 4, 4, 0)
+
+        self.assertEqual(action, ["PLANT", "MELON"])
+
 
 class TestForwardPricingIntegration(unittest.TestCase):
     """
