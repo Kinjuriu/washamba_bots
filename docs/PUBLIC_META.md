@@ -270,3 +270,42 @@ So the uniform constant was averaging over items that want different answers.
 Generalises: **before tuning a constant, check how many distinct things it is
 applied to.** A single knob across four differently-shaped markets can only be
 right for one of them, and can be inert for another without anyone noticing.
+
+## Confirmed at 12 seeds: STRAWBERRY 6 + WOOL 6
+
+Round 2 mapped each item's curve, then the winners were re-measured together at
+the repo's standard 12 seeds x 2 seats, against the shipped agent:
+
+| item | 1 | 2 | **3 (shipped)** | 6 | 8 | 10 | 12 |
+|---|---|---|---|---|---|---|---|
+| STRAWBERRY | -1,414 (1/16) | - | control | **+983 (15/16)** | -40 (9/16) | +702 (13/16) | -76 (8/16) |
+| MILK | -110 (6/16) | -124 (4/16) | **best** | -938 (4/16) | - | - | - |
+| WOOL | - | - | control | **+194 (12/16)** | +126 (12/16) | - | - |
+| MELON | +0 | - | +0 | +0 | - | - | - |
+
+**MILK is already correct at 3** - every deviation loses in both directions.
+That is a real result, not a null one: it says the stock constant was right for
+that item and wrong for STRAWBERRY.
+
+**STRAWBERRY's curve is not monotone**, and that is recorded rather than
+smoothed over: 1 << 3 < 6 is unambiguous, but 8 and 12 dip while 10 recovers.
+Either 16 matches is too few to separate them, or it is a resonance with the
+spacing of the route's 20 STRAWBERRY sell steps. **6 is a measured point, not a
+located optimum** - treat any claim about the shape between 6 and 12 as
+unsupported.
+
+Confirmation, 12 seeds x 2 seats = 24 matches:
+
+| candidate | wins | mean | median |
+|---|---|---|---|
+| exact-copy control | 6/24 | +0 | +0 |
+| STRAWBERRY 6 | 22/24 | +1,016 | +1,110 |
+| **STRAWBERRY 6 + WOOL 6** | **23/24** | **+1,306** | **+1,351** |
+| STRAWBERRY 10 | 20/24 | +725 | +951 |
+
+The two effects are close to additive (+1,016 and +194 separately, +1,306
+together), which is not something to assume - they share the shed and the
+ten-orders-per-turn cap - so it was measured rather than inferred.
+
+Shipped as `agents/meta_per_item_lead.py`. Entrypoint rule checked (`agent` is
+the last callable) and the self-play gate returns `['DONE', 'DONE']`.

@@ -7,6 +7,19 @@ ladder result stays reproducible after the session that produced it is gone.
 Everything here is public, Apache-2.0-licensed third-party work plus a stated
 change of ours. Nothing private and nothing another competitor shared with us.
 
+## `meta_per_item_lead.py` - the current candidate
+
+Same base, one step further: the lead becomes **per item** rather than one
+constant. STRAWBERRY and WOOL go to 6; MILK and MELON stay at 3. Repayment moves
+to a per-step ledger because two pulls can now fall due on different steps -
+measured behaviour-identical to the single-due version at equal leads, so it is
+machinery, not a second change.
+
+**23/24 wins, +1,306 mean** against `meta_lead3.py` at 12 seeds x 2 seats, with
+an exact-copy control returning 6/24 and +0 on the same seeds. See
+`docs/PUBLIC_META.md` for each item's curve, including the two null results that
+matter: MILK is already right at 3, and MELON is never front-run at any lead.
+
 ## `meta_lead3.py` - submission `55650592`, our best ever
 
 Derived from [`boatlee/v16-rc5-high-score-8c-4s-premium-market-lead`][nb]
