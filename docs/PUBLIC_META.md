@@ -74,3 +74,77 @@ has been unreadable all week - including #23, which is blocked on exactly that.
 
 Using it as a **harness** carries none of questions 1-3 in the same way, and is
 worth doing immediately regardless of what we decide about submitting.
+
+---
+
+# What the ladder said back (2026-08-22)
+
+Two arms ran simultaneously as our only active submissions, which makes this the
+cleanest A/B we have had: the stock route as the control, and one constant
+changed as the candidate.
+
+| | submission | episodes | rating |
+|---|---|---|---|
+| stock route, lead 1 | `55638404` | 152 | 1,665.0 |
+| **lead 3** | `55650592` | 135 | **1,755.5** |
+
+At an equal 135 episodes that is **1,755.5 against 1,701.1**. **Do not quote
+that 54-point gap as the result** - our own measured noise floor is ~100 points
+and identical code has read 86 apart. The rating is not the evidence.
+
+## Matchmaking pairs by rating, so the top of the board is invisible
+
+`experiments/opponent_strata.py` splits our own episodes by the opponent's
+rating going into the match. Pooled over both arms, 287 episodes:
+
+| opponent rating | n | our bank | opp bank | margin | wins |
+|---|---|---|---|---|---|
+| 0-1200 | 13 | 109,905 | 48,899 | +61,006 | 13/13 |
+| 1200-1500 | 9 | 96,089 | 81,888 | +14,201 | 8/9 |
+| 1500-1700 | 63 | 93,180 | 90,536 | +2,644 | 39/63 |
+| **1700-1900** | **191** | **89,502** | **92,068** | **-2,566** | **69/191** |
+| 1900-2200 | 11 | 81,900 | 89,747 | -7,847 | 2/11 |
+
+**We never played anyone above 2,200.** The 2,500+ teams are not opponents we
+are losing to, they are opponents we are not drawn against. There is no single
+match to win against the leaders - the only route up is through the 1700-1900
+band, where two thirds of our episodes are played.
+
+## In that band the economy is level and the matches are coin flips
+
+Losing by 2,566 on a 90,000 economy is a 3% deficit, but we win only 36% there.
+That combination only happens if the matches are near-ties. They are:
+
+| in band 1700-1900 | lead 3 | stock |
+|---|---|---|
+| episodes | 104 | 87 |
+| **median** margin | **-502** | **-138** |
+| decided by under 5,000 bank | **83 (80%)** | **62 (71%)** |
+| **of those near-ties, won** | **49 (59%)** | **17 (27%)** |
+
+That is the finding. **Same route, same opponents, level economy - and four out
+of five matches turn on a rounding error.** The mean margin is nearly identical
+between the two arms (-2,554 against -2,581) because it is dragged by a tail of
+blowout losses to agents on a *different* route. The mean cannot see the effect
+at all; the near-tie conversion rate doubles.
+
+This is what the local sweep predicted and it is the mechanism, not a
+correlation: two agents on an identical schedule bank identical money, so the
+match is decided at the order book, and selling three steps early is reaching it
+first.
+
+One cost, recorded honestly: lead 3 loses *harder* when it loses (mean loss
+margin -6,044 against the stock route's -4,077). Bradley-Terry counts wins, not
+margins, so this is an acceptable trade - but it is a real one.
+
+## What this rules in and out
+
+- **Not an economy problem.** We bank what the band banks. Chasing a bigger farm
+  is aiming at a gap that the data says is 3%.
+- **A mirror-tiebreak problem.** 80% of the matches we care about are decided
+  under 5,000 on 90,000. Every contested parameter of the shared route is worth
+  more than any amount of yield.
+- **Forking a newer public notebook does not obviously help.** It buys that
+  notebook's saturated rating and puts us back in a mirror pool at 50%. The
+  lead-3 result says the edge came from *modifying* the route, not from having
+  it. Any newer base has to come with its own contested parameter.
