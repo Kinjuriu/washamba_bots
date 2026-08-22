@@ -187,25 +187,49 @@ MELON, the most valuable premium good, does not move at all. Generalises:
 wearing a knob.** The lead works by selling the same units into a better price,
 not by selling more of them.
 
-## Open: our own change introduced an unrepaid-volume side effect nobody has isolated
+## Resolved: the lead is a pure timing change, and the volume axis is closed both ways
 
 `_front_run` overwrites `state["due"]` wholesale every time it pulls, so a pull
-whose repayment has not yet come due is silently cancelled by the next pull.
-Counted directly against the route: **28 of 83 pulls never have their
-repayment executed.**
+whose repayment has not yet come due is cancelled by the next pull. Counted
+against the route, **28 of 83 pull opportunities sit inside another pull's
+repayment window** - and that is impossible at the stock lead of 1, because a
+1-step window has no interior. So on paper `_LEAD = 3` did two things: it sold
+premium goods earlier, *and* it stopped giving some of that volume back.
 
-**At the stock lead of 1 this cannot happen** - clobbering needs another pull
-strictly inside the repayment window, and a 1-step window has no interior. It
-exists only because we raised the lead to 3. So `_LEAD = 3` is really two
-changes at once:
+**Measured, the second effect does not exist.** A per-item repayment ledger
+(`ledger.py`: `state["ledger"]` keyed by due step, so nothing is clobbered)
+plays **byte-identical episodes to the unfixed agent** - same banks, every seed,
+every seat:
 
-1. premium goods are sold three steps earlier, and
-2. a third of that volume is never given back, so we sell more premium goods
-   than the route plans - up to what the shed holds.
+| | seed 0 | seed 1 | seed 2 |
+|---|---|---|---|
+| exact control vs base | -239 | +1,004 | -60 |
+| **ledger vs base** | **-239** | **+1,004** | **-60** |
 
-**Which of the two is doing the winning is unmeasured.** The volume sweep above
-does not answer it: that added volume on *top* of the existing overshoot, while
-this is about whether the overshoot itself is the point. The test is a per-item
-repayment ledger, which fixes the clobbering without touching the lead - if the
-ledger version still beats the stock route, the timing is the edge; if it gives
-the gain back, the overshoot is.
+8 seeds x 2 seats: **ledger 5/16, mean +0, median +0 - the same figures the
+exact control returns.**
+
+**Why, and this is the part worth keeping.** The ledger *does* change what we
+emit: 900 premium units requested against the unfixed agent's 924, where 900 is
+exactly the route's own planned total (MELON 126 / MILK 320 / STRAWBERRY 300 /
+WOOL 154). Those 24 extra units are **phantom** - `_front_run` sizes a pull off
+shed stock at the moment it pulls, so the un-repaid order it leaves behind at
+the later step is asking for goods the shed no longer holds, and the engine
+drops it. The clobbering is real, it inflates the action histogram, and it
+sells nothing.
+
+Generalises: **an unexecuted order is not a position.** A diff in requested
+volume is not a diff in traded volume, and on this engine the two come apart
+silently - exactly the trap `CLAUDE.md` already records for `PLANT`, where the
+engine drops requests that exceed held seed. Count what lands.
+
+**Deliberately over-selling does not work either.** `norepay.py` skips
+repayment entirely, lifting requested premium volume to 1,106 against the
+route's 900 - a real 23% overshoot, not a phantom one. It is **8/16, mean -38,
+median +79**: a coin flip.
+
+So both directions of the volume axis are now closed - more per pull
+(`_VOL`, above) and more pulls left unpaid (`norepay`) - and the shipped agent
+does exactly what its header claims: **the same volume, three steps earlier.**
+That is a cleaner result than the alternative. Whatever comes next has to move
+*when* or *what* we sell, not *how much*.
