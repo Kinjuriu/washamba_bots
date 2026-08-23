@@ -7,7 +7,35 @@ ladder result stays reproducible after the session that produced it is gone.
 Everything here is public, Apache-2.0-licensed third-party work plus a stated
 change of ours. Nothing private and nothing another competitor shared with us.
 
-## `meta_per_item_lead.py` - the current candidate
+## `route_v20.py` - the route upgrade, and the current best base
+
+boatlee's [V20-Adaptive-R1 multi-route agent][v20], **Apache 2.0** (licence read
+off the notebook page 2026-08-23), decoded from its base85+zlib payload and
+verified byte-for-byte against the SHA-256 the notebook publishes. **Submitted
+unmodified on purpose**, to find where this route lands for us before anything
+is changed on top of it.
+
+Head to head, contested market, both seats:
+
+| matchup | matches | mean | wins |
+|---|---|---|---|
+| v20 vs our tuned v16 route | 24 | **+8,855** | 18/24 |
+| v20 vs the stock v16 route | 16 | +9,288 | 13/16 |
+| HarvestForge-X vs our tuned v16 route | 16 | +10,997 | 16/16 |
+| **HarvestForge-X vs v20** | 16 | **-7,972** | **0/16** |
+
+The last row is why this one and not the other: `salemali7/3094-score-kaggriculture`
+also beats us on every match, and loses to v20 on every match. Its title
+oversells it - the notebook's real Best Score is 2,684.1, and from an earlier
+version than the one published. v20's is 2,578.2. Ours is 1,687.5.
+
+**Caveat worth keeping in view:** this is 148 KB of decoded third-party source
+we have measured but not read. Tuning it the way we tuned v16 needs that reading
+first - see `docs/ROUTE_GENERATIONS.md`.
+
+[v20]: https://www.kaggle.com/code/boatlee/v20-adaptive-r1-multi-route-agent
+
+## `meta_per_item_lead.py` - the previous candidate
 
 Same base, one step further: the lead becomes **per item** rather than one
 constant. STRAWBERRY and WOOL go to 6; MILK and MELON stay at 3. Repayment moves
