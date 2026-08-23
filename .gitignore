@@ -17,3 +17,7 @@ replays/
 # Fetched on demand by experiments/meta_opponent.py - never committed.
 experiments/.meta_agent.py
 experiments/.meta_kernel/
+
+# Fetched on demand by experiments/route_v20.py - never committed.
+experiments/.v20_agent.py
+experiments/.v20_kernel/
