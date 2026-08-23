@@ -141,6 +141,24 @@ Raising `MAX_ANIMALS` is only safe once the *n*-th purchase is gated on survivin
 
 **Correction, 2026-08-17 (`3b8d36f`, `da8cdea` on `origin/main`): the trough this section is built around is now closed by a different fix, and the second-sheep numbers above are stale.** Retuning `MIN_CASH_RESERVE_FOR_SEED_BUYING` 100 → 450 (a seed-purchase-cadence fix, not an animal fix) removed the days 3-7 cash trough directly — day-5 bank $17 → $392 on seed 0 vs `starter`. Re-measured with that fix in place, a second sheep is **+900 (8/12)** vs `starter`, not -19,514 (0/12) — a ~20,000 swing from one unrelated constant, confirming the mechanism this section already names (cash starvation, not opportunity cost). Head to head still likes it, both before and after (+3,623 then, +4,384 now). Still only **t = 0.61**, so this is not yet a "ship `MAX_ANIMALS = 2`" result — but the *reason* to hold it at 1 has changed from "a second animal is a heavy loss" to "not yet proven a clean win post-trough-fix." Two independently-sampled contested top-ladder replays (`docs/REPLAY_ANALYSIS.md`) also show every strong player running COW+SHEEP (8-9 animals total) on a 12-15 unit crew — see `docs/ROADMAP.md` Phase 2/3 before re-testing this.
 
+**Correction, 2026-08-23: the shipped `ACTIVE_ANIMALS = ["SHEEP", "COW"]`, `MAX_ANIMALS = 4` configuration is now a confirmed win on every harness available, closing the "not yet proven" status above.** Measured against the actual pre-diversification baseline (`ACTIVE_ANIMALS = ["SHEEP"]`, `MAX_ANIMALS = 1`, commit `ec38fc5^` — not `78745f3`, a later refactor whose parent already carried the multi-species config):
+
+| harness | mean delta | wins |
+|---|---|---|
+| paired vs `starter`, 12 seeds | +11,120 | 10/12, t=4.30 |
+| paired vs `pass`, 12 seeds | +14,017 | 12/12, t=6.82 |
+| `head_to_head.py` vs baseline, 12 seeds x 2 seats | +12,887 | **24/24** |
+
+Self-control (`main.py` vs itself) read +0 on 3/6, confirming the harness. All three clear this repo's decisive bar — including the contested head-to-head, the harness that would be needed to catch a trough-starvation failure the never-selling built-ins can't see.
+
+`bptk.py`'s first dedicated animal/land diagnosis pass (never run before now) supplies the mechanism, not just the number. Against a `bptk.py`-only hypothetical (4 SHEEP, no COW, same `MAX_ANIMALS = 4` — never applied to real `main.py`), across 5 seeds, the single-species variant doesn't just underperform, it starves structurally: 4 animal escapes on every seed in solo mode (vs 0 for the shipped diverse roster), and the fourth pasture never gets built, because concentrated single-species spend blows the cash floor through the entire `LAND_BUY_START_DAY`-`LAND_BUY_LAST_USEFUL_DAY` (6-18) window, permanently missing that season's land purchase (`BUILD_PASTURE` stalls at 3, never 4, since `money - cost < MIN_CASH_RESERVE_FOR_LAND_BUYING` never clears in that window). The two rosters' total dollar cost is nearly identical (~$2,000 vs ~$1,800) — it's the *timing* of the spend relative to the land-buying window that flips the outcome. Same "gate priced against the wrong thing" pattern already named for `MIN_MONEY_TO_HIRE`, showing up again in `MIN_CASH_RESERVE_FOR_LAND_BUYING`, which is not gated on animal-herd composition at all. This single-species collapse is a **bptk.py-only signal** (its zero-travel-time abstraction inflates magnitudes 1.5-2x, and the variant was never run on the real engine) — real in direction, not yet trusted in magnitude without a real-engine trace.
+
+This pass also retires `bptk.py`'s own `validate()` scenario 5 (`5_second_sheep_trough`) framing as stale: under the shipped `ACTIVE_ANIMALS`, `MAX_ANIMALS = 2` now reliably builds one SHEEP and one COW (`pick_next_animal_species`'s fewest-owned tie-break), not two sheep, on all 5 seeds tested.
+
+A real-engine `selfplay_bench.py` cross-check (seeds 0-2: mean 65,672, stdev 2,810, min 62,497, max 67,841) shows no cash-trough collapse signal under the shipped config — a real mixed herd selling both WOOL (191) and MILK (165) across those seeds — consistent with the harness numbers above and with nothing like the single-species hypothetical's collapse.
+
+**Verdict: animal-side tuning is closed for now.** `MAX_ANIMALS = 2` was the open question in the previous correction; the shipped config has moved past it to 4 with two species, and wins cleanly on every measure available. The next open lever is `docs/ROADMAP.md`'s Phase 4 (crop `occupancy_kind`), not this.
+
 **Do not blame market depth - that theory is wrong and not worth re-testing.** The static curve says WOOL floors 58 units above `I0` (`sq`, T=105), so a premium crash looks like the binding constraint. Measured end-of-season it is not: at one, two *and* three sheep the market ends with inventory **below** the 10,000 baseline (9,822 / 9,855 / 9,743) at a price **above** the $200 base (244 / 243 / 248), with **zero** wool unsold. The town eats wool faster than three sheep can make it.
 
 **Do not blame market depth - that theory is wrong and not worth re-testing.** The static curve says WOOL floors 58 units above `I0` (`sq`, T=105), so a premium crash looks like the binding constraint. Measured end-of-season it is not: at one, two *and* three sheep the market ends with inventory **below** the 10,000 baseline (9,822 / 9,855 / 9,743) at a price **above** the $200 base (244 / 243 / 248), with **zero** wool unsold. The town eats wool faster than three sheep can make it.
@@ -358,6 +376,15 @@ Compare a change against the same seed set:
 ```
 
 At ~7s per season, 12 seeds × 3 opponents is about 4 minutes. Report mean and win-rate, not a single score. `experiments/replay_diagnostics.py` breaks a single episode down by action histogram and end-of-farm state — that's what found the weed cascade. Replay JSONs it dumps are multi-MB and gitignored.
+
+**Benchmark against `route_v20`, not just the never-selling built-ins and self-play mirror matches.** `agents/route_v20.py` is a genuinely strong external opponent (see `agents/README.md`) — measured but not read, a yardstick, not a base to build on. Decode it once (requires the Kaggle CLI and network access; writes to the gitignored `experiments/.v20_agent.py`, never committed) and reuse the same decoded file for every future comparison:
+
+```bash
+.venv/Scripts/python.exe experiments/route_v20.py                                    # decode + self-test, once
+.venv/Scripts/python.exe experiments/head_to_head.py experiments/.v20_agent.py main.py 12   # main.py's real change vs a genuinely strong opponent
+```
+
+Read it the same way as any other harness: win count first, both seats (`head_to_head.py` averages seat 0/1 since they aren't symmetric), and always run the self-control (same file both sides) once as a sanity check that must land at ~0.
 
 **The built-in opponents never sell anything, so every number they produce is inflated.** `pass`, `random` and `starter` leave the market at its pristine starting inventory all season, and our sales never compete with a rival's. Measured on the same agent: ~41,000 against the built-ins versus ~28,000 in self-play. Use the built-in batch to A/B a change (it is cheap and the seeds are fixed), but treat **`selfplay_bench.py` as the number that predicts the ladder** — it is the only local setup where a second trader is crowding the same order book. Its `end price` line is the tell: MELON finishes around $280 against a built-in and near the **$1 floor** in self-play, so any strategy that leans on premium-crop prices looks far better locally than it will score.
 
