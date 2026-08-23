@@ -48,7 +48,7 @@ def fetch_episodes(submission_id):
 
 
 def rows_for(submission_id):
-    """(end_time, our_score_after, our_bank, opponent_bank) per completed episode."""
+    """(end_time, our_score_after, our_bank, opponent_bank, opponent_rating)."""
     out = []
     for ep in fetch_episodes(submission_id):
         if ep.get("state") != "COMPLETED":
@@ -60,7 +60,7 @@ def rows_for(submission_id):
         m, o = mine[0], opp[0]
         if m.get("reward") is None or o.get("reward") is None:
             continue
-        out.append((ep["endTime"], m.get("updatedScore"), m["reward"], o["reward"]))
+        out.append((ep["endTime"], m.get("updatedScore"), m["reward"], o["reward"], o.get("initialScore")))
     out.sort()
     return out
 
@@ -104,14 +104,31 @@ def main(argv):
         summarise(sid, rows)
 
     if len(table) > 1:
-        # The only fair comparison: same episode count, since the rating is still
-        # converging from its ~600 seed for both.
+        # Equal episode count is NECESSARY but not SUFFICIENT. Two submissions
+        # can play their first N episodes against fields hundreds of rating
+        # points apart, and beating a 1,200 opponent moves the rating far less
+        # than beating an 1,800 one. Measured: 55650592's first 52 episodes
+        # averaged an opponent rating of 1,684 (41 of them 1700+) while
+        # 55687852's averaged 1,211 (none 1700+) - so their ratings at n=52
+        # read 1,774 against 1,443 on near-identical banks. That is a
+        # difference in draw, not in agent. Read both lines together.
         n = min(len(r) for r in table.values())
-        print(f"\n== score at equal episode count (n={n}) ==")
+        print(f"{chr(10)}== score at equal episode count (n={n}) ==")
+        strengths = []
         for sid, rows in table.items():
             s = [r[1] for r in rows[:n] if r[1] is not None]
-            if s:
-                print(f"  {sid}  {s[-1]:8.1f}")
+            opps = [r[4] for r in rows[:n] if len(r) > 4 and r[4] is not None]
+            score = f"{s[-1]:8.1f}" if s else " " * 8
+            if opps:
+                strengths.append(st.mean(opps))
+                hard = sum(1 for o in opps if o >= 1700)
+                print(f"  {sid}  {score}   opponents: mean "
+                      f"{st.mean(opps):6.0f}, {hard}/{len(opps)} rated 1700+")
+            else:
+                print(f"  {sid}  {score}")
+        if len(strengths) > 1 and max(strengths) - min(strengths) > 150:
+            print(f"  !! fields differ by {max(strengths) - min(strengths):.0f}"
+                  f" rating points - these scores are NOT comparable")
         print("\n== per-episode score trace ==")
         print("  ep  " + "  ".join(f"{sid:>10}" for sid in table))
         for i in range(max(len(r) for r in table.values())):
