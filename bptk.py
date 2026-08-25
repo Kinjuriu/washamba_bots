@@ -144,6 +144,34 @@ SHOP_UNLOCK_INTERVAL = 3
 WEED_SPAWN_CHANCE = 0.005
 HOME_SPAWN = (4, 4)  # any NW shed-adjacent tile; position is otherwise inert here
 
+# ---------------------------------------------------------------------
+# Path C Core - reproduced from mydocs/PATH_C_CORE.md, research done in a
+# separate environment. Nothing under this heading existed in bptk.py
+# before this pass (verified: no PATH_C_* / run_path_c / path_c_overrides
+# anywhere in this repo's history on any branch) - treat every number this
+# produces as a first faithful-to-spec implementation, not a re-run of an
+# already-verified result. See compare_path_c/compare_path_c_ladder below.
+# ---------------------------------------------------------------------
+PATH_C_EARLY_ANIMALS = 3
+PATH_C_EARLY_DAY_LIMIT = 8
+PATH_C_STRAW_CAP = 50
+PATH_C_STRAW_WINDOW_END = 14
+PATH_C_SCALE_MAX_ANIMALS = 10
+PATH_C_SCALE_STRAW_DONE = 50
+PATH_C_SCALE_DAY = 15
+PATH_C_LEVEL2_CREW = True
+PATH_C_L2_STRAW_TILES = 30
+PATH_C_L2_MIN_ANIMALS = 6
+PATH_C_HIRE_BUMP_CEILING = 10
+PATH_C_HIRE_BUMP_MIN_DAY = 12
+PATH_C_HIRE_BUMP_MIN_MONEY = 1500
+PATH_C_MELON_PAUSE_DAY = 0  # core = off; the experimental melon-pause arm is not reproduced here
+PATH_C_GATE_FERT_SELL = True
+# Not in PATH_C_CORE.md's constants table - the doc's prose names "3" as the
+# fertilize-elevation trigger ("After >=3 animals on tiles"); pulled out as
+# its own named constant here rather than left as a bare literal.
+PATH_C_FERT_ELEVATE_MIN_ANIMALS = 3
+
 
 @contextlib.contextmanager
 def _override_main(**kwargs):
@@ -291,7 +319,8 @@ def _process_market_two_sided(sides, market, board_size=BOARD_SIZE,
 class EconomyModel:
     """One episode's worth of state, stepped one turn at a time."""
 
-    def __init__(self, seed=0, market=None, town=None, shares_market=False):
+    def __init__(self, seed=0, market=None, town=None, shares_market=False, pin_strawberry=False,
+                 trace_tiers=False, path_c=False, path_c_cfg=None):
         self.rng = random.Random(seed)
         self.farm = _new_farm(BOARD_SIZE, STARTING_MONEY)
         self.private = _new_private()
@@ -302,6 +331,32 @@ class EconomyModel:
         # tick and shop-unlock so the shared state only advances once per
         # step/day, not once per side.
         self.shares_market = shares_market
+        # Crew-attention priority experiment (straw-first, attempt 4 - see
+        # CLAUDE.md / mydocs): while True and the current day falls inside
+        # agent_main.CROP_PLANTING_WINDOWS["STRAWBERRY"], STRAWBERRY tiles in
+        # the WATER/CARE tier of _assign_crew are matched to crew BEFORE any
+        # other crop's tiles in that same tier, instead of one Hungarian
+        # match across all of them together. Does not touch choose_crop or
+        # which crop gets planted anywhere - only which already-planted
+        # tile's watering/care a scarce crew reaches first.
+        self.pin_strawberry = pin_strawberry
+        # Diagnostic-only, additive, off by default: when True, `_assign_crew`
+        # records which unit indices each priority tier (`take()` call)
+        # consumed this turn - used to trace whether the pin_strawberry
+        # water/care re-split changes which physical units are left over for
+        # the tiers that come after it (fertilize/place/weed/empty) even when
+        # STRAWBERRY's own tile count doesn't move. Never read by any
+        # non-diagnostic code path.
+        self.trace_tiers = trace_tiers
+        self.tier_trace = []
+        # PATH_C_CORE.md's two crew-attention-priority pieces (STRAW-elevated
+        # FERTILIZE, and the Level-2 FEED->STRAW harvest->plant WATER->other
+        # harvest->animal CARE reorder) have no main.py equivalent to
+        # override, so they live directly in _assign_crew, gated on this
+        # flag+cfg rather than through _override_main. Off by default -
+        # existing pin_strawberry/plain-Path-A behavior is unchanged.
+        self.path_c = path_c
+        self.path_c_cfg = path_c_cfg or {}
         self.day = 0
         self.hour = 0
         self.step = 0
@@ -360,11 +415,14 @@ class EconomyModel:
                 kind = tile.get("kind")
                 if kind == "PLANT":
                     if agent_main.is_harvestable(tile, day):
-                        ready_tiles.append((x, y, ["HARVEST"]))
+                        # 4th element (crop) is extra, harmless to `take()`
+                        # (it only ever reads index 0/1/2) - used by Path C's
+                        # STRAW-harvest-first crew split below.
+                        ready_tiles.append((x, y, ["HARVEST"], tile.get("crop")))
                     elif not tile.get("watered_today", True):
-                        water_care_tiles.append((x, y, ["WATER"]))
+                        water_care_tiles.append((x, y, ["WATER"], tile.get("crop")))
                     elif agent_main.wants_fertilizer(tile, day):
-                        fertilize_tiles.append((x, y))
+                        fertilize_tiles.append((x, y, tile.get("crop")))
                 elif kind == "WEED":
                     weed_tiles.append((x, y))
                 elif "animal" in tile:
@@ -377,17 +435,17 @@ class EconomyModel:
                     if held >= max_held or (
                         held > 0 and (held >= max_held - 2 or day >= SEASON_DAYS - 2)
                     ):
-                        ready_tiles.append((x, y, ["HARVEST"]))
+                        ready_tiles.append((x, y, ["HARVEST"], None))
                     elif tile.get("fertilizer_available"):
-                        ready_tiles.append((x, y, ["COLLECT_FERTILIZER"]))
+                        ready_tiles.append((x, y, ["COLLECT_FERTILIZER"], None))
                     elif not tile.get("cared_today"):
-                        water_care_tiles.append((x, y, ["CARE"]))
+                        water_care_tiles.append((x, y, ["CARE"], None))
                 elif kind in agent_main.ANIMAL_STRUCTURE_KINDS:
                     place_tiles.append((x, y))
 
         assignments = []  # (unit_idx, x, y, action)
 
-        def take(tiles, limit_check=None):
+        def take(tiles, limit_check=None, tier_name=None):
             # Optimal (not just first-in-list) unit<->tile matching within
             # this priority tier: minimize total Manhattan travel across the
             # units still available and the tiles in this tier, via the
@@ -405,6 +463,12 @@ class EconomyModel:
             # travel distance is charged the same way - the unit still has to
             # walk there to discover the budget is empty.
             if not tiles or not available:
+                if self.trace_tiers and tier_name is not None:
+                    self.tier_trace.append({
+                        "day": self.day, "hour": self.hour, "tier": tier_name,
+                        "tiles": len(tiles), "available_before": len(available),
+                        "used_units": [], "available_after": len(available),
+                    })
                 return
             cost = [
                 [abs(ux - t[0]) + abs(uy - t[1]) for t in tiles]
@@ -412,6 +476,8 @@ class EconomyModel:
             ]
             row_ind, col_ind = linear_sum_assignment(cost)
             used_rows = set()
+            used_units = []
+            available_before = len(available)
             for row, col in zip(row_ind, col_ind):
                 unit_idx, (ux, uy) = available[row]
                 x, y = tiles[col][0], tiles[col][1]
@@ -419,8 +485,15 @@ class EconomyModel:
                 self.counters["total_assignment_distance"] += abs(ux - x) + abs(uy - y)
                 if action is not None:
                     assignments.append((unit_idx, x, y, action))
+                    used_units.append(unit_idx)
                 used_rows.add(row)
             available[:] = [item for i, item in enumerate(available) if i not in used_rows]
+            if self.trace_tiers and tier_name is not None:
+                self.tier_trace.append({
+                    "day": self.day, "hour": self.hour, "tier": tier_name,
+                    "tiles": len(tiles), "available_before": available_before,
+                    "used_units": used_units, "available_after": len(available),
+                })
 
         # 1. Feed - shared WHEAT budget, same shape as main.py's wheat_budget.
         wheat_left = shed.get("WHEAT", 0)
@@ -432,13 +505,84 @@ class EconomyModel:
             wheat_left -= 1
             return ["FEED"]
 
-        take(feed_tiles, feed_action)
+        take(feed_tiles, feed_action, tier_name="FEED")
 
-        # 2. Ready harvests / fertilizer collection - no budget needed.
-        take(ready_tiles)
+        # Path C Core (PATH_C_CORE.md, sections 3-4): once >=3 animals are
+        # filled, elevate STRAWBERRY's own FERTILIZE tiles ahead of every
+        # other crop's; once straw_tiles/animals both clear their L2
+        # thresholds, reorder the whole crew ladder to
+        # FEED -> STRAW harvest -> plant WATER -> other harvest -> animal
+        # CARE. Both gated on self.path_c - Path A (path_c=False) and the
+        # unrelated pin_strawberry experiment are unaffected below.
+        path_c_cfg = self.path_c_cfg
+        straw_tile_count = sum(
+            1
+            for row in farm["tiles"]
+            for t in row
+            if isinstance(t, dict) and t.get("kind") == "PLANT" and t.get("crop") == "STRAWBERRY"
+        )
+        filled_animals, _ = agent_main.scan_animal_structures(farm, BOARD_SIZE)
+        level2_active = (
+            self.path_c
+            and path_c_cfg.get("level2_crew", True)
+            and straw_tile_count >= path_c_cfg.get("l2_straw_tiles", 30)
+            and filled_animals >= path_c_cfg.get("l2_min_animals", 6)
+        )
+        fert_elevate_active = (
+            self.path_c
+            and filled_animals >= path_c_cfg.get("fert_elevate_min_animals", 3)
+        )
 
-        # 3. Water / care - no budget needed.
-        take(water_care_tiles)
+        if level2_active:
+            self.counters["path_c_l2_active_turns"] += 1
+            straw_ready = [
+                (x, y, action) for (x, y, action, crop) in ready_tiles if crop == "STRAWBERRY"
+            ]
+            other_ready = [
+                (x, y, action) for (x, y, action, crop) in ready_tiles if crop != "STRAWBERRY"
+            ]
+            plant_water = [
+                (x, y, action) for (x, y, action, crop) in water_care_tiles if crop is not None
+            ]
+            animal_care = [
+                (x, y, action) for (x, y, action, crop) in water_care_tiles if crop is None
+            ]
+            take(straw_ready, tier_name="STRAW_HARVEST")
+            take(plant_water, tier_name="PLANT_WATER")
+            take(other_ready, tier_name="OTHER_HARVEST")
+            take(animal_care, tier_name="ANIMAL_CARE")
+        else:
+            # 2. Ready harvests / fertilizer collection - no budget needed.
+            take(ready_tiles, tier_name="READY")
+
+            # 3. Water / care - no budget needed. When pin_strawberry is on
+            # and today falls inside STRAWBERRY's own planting window, split
+            # this tier so STRAWBERRY tiles get matched to crew before any
+            # other crop's tiles in the same tier (two Hungarian solves
+            # instead of one) - the crew-priority experiment (see
+            # __init__'s docstring). Outside the window, or with the flag
+            # off, behavior is unchanged.
+            straw_window = agent_main.CROP_PLANTING_WINDOWS.get("STRAWBERRY")
+            pin_active = (
+                self.pin_strawberry
+                and straw_window is not None
+                and straw_window[0] <= day <= straw_window[1]
+            )
+            if pin_active:
+                strawberry_tiles = [
+                    (x, y, action) for (x, y, action, crop) in water_care_tiles if crop == "STRAWBERRY"
+                ]
+                other_tiles = [
+                    (x, y, action) for (x, y, action, crop) in water_care_tiles if crop != "STRAWBERRY"
+                ]
+                self.counters["pin_strawberry_tiles_prioritized"] += len(strawberry_tiles)
+                take(strawberry_tiles, tier_name="WATER_CARE_STRAWBERRY")
+                take(other_tiles, tier_name="WATER_CARE_OTHER")
+            else:
+                take(
+                    [(x, y, action) for (x, y, action, crop) in water_care_tiles],
+                    tier_name="WATER_CARE",
+                )
 
         # 3b. Fertilize - shared FERTILIZER budget.
         fert_left = shed.get("FERTILIZER", 0)
@@ -450,7 +594,13 @@ class EconomyModel:
             fert_left -= 1
             return ["FERTILIZE"]
 
-        take(fertilize_tiles, fertilize_action)
+        if fert_elevate_active:
+            straw_fert = [(x, y) for (x, y, crop) in fertilize_tiles if crop == "STRAWBERRY"]
+            other_fert = [(x, y) for (x, y, crop) in fertilize_tiles if crop != "STRAWBERRY"]
+            take(straw_fert, fertilize_action, tier_name="FERTILIZE_STRAW")
+            take(other_fert, fertilize_action, tier_name="FERTILIZE_OTHER")
+        else:
+            take(fertilize_tiles, fertilize_action, tier_name="FERTILIZE")
 
         # 4. Place a bought animal on an empty structure - per-species shed budget.
         species_left = {a: shed.get(a, 0) for a in agent_main.ACTIVE_ANIMALS}
@@ -462,10 +612,10 @@ class EconomyModel:
                     return ["PLACE", species]
             return None
 
-        take(place_tiles, place_action)
+        take(place_tiles, place_action, tier_name="PLACE")
 
         # 8. Weeds - free.
-        take([(x, y, ["DIG"]) for x, y in weed_tiles])
+        take([(x, y, ["DIG"]) for x, y in weed_tiles], tier_name="WEED")
 
         # 9. Empty ground: build a structure, or plant under the shared
         #    per-turn seed budget - this is where the can_afford/plant_budget
@@ -513,7 +663,7 @@ class EconomyModel:
                 self.counters["crop_chosen_seed_exhausted_this_turn"] += 1
             return None
 
-        take(empty_tiles, empty_action)
+        take(empty_tiles, empty_action, tier_name="EMPTY")
 
         return assignments
 
@@ -661,10 +811,12 @@ class EconomyModel:
             "final_tiles": self.daily_log[-1]["tiles"] if self.daily_log else {},
             "final_market_prices": dict(self.market["prices"]),
             "final_market_inventory": dict(self.market["inventory"]),
+            "tier_trace": self.tier_trace if self.trace_tiers else None,
         }
 
 
-def run_episode(seed=0, days=SEASON_DAYS, overrides=None):
+def run_episode(seed=0, days=SEASON_DAYS, overrides=None, pin_strawberry=False, trace_tiers=False,
+                 path_c=False, path_c_cfg=None):
     """Run one episode against town/shop demand only (no competing seller -
     the same "market stays uncontested" shape as paired_compare.py's `pass`/
     `starter` built-ins, which is where most of the documented crop-economy
@@ -672,7 +824,10 @@ def run_episode(seed=0, days=SEASON_DAYS, overrides=None):
     """
     overrides = overrides or {}
     with _override_main(**overrides):
-        model = EconomyModel(seed=seed)
+        model = EconomyModel(
+            seed=seed, pin_strawberry=pin_strawberry, trace_tiers=trace_tiers,
+            path_c=path_c, path_c_cfg=path_c_cfg,
+        )
         for _ in range(days * TURNS_PER_DAY):
             model.step_once()
         if model.hour == 0:
@@ -703,18 +858,23 @@ class ContestedEconomyModel:
     both sides still use the zero-travel-time _assign_crew abstraction.
     """
 
-    def __init__(self, seed=0, seed_b=None, overrides=None, overrides_b=None):
+    def __init__(self, seed=0, seed_b=None, overrides=None, overrides_b=None,
+                 pin_strawberry=False, pin_strawberry_b=False):
         self.market = _new_market()
         self.town = _new_town()
         self.rng = random.Random(seed)
         self.overrides = [overrides or {}, overrides_b if overrides_b is not None else (overrides or {})]
         self.sides = [
-            EconomyModel(seed=seed, market=self.market, town=self.town, shares_market=True),
+            EconomyModel(
+                seed=seed, market=self.market, town=self.town, shares_market=True,
+                pin_strawberry=pin_strawberry,
+            ),
             EconomyModel(
                 seed=seed_b if seed_b is not None else seed,
                 market=self.market,
                 town=self.town,
                 shares_market=True,
+                pin_strawberry=pin_strawberry_b,
             ),
         ]
         self.day = 0
@@ -764,13 +924,17 @@ class ContestedEconomyModel:
         return [side.report() for side in self.sides]
 
 
-def run_contested_episode(seed=0, seed_b=None, days=SEASON_DAYS, overrides=None, overrides_b=None):
+def run_contested_episode(seed=0, seed_b=None, days=SEASON_DAYS, overrides=None, overrides_b=None,
+                           pin_strawberry=False, pin_strawberry_b=False):
     """Two policies (or the same one twice, for self-play) sharing one
     market/town for the whole episode. Returns [report_a, report_b], same
     shape as EconomyModel.report() per side. See ContestedEconomyModel's
     docstring for the override-scoping mechanics.
     """
-    model = ContestedEconomyModel(seed=seed, seed_b=seed_b, overrides=overrides, overrides_b=overrides_b)
+    model = ContestedEconomyModel(
+        seed=seed, seed_b=seed_b, overrides=overrides, overrides_b=overrides_b,
+        pin_strawberry=pin_strawberry, pin_strawberry_b=pin_strawberry_b,
+    )
     for _ in range(days * TURNS_PER_DAY):
         model.step_once()
     if model.hour == 0:
@@ -967,6 +1131,622 @@ def _check_assignment_optimality(verbose=True):
     return result
 
 
+def _straw_first_gate_open(
+    farm, day, strawberry_min_tiles=None, min_day=None, cash_buffer_multiple=None
+):
+    """Shared gate logic for both straw-first overrides below - kept as one
+    function so the animal-purchase gate and the sell-hold gate can never
+    drift out of sync with each other.
+
+    Each condition is independent; the gate opens as soon as ANY enabled
+    one is true. min_day is a day floor so the pause can't outlive
+    STRAWBERRY's own 5-12 planting window with nothing to show for it.
+    cash_buffer_multiple is the v2 addition: open early once money clears
+    cash_buffer_multiple x MIN_CASH_RESERVE_FOR_ANIMAL_BUYING, on the
+    reasoning that v1's own displacement-check result showed STRAWBERRY is
+    tile/window-capped, not cash-capped - so idle cash sitting past that
+    buffer isn't doing anything for STRAWBERRY by staying unspent, and
+    should go to the animal instead of waiting out a rigid day/tile gate.
+    All conditions None means "never pauses" (falls through to Path A).
+    """
+    conditions = []
+    if min_day is not None:
+        conditions.append(day >= min_day)
+    if strawberry_min_tiles is not None:
+        straw_tiles = sum(
+            1
+            for row in farm["tiles"]
+            for tile in row
+            if tile and tile != "LOCKED"
+            and tile.get("kind") == "PLANT"
+            and tile.get("crop") == "STRAWBERRY"
+        )
+        conditions.append(straw_tiles >= strawberry_min_tiles)
+    if cash_buffer_multiple is not None:
+        money = farm.get("money", 0)
+        conditions.append(
+            money >= agent_main.MIN_CASH_RESERVE_FOR_ANIMAL_BUYING * cash_buffer_multiple
+        )
+    return any(conditions) if conditions else True
+
+
+def _straw_seed_boost_overrides(straw_seed_stockpile=None):
+    """Raise the seed-restock TARGET for STRAWBERRY only, without touching
+    seed_restock_quantity's own cash-safety loop.
+
+    Traced in straw_first_pause_session_notes.md ("take 3"): MAX_SEED_STOCKPILE
+    (3) and SEED_REBUY_TRIGGER (0) are global, not per-crop, so at most 3
+    STRAWBERRY plantings can land per restock cycle regardless of how many
+    idle hands want to plant it during the narrow 8-day (days 5-12) window -
+    a ceiling never tested against on its own, distinct from the window,
+    growth_days, or animal-purchase-timing dead ends already closed in
+    CLAUDE.md.
+
+    Wraps agent_main.seed_restock_quantity: for calls where crop ==
+    "STRAWBERRY", temporarily bump agent_main.MAX_SEED_STOCKPILE to
+    straw_seed_stockpile for the duration of that one call only (restored in
+    `finally`), then delegate to the real function unchanged - its
+    affordability loop (SEED_SPEND_CAP_FRACTION, MIN_CASH_RESERVE_FOR_SEED_BUYING)
+    still runs against the bigger target, so this only raises the ceiling on
+    how many the loop is ALLOWED to buy when cash genuinely allows it; it
+    never bypasses the checks that stopped the historical $80/turn
+    seed-repurchase spiral (CLAUDE.md's three failed per-turn-budget
+    variants). Non-STRAWBERRY crops are untouched.
+
+    Returns {} (no override) if straw_seed_stockpile is None, matching the
+    existing all-None-means-no-op convention.
+    """
+    if straw_seed_stockpile is None:
+        return {}
+
+    original_restock = agent_main.seed_restock_quantity
+
+    def restock_wrapper(crop, farm, private):
+        if crop != "STRAWBERRY":
+            return original_restock(crop, farm, private)
+        original_cap = agent_main.MAX_SEED_STOCKPILE
+        try:
+            agent_main.MAX_SEED_STOCKPILE = straw_seed_stockpile
+            return original_restock(crop, farm, private)
+        finally:
+            agent_main.MAX_SEED_STOCKPILE = original_cap
+
+    return {"seed_restock_quantity": restock_wrapper}
+
+
+def _straw_first_overrides(
+    strawberry_min_tiles=None,
+    min_day=None,
+    cash_buffer_multiple=None,
+    hold_product=None,
+    straw_seed_stockpile=None,
+):
+    """Build an overrides dict implementing the straw-first pause mechanism
+    via function-object swaps through _override_main - no main.py changes.
+    Three independent, optional levers, combinable:
+
+    - The animal-purchase gate (strawberry_min_tiles / min_day /
+      cash_buffer_multiple, via _straw_first_gate_open) replaces
+      main.choose_animal_to_build; a refused tile falls through to the
+      existing, unmodified choose_crop call exactly as it does today
+      whenever choose_animal_to_build already returns None (e.g. under
+      MAX_ANIMALS) - this deliberately never touches choose_crop's own
+      price/glut-aware scoring, unlike the failed Test 1a/1b fill-priority
+      wrappers in CLAUDE.md.
+    - hold_product (e.g. "STRAWBERRY"): while the gate above is closed,
+      strip that product's normal-price-threshold SELL order out of
+      main.decide_market_actions's output instead of letting it sell -
+      i.e. hold the harvest in the shed rather than sell continuously.
+      Only while shed_total stays under SHED_FORCE_SELL_THRESHOLD, which
+      is a total-shed-contents threshold, not per-product - that existing
+      overflow safety valve is read live, never overridden, since losing
+      product to silent shed overflow (kaggriculture.py's 100-item cap)
+      is worse than an early sale. Once the gate opens, held stock sells
+      down normally (still capped per-turn by MAX_SELL_PER_TURN) - a
+      cash injection timed to when the delayed animal purchase needs it,
+      not a season-wide urgency ramp like the two already-failed
+      sell-cadence experiments in CLAUDE.md (a different mechanism: one
+      narrow hold-and-release at a single transition, not continuous
+      re-scoring of every sale all season).
+    - straw_seed_stockpile: see _straw_seed_boost_overrides above - raises
+      STRAWBERRY's own seed-restock ceiling, independent of the other two
+      levers (can be used alone, with neither gate/hold set, to isolate its
+      effect per the "take 3" plan's Step A).
+
+    Passing all five as None returns an empty dict (pure Path A, no-op).
+    """
+    original_build = agent_main.choose_animal_to_build
+    original_market = agent_main.decide_market_actions
+
+    def gate_open(farm, day):
+        return _straw_first_gate_open(
+            farm, day,
+            strawberry_min_tiles=strawberry_min_tiles,
+            min_day=min_day,
+            cash_buffer_multiple=cash_buffer_multiple,
+        )
+
+    overrides = {}
+
+    if strawberry_min_tiles is not None or min_day is not None or cash_buffer_multiple is not None:
+
+        def build_wrapper(farm, private, board_size, day, pending_builds=0, ux=None, uy=None):
+            if not gate_open(farm, day):
+                return None
+            return original_build(farm, private, board_size, day, pending_builds, ux, uy)
+
+        overrides["choose_animal_to_build"] = build_wrapper
+
+    if hold_product is not None:
+
+        def market_wrapper(
+            farm, private, market_state, day, reserved_wheat=0, unlocked_shops=(),
+            start_step=None, opponent_pipeline=None,
+        ):
+            actions = original_market(
+                farm, private, market_state, day, reserved_wheat, unlocked_shops,
+                start_step, opponent_pipeline,
+            )
+            if not gate_open(farm, day):
+                shed_total = sum(private.get("shed", {}).values())
+                if shed_total < agent_main.SHED_FORCE_SELL_THRESHOLD:
+                    actions = [
+                        a for a in actions
+                        if not (a[0] == "SELL" and a[1] == hold_product)
+                    ]
+            return actions
+
+        overrides["decide_market_actions"] = market_wrapper
+
+    overrides.update(_straw_seed_boost_overrides(straw_seed_stockpile))
+
+    return overrides
+
+
+def run_straw_first_pause(
+    seed=0,
+    days=SEASON_DAYS,
+    strawberry_min_tiles=20,
+    min_day=12,
+    cash_buffer_multiple=None,
+    hold_product=None,
+    straw_seed_stockpile=None,
+):
+    """One seed's Path A (baseline, unmodified main.py) vs the straw-first
+    pause variant - same seed for both, so any delta is the gate's effect,
+    not seed luck (same paired-comparison logic paired_compare.py uses on
+    the real engine). Defaults reproduce the original v1 experiment (gate
+    only, no cash escape valve, no holding); pass cash_buffer_multiple
+    and/or hold_product="STRAWBERRY" for the v2 variant, and/or
+    straw_seed_stockpile for the "take 3" seed-ceiling lever (see
+    _straw_seed_boost_overrides) - all independently optional.
+    """
+    baseline = run_episode(seed=seed, days=days)
+    overrides = _straw_first_overrides(
+        strawberry_min_tiles=strawberry_min_tiles,
+        min_day=min_day,
+        cash_buffer_multiple=cash_buffer_multiple,
+        hold_product=hold_product,
+        straw_seed_stockpile=straw_seed_stockpile,
+    )
+    paused = run_episode(seed=seed, days=days, overrides=overrides)
+    return {"baseline": baseline, "paused": paused}
+
+
+def compare_straw_first_pause(
+    seeds=range(12),
+    days=SEASON_DAYS,
+    strawberry_min_tiles=20,
+    min_day=12,
+    cash_buffer_multiple=None,
+    hold_product=None,
+    straw_seed_stockpile=None,
+    verbose=True,
+):
+    """Batch paired comparison, win-count first per this repo's own
+    standing rule (CLAUDE.md: "judge a change with a paired comparison,
+    not against the across-seed stdev; read the win count before any
+    t-value"). bptk-only signal - see module-level inflation caveat.
+    """
+    rows = []
+    for seed in seeds:
+        result = run_straw_first_pause(
+            seed=seed,
+            days=days,
+            strawberry_min_tiles=strawberry_min_tiles,
+            min_day=min_day,
+            cash_buffer_multiple=cash_buffer_multiple,
+            hold_product=hold_product,
+            straw_seed_stockpile=straw_seed_stockpile,
+        )
+        base_money = result["baseline"]["final_money"]
+        paused_money = result["paused"]["final_money"]
+        base_counters = result["baseline"]["counters"]
+        paused_counters = result["paused"]["counters"]
+        # Every crop, not just STRAWBERRY - this is the displacement check.
+        # CLAUDE.md documents four separate "freed tile-time" experiments
+        # that all lost because the freed turns defaulted to cheap,
+        # fast-cycling WHEAT instead of anything more valuable. If that's
+        # happening here too, planted_WHEAT will rise under the pause while
+        # planted_STRAWBERRY barely moves - visible directly in this dict
+        # rather than discovered after the fact.
+        all_crops = sorted(
+            {
+                key.replace("crop_planted_", "")
+                for key in list(base_counters) + list(paused_counters)
+                if key.startswith("crop_planted_")
+            }
+        )
+        planted = {
+            crop: {
+                "baseline": base_counters.get(f"crop_planted_{crop}", 0),
+                "paused": paused_counters.get(f"crop_planted_{crop}", 0),
+            }
+            for crop in all_crops
+        }
+        rows.append(
+            {
+                "seed": seed,
+                "baseline_money": base_money,
+                "paused_money": paused_money,
+                "delta": paused_money - base_money,
+                "planted": planted,
+                "baseline_feed": base_counters.get("FEED", 0),
+                "paused_feed": paused_counters.get("FEED", 0),
+                "baseline_daily_log": result["baseline"]["daily_log"],
+                "paused_daily_log": result["paused"]["daily_log"],
+            }
+        )
+    deltas = [r["delta"] for r in rows]
+    wins = sum(1 for d in deltas if d > 0)
+    mean_delta = sum(deltas) / len(deltas) if deltas else 0.0
+    # Displacement summary across the whole batch: for each crop, mean
+    # (paused - baseline) planted count. A positive WHEAT number alongside
+    # a near-zero STRAWBERRY number is the exact failure mode to watch for.
+    displacement = {}
+    for crop in sorted({c for r in rows for c in r["planted"]}):
+        deltas_for_crop = [
+            r["planted"][crop]["paused"] - r["planted"][crop]["baseline"]
+            for r in rows
+            if crop in r["planted"]
+        ]
+        displacement[crop] = sum(deltas_for_crop) / len(deltas_for_crop)
+    if verbose:
+        print(
+            f"straw-first pause vs Path A baseline, {len(rows)} seeds "
+            f"(strawberry_min_tiles={strawberry_min_tiles}, min_day={min_day})"
+        )
+        for r in rows:
+            print(
+                f"  seed {r['seed']:>2}: baseline={r['baseline_money']:.0f}  "
+                f"paused={r['paused_money']:.0f}  delta={r['delta']:+.0f}"
+            )
+        print(f"mean delta: {mean_delta:+.0f}  wins: {wins}/{len(rows)}")
+        print("mean planted-count delta by crop (paused - baseline):")
+        for crop, d in displacement.items():
+            print(f"  {crop}: {d:+.1f}")
+    return {
+        "rows": rows,
+        "mean_delta": mean_delta,
+        "wins": wins,
+        "n": len(rows),
+        "displacement": displacement,
+    }
+
+
+def _path_c_defaults():
+    return {
+        "early_animals": PATH_C_EARLY_ANIMALS,
+        "early_day_limit": PATH_C_EARLY_DAY_LIMIT,
+        "straw_cap": PATH_C_STRAW_CAP,
+        "straw_window_end": PATH_C_STRAW_WINDOW_END,
+        "scale_max": PATH_C_SCALE_MAX_ANIMALS,
+        "scale_straw_done": PATH_C_SCALE_STRAW_DONE,
+        "scale_day": PATH_C_SCALE_DAY,
+        "level2_crew": PATH_C_LEVEL2_CREW,
+        "l2_straw_tiles": PATH_C_L2_STRAW_TILES,
+        "l2_min_animals": PATH_C_L2_MIN_ANIMALS,
+        "hire_bump_ceiling": PATH_C_HIRE_BUMP_CEILING,
+        "hire_bump_min_day": PATH_C_HIRE_BUMP_MIN_DAY,
+        "hire_bump_min_money": PATH_C_HIRE_BUMP_MIN_MONEY,
+        "melon_pause_day": PATH_C_MELON_PAUSE_DAY,
+        "gate_fert_sell": PATH_C_GATE_FERT_SELL,
+        "fert_elevate_min_animals": PATH_C_FERT_ELEVATE_MIN_ANIMALS,
+    }
+
+
+def _path_c_straw_tile_count(farm):
+    return sum(
+        1
+        for row in farm["tiles"]
+        for tile in row
+        if isinstance(tile, dict) and tile.get("kind") == "PLANT" and tile.get("crop") == "STRAWBERRY"
+    )
+
+
+def _path_c_wheat_stock(private):
+    shed_wheat = private.get("shed", {}).get("WHEAT", 0)
+    carried = sum(
+        (inv or {}).get("WHEAT", 0)
+        for inv in (private.get("inventories") or [])
+        if isinstance(inv, dict)
+    )
+    return shed_wheat + carried
+
+
+def _path_c_animal_cap(farm, private, day, cfg):
+    """PATH_C_CORE.md's "Animal sequencing": up to `early_animals` while
+    day <= early_day_limit; frozen at whatever's already owned (pause) until
+    the STRAW carpet reaches `scale_straw_done` tiles or day reaches
+    `scale_day`; then a ceiling of `scale_max` - unless there is no wheat
+    buffer at all, in which case the freeze holds regardless (the doc's
+    "soft safety: do not scale while wheat_stock <= 0").
+    """
+    owned = agent_main.count_owned_animals(farm, private, BOARD_SIZE)
+    straw_tiles = _path_c_straw_tile_count(farm)
+    scale_unlocked = straw_tiles >= cfg["scale_straw_done"] or day >= cfg["scale_day"]
+    if scale_unlocked and _path_c_wheat_stock(private) > 0:
+        return cfg["scale_max"]
+    if day <= cfg["early_day_limit"]:
+        return max(cfg["early_animals"], owned)
+    return owned  # pause: freeze, no further buys/builds until scale unlocks
+
+
+def _path_c_straw_pin_active(farm, day, cfg):
+    """PATH_C_CORE.md's crop policy #1: "while in STRAW window and
+    straw_tiles < 50, always prefer STRAWBERRY (inviolable)". The window's
+    start day is read from main.py's own CROP_PLANTING_WINDOWS (its real
+    STRAWBERRY start), extended through cfg['straw_window_end'] rather than
+    CROP_PLANTING_WINDOWS's own (shorter) end - matching PATH_C_STRAW_WINDOW_END's
+    documented role ("Pin active through" 14, vs. the base window's 12).
+    """
+    window = agent_main.CROP_PLANTING_WINDOWS.get("STRAWBERRY")
+    if window is None:
+        return False
+    window_start = window[0]
+    if not (window_start <= day <= cfg["straw_window_end"]):
+        return False
+    return _path_c_straw_tile_count(farm) < cfg["straw_cap"]
+
+
+def _path_c_any_straw_wants_fertilizer(farm, day):
+    for row in farm["tiles"]:
+        for tile in row:
+            if (
+                isinstance(tile, dict)
+                and tile.get("kind") == "PLANT"
+                and tile.get("crop") == "STRAWBERRY"
+                and agent_main.wants_fertilizer(tile, day)
+            ):
+                return True
+    return False
+
+
+def path_c_overrides(**cfg_overrides):
+    """Build the main.py function-object overrides for PATH_C_CORE.md's
+    normative policy (see mydocs/PATH_C_CORE.md - research done in a
+    separate environment; nothing under this name existed in bptk.py before
+    this pass, so this is a first faithful-to-spec reproduction, not a
+    re-run of an already-verified result).
+
+    Four of the doc's six policy pieces are pure function-object swaps
+    (same _override_main mechanism as _straw_first_overrides): animal
+    sequencing (choose_animal_to_build / decide_animal_market_actions), the
+    STRAWBERRY pin (choose_crop), the fertilizer-sell gate
+    (decide_market_actions), and the day/cash hire bump (decide_hire_orders).
+    The remaining two - elevating STRAWBERRY within the FERTILIZE crew tier,
+    and the Level-2 crew reorder - are crew-attention-priority changes with
+    no main.py equivalent to override, so they live directly in
+    EconomyModel._assign_crew, gated on path_c_cfg (pass path_c=True,
+    path_c_cfg=cfg to run_episode/EconomyModel alongside these overrides -
+    run_path_c/compare_path_c do this automatically).
+
+    Not reproduced: the "MELON under wheat encroachment" experimental arm
+    (PATH_C_MELON_PAUSE_DAY defaults to 0 = off in core, per the doc) and
+    the doc's vague, number-free "controlled STRAWBERRY/MELON sell caps"
+    (main.py's existing MAX_SELL_PER_TURN defaults are left as-is).
+    """
+    cfg = _path_c_defaults()
+    cfg.update(cfg_overrides)
+
+    original_build = agent_main.choose_animal_to_build
+    original_buy = agent_main.decide_animal_market_actions
+    original_crop = agent_main.choose_crop
+    original_hire = agent_main.decide_hire_orders
+    original_market = agent_main.decide_market_actions
+
+    def build_wrapper(farm, private, board_size, day, pending_builds=0, ux=None, uy=None):
+        cap = _path_c_animal_cap(farm, private, day, cfg)
+        original_cap = agent_main.MAX_ANIMALS
+        try:
+            agent_main.MAX_ANIMALS = cap
+            return original_build(farm, private, board_size, day, pending_builds, ux, uy)
+        finally:
+            agent_main.MAX_ANIMALS = original_cap
+
+    def buy_wrapper(farm, private, board_size, day):
+        cap = _path_c_animal_cap(farm, private, day, cfg)
+        original_cap = agent_main.MAX_ANIMALS
+        try:
+            agent_main.MAX_ANIMALS = cap
+            return original_buy(farm, private, board_size, day)
+        finally:
+            agent_main.MAX_ANIMALS = original_cap
+
+    def crop_wrapper(
+        farm, market_state, private, day, unlocked_shops=(), start_step=None,
+        opponent_pipeline=None, require_held_seed=False,
+    ):
+        if not require_held_seed and _path_c_straw_pin_active(farm, day, cfg):
+            return "STRAWBERRY"
+        return original_crop(
+            farm, market_state, private, day, unlocked_shops, start_step,
+            opponent_pipeline, require_held_seed,
+        )
+
+    def hire_wrapper(farm, board_size, day, hour, seeds=None):
+        bump = (
+            day >= cfg["hire_bump_min_day"]
+            and farm.get("money", 0) >= cfg["hire_bump_min_money"]
+        )
+        original_ceiling = agent_main.MAX_HANDS_PER_DAY
+        try:
+            if bump:
+                agent_main.MAX_HANDS_PER_DAY = cfg["hire_bump_ceiling"]
+            return original_hire(farm, board_size, day, hour, seeds)
+        finally:
+            agent_main.MAX_HANDS_PER_DAY = original_ceiling
+
+    def market_wrapper(
+        farm, private, market_state, day, reserved_wheat=0, unlocked_shops=(),
+        start_step=None, opponent_pipeline=None,
+    ):
+        actions = original_market(
+            farm, private, market_state, day, reserved_wheat, unlocked_shops,
+            start_step, opponent_pipeline,
+        )
+        if cfg["gate_fert_sell"] and _path_c_any_straw_wants_fertilizer(farm, day):
+            actions = [a for a in actions if not (a[0] == "SELL" and a[1] == "FERTILIZER")]
+        return actions
+
+    return {
+        "choose_animal_to_build": build_wrapper,
+        "decide_animal_market_actions": buy_wrapper,
+        "choose_crop": crop_wrapper,
+        "decide_hire_orders": hire_wrapper,
+        "decide_market_actions": market_wrapper,
+    }
+
+
+def run_path_c(seeds=range(12), days=SEASON_DAYS, **cfg_overrides):
+    """One Path C candidate episode per seed. Mirrors mydocs/PATH_C_CORE.md's
+    own "How to run" example (`cand = bptk.run_path_c(seeds=range(12),
+    early_animals=3, straw_cap=50, scale_max=10)`) - compare against
+    `[run_episode(seed=s) for s in seeds]` (Path A) yourself, or use
+    compare_path_c for the paired version with win-count/mean printed.
+    """
+    cfg = _path_c_defaults()
+    cfg.update(cfg_overrides)
+    overrides = path_c_overrides(**cfg)
+    return [
+        run_episode(seed=seed, days=days, overrides=overrides, path_c=True, path_c_cfg=cfg)
+        for seed in seeds
+    ]
+
+
+def compare_path_c(seeds=range(12), days=SEASON_DAYS, verbose=True, **cfg_overrides):
+    """Paired Path C vs Path A comparison, same seed both sides, win-count
+    first per this repo's own standing rule (CLAUDE.md). bptk-only signal -
+    see module-level inflation caveat; PATH_C_CORE.md's own numbers were
+    measured elsewhere and are not assumed to reproduce exactly here.
+    """
+    cfg = _path_c_defaults()
+    cfg.update(cfg_overrides)
+    overrides = path_c_overrides(**cfg)
+    rows = []
+    for seed in seeds:
+        baseline = run_episode(seed=seed, days=days)
+        candidate = run_episode(
+            seed=seed, days=days, overrides=overrides, path_c=True, path_c_cfg=cfg
+        )
+        base_money = baseline["final_money"]
+        cand_money = candidate["final_money"]
+        rows.append(
+            {
+                "seed": seed,
+                "path_a_money": base_money,
+                "path_c_money": cand_money,
+                "delta": cand_money - base_money,
+                "path_a_straw_planted": baseline["counters"].get("crop_planted_STRAWBERRY", 0),
+                "path_c_straw_planted": candidate["counters"].get("crop_planted_STRAWBERRY", 0),
+                "path_a_melon_planted": baseline["counters"].get("crop_planted_MELON", 0),
+                "path_c_melon_planted": candidate["counters"].get("crop_planted_MELON", 0),
+                "path_a_animals_bought": sum(
+                    baseline["counters"].get(f"BUY_ANIMAL_{a}", 0) for a in agent_main.ACTIVE_ANIMALS
+                ),
+                "path_c_animals_bought": sum(
+                    candidate["counters"].get(f"BUY_ANIMAL_{a}", 0) for a in agent_main.ACTIVE_ANIMALS
+                ),
+                "path_c_feed": candidate["counters"].get("FEED", 0),
+                "path_c_l2_turns": candidate["counters"].get("path_c_l2_active_turns", 0),
+            }
+        )
+    deltas = [r["delta"] for r in rows]
+    wins = sum(1 for d in deltas if d > 0)
+    mean_delta = sum(deltas) / len(deltas) if deltas else 0.0
+    if verbose:
+        print(f"Path C vs Path A, {len(rows)} seeds")
+        for r in rows:
+            print(
+                f"  seed {r['seed']:>2}: path_a={r['path_a_money']:.0f}  "
+                f"path_c={r['path_c_money']:.0f}  delta={r['delta']:+.0f}  "
+                f"L2 turns={r['path_c_l2_turns']}  "
+                f"animals A/C={r['path_a_animals_bought']}/{r['path_c_animals_bought']}"
+            )
+        print(f"mean delta: {mean_delta:+.0f}  wins: {wins}/{len(rows)}")
+    return {"rows": rows, "mean_delta": mean_delta, "wins": wins, "n": len(rows)}
+
+
+def compare_path_c_ladder(seeds=range(6), days=SEASON_DAYS, verbose=True):
+    """Clean ablation: Path A vs full Path C vs Path C with one lever
+    disabled at a time, so a win or loss can be attributed to a specific
+    policy piece rather than the whole bundle. No STRAW/MELON-encroach arms
+    (those are PATH_C_CORE.md's own already-parked experiments, not part of
+    core) - see that doc's "Explicitly parked / rejected" table.
+    """
+    seeds = list(seeds)
+    arms = collections.OrderedDict()
+    arms["path_a"] = None
+    arms["path_c_full"] = _path_c_defaults()
+
+    no_pin = _path_c_defaults()
+    no_pin["straw_cap"] = 0  # tile count is never < 0: pin never activates
+    arms["path_c_no_straw_pin"] = no_pin
+
+    no_l2 = _path_c_defaults()
+    no_l2["level2_crew"] = False
+    arms["path_c_no_level2_crew"] = no_l2
+
+    no_seq = _path_c_defaults()
+    no_seq["early_animals"] = agent_main.MAX_ANIMALS
+    no_seq["scale_max"] = agent_main.MAX_ANIMALS
+    arms["path_c_no_animal_seq"] = no_seq
+
+    no_hire = _path_c_defaults()
+    no_hire["hire_bump_min_day"] = 10 ** 6  # never triggers
+    arms["path_c_no_hire_bump"] = no_hire
+
+    no_fert_gate = _path_c_defaults()
+    no_fert_gate["gate_fert_sell"] = False
+    arms["path_c_no_fert_gate"] = no_fert_gate
+
+    results = collections.OrderedDict()
+    for name, cfg in arms.items():
+        rows = []
+        for seed in seeds:
+            if cfg is None:
+                report = run_episode(seed=seed, days=days)
+            else:
+                overrides = path_c_overrides(**cfg)
+                report = run_episode(
+                    seed=seed, days=days, overrides=overrides, path_c=True, path_c_cfg=cfg
+                )
+            rows.append(report["final_money"])
+        results[name] = rows
+
+    path_a_rows = results["path_a"]
+    if verbose:
+        print(f"Path C ablation ladder, {len(seeds)} seeds")
+        for name, rows in results.items():
+            mean = sum(rows) / len(rows)
+            if name == "path_a":
+                print(f"  {name:<24} mean={mean:>9.0f}")
+            else:
+                wins = sum(1 for a, b in zip(rows, path_a_rows) if a > b)
+                print(f"  {name:<24} mean={mean:>9.0f}  wins vs path_a: {wins}/{len(seeds)}")
+    return results
+
+
 def _print_summary(report):
     print(f"final money: {report['final_money']:.0f}")
     print("counters:")
@@ -1006,6 +1786,39 @@ if __name__ == "__main__":
         "--check-assignment", action="store_true",
         help="run the Hungarian-assignment optimality property check",
     )
+    parser.add_argument(
+        "--straw-first", action="store_true",
+        help="run the straw-first pause-animals experiment vs Path A baseline",
+    )
+    parser.add_argument("--straw-first-seeds", type=int, default=12)
+    parser.add_argument("--straw-first-min-tiles", type=int, default=20)
+    parser.add_argument("--straw-first-min-day", type=int, default=12)
+    parser.add_argument(
+        "--straw-first-cash-multiple", type=float, default=None,
+        help="v2: also open the animal gate once money clears this many x "
+        "MIN_CASH_RESERVE_FOR_ANIMAL_BUYING (default: disabled, pure v1)",
+    )
+    parser.add_argument(
+        "--straw-first-hold-product", type=str, default=None,
+        help="v2: hold this product's normal sell while the gate is closed, "
+        "e.g. STRAWBERRY (default: disabled, pure v1)",
+    )
+    parser.add_argument(
+        "--straw-first-seed-stockpile", type=int, default=None,
+        help="take 3: raise STRAWBERRY's own seed-restock ceiling to this "
+        "many held seeds (default: disabled, MAX_SEED_STOCKPILE=3 as-is). "
+        "Can be combined with or used independently of the gate/hold levers "
+        "above - see _straw_seed_boost_overrides.",
+    )
+    parser.add_argument(
+        "--compare-path-c", action="store_true",
+        help="Path C Core vs Path A, paired per seed (see compare_path_c / mydocs/PATH_C_CORE.md)",
+    )
+    parser.add_argument(
+        "--ladder", action="store_true",
+        help="Path C ablation ladder: Path A vs full Path C vs each lever disabled once (see compare_path_c_ladder)",
+    )
+    parser.add_argument("--path-c-seeds", type=int, default=12)
     args = parser.parse_args()
 
     if args.validate:
@@ -1014,6 +1827,20 @@ if __name__ == "__main__":
         validate_contested(seed=args.seed)
     elif args.check_assignment:
         _check_assignment_optimality()
+    elif args.straw_first:
+        compare_straw_first_pause(
+            seeds=range(args.straw_first_seeds),
+            days=args.days,
+            strawberry_min_tiles=args.straw_first_min_tiles,
+            min_day=args.straw_first_min_day,
+            cash_buffer_multiple=args.straw_first_cash_multiple,
+            hold_product=args.straw_first_hold_product,
+            straw_seed_stockpile=args.straw_first_seed_stockpile,
+        )
+    elif args.compare_path_c:
+        compare_path_c(seeds=range(args.path_c_seeds), days=args.days)
+    elif args.ladder:
+        compare_path_c_ladder(seeds=range(args.path_c_seeds), days=args.days)
     elif args.contested:
         side_a, side_b = run_contested_episode(seed=args.seed, seed_b=args.seed_b, days=args.days)
         print("=== side A ===")

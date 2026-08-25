@@ -828,6 +828,100 @@ WHEAT_CARRY_BATCH = 3
 
 
 # ---------------------------------------------------------------------
+# Path C Core (investigation/animal-diagnosis-and-route-v20-bench)
+#
+# Ported from mydocs/PATH_C_CORE.md - a structural policy (STRAW pin, an
+# animal beach-head/pause/scale sequence, STRAW-elevated fertilizer, a
+# Level-2 crew-attention reorder, and a hire-count bump) whose "not yet
+# above Path A" verdict was first reproduced in bptk.py's structural model
+# (see that file's path_c_overrides/compare_path_c/compare_path_c_ladder):
+# 12-seed bptk paired result was mean delta -6,633, 6/12 wins - an exact
+# coin flip, not a bptk-side win either. This port exists to find out
+# whether the real engine (with its travel time, unit contention, and
+# actual selling opponents) disagrees, per this repo's own rule that a
+# bptk finding is directional only until checked against a real harness.
+#
+# A single switch, PATH_C_CORE_ENABLED, gates every piece below - set it to
+# False (or revert this block and its call sites) to fall straight back to
+# the pre-existing shipped policy with no other changes.
+# ---------------------------------------------------------------------
+PATH_C_CORE_ENABLED = True
+
+PATH_C_EARLY_ANIMALS = 3
+PATH_C_EARLY_DAY_LIMIT = 8
+PATH_C_STRAW_CAP = 50
+PATH_C_STRAW_WINDOW_END = 14
+PATH_C_SCALE_MAX_ANIMALS = 10
+PATH_C_SCALE_STRAW_DONE = 50
+PATH_C_SCALE_DAY = 15
+PATH_C_LEVEL2_CREW = True
+PATH_C_L2_STRAW_TILES = 30
+PATH_C_L2_MIN_ANIMALS = 6
+PATH_C_HIRE_BUMP_CEILING = 10
+PATH_C_HIRE_BUMP_MIN_DAY = 12
+PATH_C_HIRE_BUMP_MIN_MONEY = 1500
+PATH_C_GATE_FERT_SELL = True
+# Not in PATH_C_CORE.md's constants table - the doc's prose names "3" as the
+# fertilize-elevation trigger ("After >=3 animals on tiles"); pulled out as
+# its own named constant rather than left as a bare literal.
+PATH_C_FERT_ELEVATE_MIN_ANIMALS = 3
+
+
+def path_c_straw_tile_count(farm):
+    return sum(
+        1
+        for row in (farm.get("tiles") or [])
+        for tile in row
+        if isinstance(tile, dict) and tile.get("kind") == "PLANT" and tile.get("crop") == "STRAWBERRY"
+    )
+
+
+def path_c_any_straw_wants_fertilizer(farm, day):
+    """PATH_C_CORE.md's fertilizer policy #2: "Gate SELL FERTILIZER while
+    any STRAW tile wants_fertilizer (apply-first)"."""
+    for row in (farm.get("tiles") or []):
+        for tile in row:
+            if (
+                isinstance(tile, dict)
+                and tile.get("kind") == "PLANT"
+                and tile.get("crop") == "STRAWBERRY"
+                and wants_fertilizer(tile, day)
+            ):
+                return True
+    return False
+
+
+def path_c_animal_cap(farm, private, board_size, day):
+    """PATH_C_CORE.md's "Animal sequencing": up to PATH_C_EARLY_ANIMALS
+    while day <= PATH_C_EARLY_DAY_LIMIT; frozen at whatever's already owned
+    (pause) until the STRAW carpet reaches PATH_C_SCALE_STRAW_DONE tiles or
+    day reaches PATH_C_SCALE_DAY; then a ceiling of PATH_C_SCALE_MAX_ANIMALS
+    - unless there is no wheat buffer at all, in which case the freeze holds
+    regardless (the doc's "soft safety: do not scale while wheat_stock <=
+    0"). Returns the untouched MAX_ANIMALS when the switch is off, so every
+    caller can unconditionally call this instead of reading MAX_ANIMALS
+    directly.
+    """
+    if not PATH_C_CORE_ENABLED:
+        return MAX_ANIMALS
+    owned = count_owned_animals(farm, private, board_size)
+    straw_tiles = path_c_straw_tile_count(farm)
+    scale_unlocked = straw_tiles >= PATH_C_SCALE_STRAW_DONE or day >= PATH_C_SCALE_DAY
+    if scale_unlocked:
+        shed_wheat = (private.get("shed") or {}).get("WHEAT", 0)
+        carried_wheat = sum(
+            (inv or {}).get("WHEAT", 0)
+            for inv in (private.get("inventories") or [])
+            if isinstance(inv, dict)
+        )
+        if shed_wheat + carried_wheat > 0:
+            return PATH_C_SCALE_MAX_ANIMALS
+    if day <= PATH_C_EARLY_DAY_LIMIT:
+        return max(PATH_C_EARLY_ANIMALS, owned)
+    return owned  # pause: freeze, no further buys/builds until scale unlocks
+
+
+# ---------------------------------------------------------------------
 # Land
 # ---------------------------------------------------------------------
 
@@ -969,13 +1063,25 @@ def wants_fertilizer(tile, day):
     return (first_yield_day - 3) <= age <= last_tick_age
 
 
-def find_fertilizer_target(farm, board_size, ux, uy, day, exclude=None):
-    """Nearest plant worth fertilising, or None."""
+def find_fertilizer_target(farm, board_size, ux, uy, day, exclude=None, prefer_crop=None):
+    """Nearest plant worth fertilising, or None.
+
+    `prefer_crop`, if given, restricts the search to that crop's own tiles
+    first - falling back to the nearest tile of ANY crop only if no
+    `prefer_crop` tile wants fertilizer at all. This is PATH_C_CORE.md's
+    "elevate FERTILIZE on STRAW ahead of other fert" (mydocs/PATH_C_CORE.md,
+    fertilizer policy #1): once enough animals are filled to make the free
+    COLLECT_FERTILIZER supply worth spending deliberately, STRAWBERRY's own
+    tiles get first claim on it regardless of distance, not just whichever
+    plant happens to be nearest.
+    """
     exclude = exclude or set()
     tiles = farm.get("tiles") or []
 
     best_target = None
     best_distance = None
+    best_preferred_target = None
+    best_preferred_distance = None
     for y in range(board_size):
         row = tiles[y] if y < len(tiles) else []
         for x in range(len(row)):
@@ -985,6 +1091,12 @@ def find_fertilizer_target(farm, board_size, ux, uy, day, exclude=None):
             if best_distance is None or distance < best_distance:
                 best_distance = distance
                 best_target = (x, y)
+            if prefer_crop and row[x].get("crop") == prefer_crop:
+                if best_preferred_distance is None or distance < best_preferred_distance:
+                    best_preferred_distance = distance
+                    best_preferred_target = (x, y)
+    if prefer_crop and best_preferred_target is not None:
+        return best_preferred_target
     return best_target
 
 
@@ -1111,7 +1223,7 @@ def has_plantable_seed(seeds, day):
     return False
 
 
-def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None, exclude=None):
+def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None, exclude=None, prefer_crop=None):
     """
     Scan the whole farm grid and return the (x, y) of the closest tile
     matching `task`, or None if there isn't one.
@@ -1119,6 +1231,20 @@ def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None, exclude
     `exclude` is a set of (x, y) tiles another unit has already claimed
     this turn. Without it, every hand would pick the same nearest target
     and they'd all walk to one tile while the rest of the farm rotted.
+
+    `prefer_crop`, for task in ("harvest", "water_urgent") only: if any
+    matching tile belongs to this crop, return the nearest SUCH tile
+    instead of the nearest match overall (an animal tile never has a
+    "crop" key, so an animal harvest never satisfies this - it only ever
+    prefers one crop over every other crop AND every animal). This is
+    PATH_C_CORE.md's Level-2 crew reorder ("FEED -> STRAW harvest -> plant
+    WATER -> other harvest -> animal CARE") adapted to this file's
+    nearest-target search instead of bptk.py's whole-tier Hungarian
+    assignment - the closest real analogue this architecture has, since
+    ordinary (non-urgent) watering and animal CARE are handled locally by
+    whichever unit happens to already be standing on the tile, not chased
+    from a distance (see choose_unit_action's docstring and CLAUDE.md's
+    spatial-abstraction notes on bptk.py's own crew-priority experiment).
 
     task options:
       "harvest"        - a plant or animal tile that's ready to pick right
@@ -1142,6 +1268,9 @@ def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None, exclude
 
     best_target = None
     best_distance = None
+    best_preferred_target = None
+    best_preferred_distance = None
+    prefer_active = prefer_crop is not None and task in ("harvest", "water_urgent")
 
     for y in range(board_size):
         row = tiles[y] if y < len(tiles) else []
@@ -1191,7 +1320,13 @@ def find_nearest_target(farm, board_size, fx, fy, task, day, seeds=None, exclude
                 if best_distance is None or distance < best_distance:
                     best_distance = distance
                     best_target = (x, y)
+                if prefer_active and tile.get("crop") == prefer_crop:
+                    if best_preferred_distance is None or distance < best_preferred_distance:
+                        best_preferred_distance = distance
+                        best_preferred_target = (x, y)
 
+    if prefer_active and best_preferred_target is not None:
+        return best_preferred_target
     return best_target
 
 
@@ -1352,7 +1487,7 @@ def choose_animal_to_build(farm, private, board_size, day, pending_builds=0, ux=
     MAX_ANIMALS_ON_HOME_LAND) gets the plain cap-only behaviour.
     """
     filled, unfilled = scan_animal_structures(farm, board_size)
-    if unfilled > 0 or pending_builds > 0 or filled >= MAX_ANIMALS:
+    if unfilled > 0 or pending_builds > 0 or filled >= path_c_animal_cap(farm, private, board_size, day):
         return None
 
     # Phase 3: capacity beyond MAX_ANIMALS_ON_HOME_LAND has to be funded by
@@ -1398,7 +1533,7 @@ def decide_animal_market_actions(farm, private, board_size, day):
     money = farm.get("money", 0)
     remaining_days = remaining_season_days(day)
 
-    if count_owned_animals(farm, private, board_size) < MAX_ANIMALS:
+    if count_owned_animals(farm, private, board_size) < path_c_animal_cap(farm, private, board_size, day):
         held = species_owned_counts(farm, private, board_size)
         affordable = []
         for animal in ACTIVE_ANIMALS:
@@ -1625,7 +1760,18 @@ def decide_hire_orders(farm, board_size, day, hour, seeds=None):
         return []
 
     work = count_pending_work(farm, board_size, day, seeds)
-    wanted = min(max_hands_ceiling(farm, board_size), work // WORK_TILES_PER_HAND)
+    ceiling = max_hands_ceiling(farm, board_size)
+    # Path C Core hire policy (mydocs/PATH_C_CORE.md): once day >= 12 and
+    # money >= 1500, temporarily raise the hand ceiling - a floor bump, so
+    # it can only ever raise `ceiling`, never lower it below what
+    # max_hands_ceiling already derived.
+    if (
+        PATH_C_CORE_ENABLED
+        and day >= PATH_C_HIRE_BUMP_MIN_DAY
+        and farm.get("money", 0) >= PATH_C_HIRE_BUMP_MIN_MONEY
+    ):
+        ceiling = max(ceiling, PATH_C_HIRE_BUMP_CEILING)
+    wanted = min(ceiling, work // WORK_TILES_PER_HAND)
     already_working = len(farm.get("hands") or [])
     shortfall = min(max(0, wanted - already_working), MAX_HIRES_PER_TURN)
 
@@ -1762,6 +1908,22 @@ def choose_crop(
     the real game (see pricing.py) - both default to "nothing unlocked,
     turn 0" so existing callers/tests keep working unchanged.
     """
+    # Path C Core crop policy #1 (mydocs/PATH_C_CORE.md): "while in STRAW
+    # window and straw_tiles < 50, always prefer STRAWBERRY (inviolable)" -
+    # bypasses the price/glut scoring below entirely while active, same as
+    # this repo's bptk.py reproduction (path_c_overrides' choose_crop
+    # wrapper). Never fires for the require_held_seed fallback call, so a
+    # pin that can't actually be planted (zero seed held) still falls
+    # through to a crop we can.
+    if PATH_C_CORE_ENABLED and not require_held_seed:
+        straw_window = CROP_PLANTING_WINDOWS.get("STRAWBERRY")
+        if (
+            straw_window is not None
+            and straw_window[0] <= day <= PATH_C_STRAW_WINDOW_END
+            and path_c_straw_tile_count(farm) < PATH_C_STRAW_CAP
+        ):
+            return "STRAWBERRY"
+
     money = farm.get("money", 0)
     inventory = market_state.get("inventory", {})
     seeds = private.get("seeds", {})
@@ -1949,7 +2111,14 @@ def decide_market_actions(
         # 715 units round-tripped in one measured season with zero reaching a
         # plant). Hold it for the crops and only liquidate at season end,
         # when leftover stock scores nothing anyway.
-        if product == "FERTILIZER" and not liquidating:
+        if product == "FERTILIZER" and (
+            not liquidating
+            or (
+                PATH_C_CORE_ENABLED
+                and PATH_C_GATE_FERT_SELL
+                and path_c_any_straw_wants_fertilizer(farm, day)
+            )
+        ):
             continue
 
         # Hold back the wheat earmarked for feeding. Wheat is animal feed,
@@ -2018,7 +2187,14 @@ def decide_market_actions(
             # 715 units round-tripped in one measured season with zero reaching a
             # plant). Hold it for the crops and only liquidate at season end,
             # when leftover stock scores nothing anyway.
-            if product == "FERTILIZER" and not liquidating:
+            if product == "FERTILIZER" and (
+                not liquidating
+                or (
+                    PATH_C_CORE_ENABLED
+                    and PATH_C_GATE_FERT_SELL
+                    and path_c_any_straw_wants_fertilizer(farm, day)
+                )
+            ):
                 continue
 
             if product in already_selling or quantity <= 0:
@@ -2172,6 +2348,27 @@ def choose_unit_action(
     )
     inv = unit_inventory(private, unit_idx)
     tile = get_tile_at(farm, ux, uy)
+
+    # Path C Core crew-priority levers (mydocs/PATH_C_CORE.md) - computed
+    # once per unit-turn since both read a whole-board animal-structure
+    # scan. path_c_fert_prefer elevates STRAWBERRY within fertilizer
+    # errands (policy #3) once enough animals are filled; path_c_l2_prefer
+    # elevates STRAWBERRY within the distant harvest/water-urgent search
+    # (the Level-2 crew reorder) once the STRAW carpet and herd are both
+    # big enough. Both are None (no-op, identical to pre-Path-C behavior)
+    # when PATH_C_CORE_ENABLED is False.
+    path_c_fert_prefer = None
+    path_c_l2_prefer = None
+    if PATH_C_CORE_ENABLED:
+        path_c_filled_animals, _ = scan_animal_structures(farm, board_size)
+        if path_c_filled_animals >= PATH_C_FERT_ELEVATE_MIN_ANIMALS:
+            path_c_fert_prefer = "STRAWBERRY"
+        if (
+            PATH_C_LEVEL2_CREW
+            and path_c_filled_animals >= PATH_C_L2_MIN_ANIMALS
+            and path_c_straw_tile_count(farm) >= PATH_C_L2_STRAW_TILES
+        ):
+            path_c_l2_prefer = "STRAWBERRY"
 
     # Another unit already acted on this tile this turn. Every tile action is
     # either once-per-day (WATER, CARE, FEED) or consumes its target outright
@@ -2329,8 +2526,12 @@ def choose_unit_action(
     non_feed_exclude = set(claimed)
     if feed_target is not None:
         non_feed_exclude.add(feed_target)
-    harvest_target = find_nearest_target(farm, board_size, ux, uy, "harvest", day, exclude=non_feed_exclude)
-    water_target = find_nearest_target(farm, board_size, ux, uy, "water_urgent", day, exclude=non_feed_exclude)
+    harvest_target = find_nearest_target(
+        farm, board_size, ux, uy, "harvest", day, exclude=non_feed_exclude, prefer_crop=path_c_l2_prefer
+    )
+    water_target = find_nearest_target(
+        farm, board_size, ux, uy, "water_urgent", day, exclude=non_feed_exclude, prefer_crop=path_c_l2_prefer
+    )
     urgent_target = _closer_target(ux, uy, harvest_target, water_target)
     if urgent_target:
         moved = walk_to(urgent_target)
@@ -2402,7 +2603,7 @@ def choose_unit_action(
 
     if inv.get("FERTILIZER", 0) > 0:
         fertilize_target = find_fertilizer_target(
-            farm, board_size, ux, uy, day, exclude=claimed
+            farm, board_size, ux, uy, day, exclude=claimed, prefer_crop=path_c_fert_prefer
         )
         if fertilize_target:
             moved = walk_to(fertilize_target)
@@ -2410,7 +2611,7 @@ def choose_unit_action(
                 return moved
 
     elif shed_fertilizer > 0 and find_fertilizer_target(
-        farm, board_size, ux, uy, day, exclude=claimed
+        farm, board_size, ux, uy, day, exclude=claimed, prefer_crop=path_c_fert_prefer
     ):
         # Collect a batch so one trip serves several plants.
         if is_shed_adjacent(ux, uy, board_size):
