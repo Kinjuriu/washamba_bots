@@ -171,11 +171,103 @@ the thing you are about to optimise before building the optimiser.** One
 episode trace would have priced this at 0.5% of revenue before any code was
 written.
 
-### Next lead, untested
+### Per-item floors are a measured dead end - do not re-run them
 
-In a contested mirror we spend **$6,156 on STRAWBERRY seed to earn $3,030**
-selling strawberries, and MILK returns $15.7/u. Both are measured in the
-harshest possible case - two identical agents flooring the same market - so
-expect better against a varied field. The route is a recorded action plan, so
-cutting a crop is not a constant tweak; `_MIN_SELL_PRICE_BY_ITEM` exists so a
-per-item floor can be swept without touching the gate logic again.
+Paired margin vs `agents/route_v20.py`, 8 seeds x 2 seats, baseline = the gate
+at 0.10, self-control 0/8 and +0:
+
+| arm | margin better on | mean | t |
+|---|---|---|---|
+| `{'MELON': 0.60}` | 0/16 | -409 | -2.61 |
+| `{'STRAWBERRY': 0.50, 'MILK': 0.50, 'WOOL': 0.50}` | 0/16 | -1,554 | -8.25 |
+
+Negative on every seed and seat. The reason no per-item variant can work is
+that **premium withholding saturates at 0.10** - seed 0 vs v20:
+
+| ratio | FERTILIZER | STRAWBERRY | MILK | WOOL | our bank | opp bank |
+|---|---|---|---|---|---|---|
+| none | 2935 | 294 | 273 | 179 | 32,092 | 27,619 |
+| 0.10 | 2935 | 273 | 250 | 156 | **32,185** | **27,487** |
+| 0.20 | 2873 | 273 | 250 | 156 | 31,917 | 27,821 |
+| 0.35 | 2739 | 273 | 250 | 156 | 31,668 | 28,153 |
+
+The premium columns stop moving past 0.10 because those curves are cliffs -
+STRAWBERRY drops $5 to $1 across one unit. All a bigger ratio does is choke
+FERTILIZER, 63% of season revenue, which is where our bank falls and the
+opponent's rises. A `{'WHEAT': 0.80}` arm was byte-identical; a $20 floor never
+binds on a crop quoted above $21.
+
+Generalises: **a threshold can only pay where the underlying curve is smooth
+near it.** Against a cliff every setting past the edge is identical, so
+sweeping finer measures side effects on other items and nothing else.
+
+### The selling thesis is closed. Count LANDED trades, not requests.
+
+Everything above was motivated by "we sell ~4,544 units at ~$20/unit while the
+leaders take 63 $/unit on a third of the volume." **That premise was an
+artefact of counting market orders instead of executed trades** - the same
+mistake this repo already recorded for `PLANT`, made again on `SELL`.
+
+Measured against `pass` (which issues no market orders, so every rise in market
+inventory is ours and every fall is deterministic town consumption, making
+landed units exactly recoverable):
+
+| item | requested | landed | fill | revenue | $/unit |
+|---|---|---|---|---|---|
+| WOOL | 270 | 219 | 81% | 51,338 | 234 |
+| STRAWBERRY | 216 | 172 | 80% | 40,861 | 238 |
+| WHEAT | 1,647 | 771 | 47% | 34,344 | 44 |
+| MILK | 189 | 164 | 87% | 23,683 | 144 |
+| MELON | 120 | 100 | 83% | 22,398 | 224 |
+| FERTILIZER | 2,028 | **301** | **15%** | 20,816 | 69 |
+| **TOTAL** | **4,472** | **1,727** | **39%** | 193,440 | **$112** |
+
+(Revenue is uncontested and therefore inflated; the unit counts are exact.)
+
+**We land 1,727 units at ~$112 each.** The top-10 figures we compared against
+came from the same kind of action-stream parse, so they are request counts too -
+the comparison was apples-to-apples, and what differs is that we re-request
+stock we do not hold. Our realised unit economics are already at or above the
+leaders'. There was never much to win on the sell side, which is exactly why the
+gate bought only +474 and per-item floors bought nothing.
+
+### FERTILIZER has zero demand, and it is the herd's cash flow
+
+`TOWN_CENTER_PRODUCTS = [p for p in PRODUCTS if p != "FERTILIZER"]` and
+FERTILIZER appears in no `SHOPS` entry, so **nothing ever consumes it**. Price is
+`100 - 0.2 x excess`, floors after 495 units, and the whole season's fertilizer
+market is worth ~$25,000 split between both players. Traced vs `route_v20`,
+inventory rises 10,000 -> 10,477 and the price ends at **$5**.
+
+That makes it look like a market to withhold from. It is not:
+
+| arm | margin better on | mean | t |
+|---|---|---|---|
+| `{'WHEAT': 2.0}` (block all wheat sales) | 3/16 | -6,161 | -3.20 |
+| `{'FERTILIZER': 2.0}` (block all fertilizer sales) | 0/16 | **-165,382** | -40.58 |
+
+Blocking fertilizer sales ends seed 0 on a bank of **453 - below the $3,000
+starting stake - with all 14 animals dead** while the opponent banks 127,109.
+Fertilizer sales are the cash flow that buys feed; cut them and the herd starves,
+taking WOOL and MILK with it. Same mechanism as the second-sheep cash trough.
+
+The wheat arm was motivated by real churn - we sell 771 WHEAT at ~$44.5 while
+buying back 970 at ~$44 - but the wheat we sell is funding the wheat we buy, and
+stopping the churn stops the feed.
+
+Generalises: **a market with no demand sink can still be load-bearing.** Its
+value is not the price it clears at, it is the timing of the cash.
+
+### The strawberry lead is also dead
+
+The "$6,156 of seed for $3,030 of revenue" figure used the same request-count
+error: STRAWBERRY lands 172 units at **$238/u**, and it is our second-largest
+revenue source. It is not a loss-making crop.
+
+### Where the remaining gap is NOT
+
+Selling. Three independent attempts on this axis - a global price floor
+(+474, shipped), per-item floors (0/16, 0/16) and blocking commodity churn
+(3/16, 0/16) - and the trace explains why: our realised sell profile already
+matches the leaders'. Anything further should be measured on **production**, not
+trading.

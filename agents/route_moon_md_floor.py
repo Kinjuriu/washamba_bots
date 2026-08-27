@@ -969,12 +969,45 @@ def _terminal_liquidation(obs, action, step):
 # enriching yourself, a harness that measures only your own bank will report
 # nothing.** Pick the statistic from the mechanism, not from habit.
 #
-# NEXT LEAD, not yet tested: in a contested mirror we spend $6,156 on STRAWBERRY
-# seed to earn $3,030 selling strawberries, and MILK returns $15.7/u. Both are
-# measured in the harshest possible case (both sides flooring the same market),
-# and this route is a recorded action plan, so cutting a crop is not a constant
-# tweak. `_MIN_SELL_PRICE_BY_ITEM` exists so a per-item floor can be swept
-# without touching the gate logic again.
+# PER-ITEM FLOORS ARE A MEASURED DEAD END. DO NOT RE-RUN THEM. Paired margin vs
+# agents/route_v20.py, 8 seeds x 2 seats, baseline = this file at 0.10, with a
+# self-control that returned 0/8 and +0:
+#
+#     {'MELON': 0.60}                              0/16   -409   t -2.61
+#     {'STRAWBERRY': 0.50, 'MILK': 0.50, 'WOOL': 0.50}
+#                                                  0/16 -1,554   t -8.25
+#
+# Negative on every single seed and seat. `_MIN_SELL_PRICE_BY_ITEM` is kept
+# because it costs nothing and makes the negative result reproducible, not
+# because it is a live knob.
+#
+# THE REASON, and it is why no per-item variant can work: PREMIUM WITHHOLDING
+# SATURATES AT 0.10. Sell mixes at three global ratios, seed 0 vs route_v20:
+#
+#     ratio   FERTILIZER  STRAWBERRY  MILK  WOOL    ourBank   oppBank
+#     none          2935         294   273   179     32,092    27,619
+#     0.10          2935         273   250   156     32,185    27,487
+#     0.20          2873         273   250   156     31,917    27,821
+#     0.35          2739         273   250   156     31,668    28,153
+#
+# The premium columns do not move past 0.10 - those price curves are cliffs
+# (STRAWBERRY goes $5 to $1 across a single unit), so a higher floor catches no
+# extra units. All a bigger ratio does is start choking FERTILIZER, which is 63%
+# of season revenue, and that is exactly where our bank falls AND the opponent's
+# rises. A `{'WHEAT': 0.80}` arm was byte-identical: a $20 floor never binds on
+# a crop quoted above $21.
+#
+# Generalises: **a threshold can only pay where the underlying curve is smooth
+# near it.** Against a cliff, the ratio is either past the edge or short of it,
+# and every setting past the edge is identical - so sweeping it finer measures
+# the side effects on other items and nothing else.
+#
+# THE ONE LEAD STILL OPEN, untested: in a contested mirror we spend $6,156 on
+# STRAWBERRY seed to earn $3,030 selling strawberries, and MILK returns $15.7/u.
+# That is a PLANTING question, not a selling one - and per the table above, the
+# selling side of it is already saturated. Both figures come from the harshest
+# possible case (both sides flooring the same market), and this route is a
+# recorded action plan, so cutting a crop is not a constant tweak.
 _MIN_SELL_PRICE_RATIO = 0.10  # shipped value; 0.0 disables the gate (the control arm)
 _MIN_SELL_PRICE_BY_ITEM = {}  # per-item override of the ratio above
 _MIN_SELL_GATE_STOP = 660     # never withhold once liquidation is what matters
