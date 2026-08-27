@@ -41,12 +41,25 @@ Usage:
 
 import statistics
 import sys
+from pathlib import Path
 
 from kaggle_environments import make
+
+# Make `from experiments.seeds import ...` work when this script is run
+# directly (`python experiments/paired_compare.py ...`). Without this, the
+# experiments/ directory is not on sys.path and the import below fails with
+# `ModuleNotFoundError: No module named 'experiments'`.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from experiments.seeds import DEV_SEEDS, HOLDOUT_SEEDS
 
 # `random` is excluded on purpose: its own RNG is not seed-controlled, so
 # the same seed does not reproduce the same episode and pairing is invalid.
 PAIRABLE_OPPONENTS = ("pass", "starter")
+
+# Default seed set for development iteration. Use ``--seed-set holdout`` to
+# run against the held-out set after a change is frozen; see experiments/seeds.py.
+SEED_SETS = {"dev": DEV_SEEDS, "holdout": HOLDOUT_SEEDS}
 
 
 def run_one(agent_path, opponent, seed):
@@ -67,6 +80,15 @@ def main():
     baseline_path, candidate_path = sys.argv[1], sys.argv[2]
     opponent = sys.argv[3] if len(sys.argv) > 3 else "starter"
     n_seeds = int(sys.argv[4]) if len(sys.argv) > 4 else 12
+    seed_set = "dev"
+    if "--seed-set" in sys.argv:
+        seed_set = sys.argv[sys.argv.index("--seed-set") + 1]
+    if seed_set not in SEED_SETS:
+        print(
+            f"error: unknown seed set '{seed_set}'. Use one of {list(SEED_SETS)}.",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
 
     if opponent not in PAIRABLE_OPPONENTS:
         print(
@@ -75,11 +97,17 @@ def main():
             file=sys.stderr,
         )
 
+    seeds = list(SEED_SETS[seed_set])
+    # Allow an explicit seed count to trim the selected set (e.g. ``--seed-set
+    # holdout 6`` for a quick partial run), but never to extend it.
+    n_seeds = min(n_seeds, len(seeds))
+    seeds = seeds[:n_seeds]
+
     deltas = []
-    print(f"vs {opponent}, {n_seeds} seeds\n")
+    print(f"vs {opponent}, {len(seeds)} seeds (set={seed_set})\n")
     print(f"{'seed':>4} {'baseline':>9} {'candidate':>10} {'delta':>9}")
 
-    for seed in range(n_seeds):
+    for seed in seeds:
         baseline = run_one(baseline_path, opponent, seed)
         candidate = run_one(candidate_path, opponent, seed)
         delta = candidate - baseline

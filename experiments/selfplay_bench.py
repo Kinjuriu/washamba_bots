@@ -30,8 +30,21 @@ an optimistic stdev; their means are unaffected.
 import statistics
 import sys
 from collections import Counter
+from pathlib import Path
 
 from kaggle_environments import make
+
+# Make `from experiments.seeds import ...` work when this script is run
+# directly (`python experiments/selfplay_bench.py ...`). Without this, the
+# experiments/ directory is not on sys.path and the import below fails with
+# `ModuleNotFoundError: No module named 'experiments'`.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from experiments.seeds import DEV_SEEDS, HOLDOUT_SEEDS
+
+# Default seed set for development iteration. Use ``--seed-set holdout`` to
+# run against the held-out set after a change is frozen; see experiments/seeds.py.
+SEED_SETS = {"dev": DEV_SEEDS, "holdout": HOLDOUT_SEEDS}
 
 # Products worth watching a price on - the plantable crops. Animal goods
 # and FERTILIZER are reported in the sold mix instead.
@@ -40,12 +53,27 @@ TRACKED_CROPS = ("WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON")
 
 def main():
     n_seeds = int(sys.argv[1]) if len(sys.argv) > 1 else 6
+    seed_set = "dev"
+    if "--seed-set" in sys.argv:
+        seed_set = sys.argv[sys.argv.index("--seed-set") + 1]
+    if seed_set not in SEED_SETS:
+        print(
+            f"error: unknown seed set '{seed_set}'. Use one of {list(SEED_SETS)}.",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    seeds = list(SEED_SETS[seed_set])
+    # Allow an explicit seed count to trim the selected set (e.g. ``--seed-set
+    # holdout 6`` for a quick partial run), but never to extend it.
+    n_seeds = min(n_seeds, len(seeds))
+    seeds = seeds[:n_seeds]
 
     scores = []
     price_totals = Counter()
     sold = Counter()
 
-    for seed in range(n_seeds):
+    for seed in seeds:
         env = make(
             "kaggriculture",
             configuration={"episodeSteps": 720, "seed": seed},
@@ -72,7 +100,7 @@ def main():
         for product, price in left.observation["market"]["prices"].items():
             price_totals[product] += price
 
-    print(f"self-play over {n_seeds} seeds (mean of both sides per seed)")
+    print(f"self-play over {n_seeds} seeds (set={seed_set}, mean of both sides per seed)")
     print(f"  mean  {statistics.mean(scores):8.0f}")
     print(f"  stdev {statistics.stdev(scores):8.0f}")
     print(f"  min   {min(scores):8.0f}   max {max(scores):8.0f}")

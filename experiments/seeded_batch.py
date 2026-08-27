@@ -10,10 +10,22 @@ Usage:
 """
 
 import statistics as stats
+import sys
+from pathlib import Path
+
 from kaggle_environments import make
 
+# Make `from experiments.seeds import ...` work when this script is run
+# directly (`python experiments/seeded_batch.py ...`). Without this, the
+# experiments/ directory is not on sys.path and the import below fails with
+# `ModuleNotFoundError: No module named 'experiments'`.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from experiments.seeds import DEV_SEEDS, HOLDOUT_SEEDS
+
 OPPONENTS = ["pass", "random", "starter"]
-SEEDS = range(12)
+SEED_SETS = {"dev": DEV_SEEDS, "holdout": HOLDOUT_SEEDS}
+SEEDS = list(DEV_SEEDS)
 
 
 def run_one(seed: int, opponent: str):
@@ -48,8 +60,22 @@ def run_one(seed: int, opponent: str):
 
 
 def main():
-    print(f"Running {len(OPPONENTS)} opponents x {len(list(SEEDS))} seeds = "
-          f"{len(OPPONENTS) * len(list(SEEDS))} episodes...\n")
+    seed_set = "dev"
+    if "--seed-set" in sys.argv:
+        seed_set = sys.argv[sys.argv.index("--seed-set") + 1]
+    if seed_set not in SEED_SETS:
+        print(
+            f"error: unknown seed set '{seed_set}'. Use one of {list(SEED_SETS)}.",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
+
+    seeds = list(SEED_SETS[seed_set])
+    n_seeds = len(seeds)
+
+    print(f"Running {len(OPPONENTS)} opponents x {n_seeds} seeds = "
+          f"{len(OPPONENTS) * n_seeds} episodes...\n"
+          f"(seed set: {seed_set})")
 
     results = {}
     for opponent in OPPONENTS:
@@ -59,7 +85,7 @@ def main():
         ties = 0
         errors = 0
         escapes = 0
-        for seed in SEEDS:
+        for seed in seeds:
             p0, p1, ok, episode_escapes = run_one(seed, opponent)
             if not ok:
                 errors += 1
