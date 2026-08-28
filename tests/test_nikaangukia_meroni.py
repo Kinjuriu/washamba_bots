@@ -1320,13 +1320,51 @@ class TestChooseAnimalToBuild(unittest.TestCase):
 
 
 class TestDecideAnimalMarketActions(unittest.TestCase):
-    def _farm(self, tiles, money):
-        return {"money": money, "tiles": tiles, "farmer": [0, 0], "hands": []}
+    """experiments/candidates/max_animals_pacing_v0.py and _v1.py both
+    monkeypatch main.decide_animal_market_actions on the shared `main`
+    module object at import time. Since this file's `decide_animal_market_actions`
+    name is bound via `from main import decide_animal_market_actions` at
+    module load, whichever candidate test module unittest's discovery
+    happens to import last leaves this name pointing at a *candidate's*
+    function, not main.py's own - silently testing the wrong code. Reload
+    main to pristine before each test in this class so it always exercises
+    main.py's real, unpatched decide_animal_market_actions, regardless of
+    what other test modules have done to the shared module object."""
+
+    # board_size=10 - the engine's real default (kaggriculture.json /
+    # kaggriculture.py's `get(cfg, "boardSize", 10)`). This class used to
+    # test at board_size=1 as a geometry-free shortcut, which worked while
+    # decide_animal_market_actions only ever called scan_animal_structures
+    # (quadrant-blind). It no longer does: the buy-gate now also calls
+    # available_placement_capacity, which calls tile_quadrant(x, y,
+    # board_size) per tile - and tile_quadrant degenerates at board_size=1
+    # (half = 1 // 2 = 0, so every tile falls in "SE", which never matches
+    # the default unlocked_quadrants=["NW"], silently zeroing capacity).
+    # Real gameplay never uses board_size=1; the fix here is to test at a
+    # realistic size, not to special-case an unrealistic one in main.py.
+    BOARD_SIZE = 10
+
+    def setUp(self):
+        import importlib
+        import main as _main_module
+
+        importlib.reload(_main_module)
+        global decide_animal_market_actions
+        decide_animal_market_actions = _main_module.decide_animal_market_actions
+
+    def _farm(self, overrides, money, unlocked_quadrants=None):
+        tiles = [[None for _ in range(self.BOARD_SIZE)] for _ in range(self.BOARD_SIZE)]
+        for (x, y), tile in overrides.items():
+            tiles[y][x] = tile
+        return {
+            "money": money, "tiles": tiles, "farmer": [0, 0], "hands": [],
+            "unlocked_quadrants": unlocked_quadrants or ["NW"],
+        }
 
     def test_buys_an_animal_when_affordable_and_under_cap(self):
-        farm = self._farm([[None]], money=1000)
+        farm = self._farm({}, money=1000)
         private = {"shed": {}, "inventories": [{}]}
-        actions = decide_animal_market_actions(farm, private, 1, day=0)
+        actions = decide_animal_market_actions(farm, private, self.BOARD_SIZE, day=0)
         self.assertIn(["BUY_ANIMAL", TEST_ANIMAL, 1], actions)
 
     def test_buys_the_species_owned_fewer_of_not_always_the_same_one(self):
@@ -1335,44 +1373,47 @@ class TestDecideAnimalMarketActions(unittest.TestCase):
         # onto TEST_ANIMAL forever once it was always affordable. Already
         # owning one TEST_ANIMAL (in the shed) should steer the next buy to
         # TEST_ANIMAL_2 instead.
-        farm = self._farm([[None]], money=10000)
+        farm = self._farm({}, money=10000)
         private = {"shed": {TEST_ANIMAL: 1}, "inventories": [{}]}
-        actions = decide_animal_market_actions(farm, private, 1, day=0)
+        actions = decide_animal_market_actions(farm, private, self.BOARD_SIZE, day=0)
         self.assertIn(["BUY_ANIMAL", TEST_ANIMAL_2, 1], actions)
         self.assertNotIn(["BUY_ANIMAL", TEST_ANIMAL, 1], actions)
 
     def test_does_not_buy_past_the_cap(self):
-        tiles = [[_unfed_goose_coop() for _ in range(MAX_ANIMALS)]]
-        farm = self._farm(tiles, money=10000)
+        # MAX_ANIMALS_ON_HOME_LAND (3) worth of filled structures on NW -
+        # the home-quadrant ceiling, not MAX_ANIMALS itself, is what a farm
+        # with no extra land is actually bounded by.
+        overrides = {(i, 0): _unfed_goose_coop() for i in range(MAX_ANIMALS_ON_HOME_LAND)}
+        farm = self._farm(overrides, money=10000)
         private = {"shed": {}, "inventories": [{}]}
-        actions = decide_animal_market_actions(farm, private, 1, day=0)
+        actions = decide_animal_market_actions(farm, private, self.BOARD_SIZE, day=0)
         self.assertNotIn(["BUY_ANIMAL", TEST_ANIMAL, 1], actions)
 
     def test_does_not_buy_a_species_that_cannot_mature_before_season_end(self):
-        farm = self._farm([[None]], money=1000)
+        farm = self._farm({}, money=1000)
         private = {"shed": {}, "inventories": [{}]}
-        actions = decide_animal_market_actions(farm, private, 1, day=SEASON_DAYS - 2)
+        actions = decide_animal_market_actions(farm, private, self.BOARD_SIZE, day=SEASON_DAYS - 2)
         self.assertNotIn(["BUY_ANIMAL", TEST_ANIMAL, 1], actions)
 
     def test_buys_wheat_when_reserve_is_empty_and_an_animal_is_placed(self):
-        farm = self._farm([[_unfed_goose_coop()]], money=1000)
+        farm = self._farm({(0, 0): _unfed_goose_coop()}, money=1000)
         private = {"shed": {}, "inventories": [{}]}
-        actions = decide_animal_market_actions(farm, private, 1, day=0)
+        actions = decide_animal_market_actions(farm, private, self.BOARD_SIZE, day=0)
         self.assertIn(["BUY_PRODUCT", "WHEAT", 1], actions)
 
     def test_does_not_buy_wheat_when_no_animal_is_placed_yet(self):
         # Nothing needs feeding yet - no reason to stockpile wheat for it.
-        farm = self._farm([[None]], money=1000)
+        farm = self._farm({}, money=1000)
         private = {"shed": {}, "inventories": [{}]}
-        actions = decide_animal_market_actions(farm, private, 1, day=0)
+        actions = decide_animal_market_actions(farm, private, self.BOARD_SIZE, day=0)
         self.assertNotIn(["BUY_PRODUCT", "WHEAT", 1], actions)
 
     def test_never_offers_a_purchase_within_the_cash_reserve_floor(self):
         cost = min(ANIMALS[a]["cost"] for a in ACTIVE_ANIMALS)
         self.assertGreater(MIN_CASH_RESERVE_FOR_ANIMAL_BUYING, cost)
-        farm = self._farm([[None]], money=cost * 2)  # spend-cap boundary
+        farm = self._farm({}, money=cost * 2)  # spend-cap boundary
         private = {"shed": {}, "inventories": [{}]}
-        actions = decide_animal_market_actions(farm, private, 1, day=0)
+        actions = decide_animal_market_actions(farm, private, self.BOARD_SIZE, day=0)
         self.assertFalse([a for a in actions if a[0] == "BUY_ANIMAL"])
 
 

@@ -777,7 +777,7 @@ ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a i
 # the extra structure - see MAX_ANIMALS_ON_HOME_LAND and the home-quadrant
 # gate in choose_animal_to_build.
 MAX_ANIMALS_ON_HOME_LAND = 3
-MAX_ANIMALS = 4
+MAX_ANIMALS = 5
 
 # Never buy an animal that eats more than this fraction of current cash in
 # one shot - same reasoning as SEED_SPEND_CAP_FRACTION.
@@ -1370,6 +1370,65 @@ def choose_animal_to_build(farm, private, board_size, day, pending_builds=0, ux=
     )
 
 
+def available_placement_capacity(farm, board_size):
+    """
+    How many ACTIVE_ANIMALS structures current land ownership can actually
+    support right now - a live, per-quadrant scan, not a flat headcount.
+
+    BUILD_PASTURE/BUILD_COOP (kaggriculture.py:493-503) only succeed on a
+    tile that is exactly `None`; PLACE (kaggriculture.py:377-392) only
+    succeeds on an already-built, unfilled structure. So a quadrant's real
+    capacity is its existing structures (filled + unfilled, from
+    scan_animal_structures) plus its currently-`None` (buildable) tile
+    count - recomputed every call, so it shrinks turn by turn as crops
+    claim ground, the same contention choose_animal_to_build already
+    respects for the home quadrant.
+
+    The home ("NW") quadrant keeps the MAX_ANIMALS_ON_HOME_LAND ceiling
+    exactly as choose_animal_to_build enforces it. Every other,
+    separately-purchased quadrant has no such per-quadrant cap (matching
+    choose_animal_to_build's own rule) - its contribution is simply
+    (existing structures + currently-None tiles) there, live. A quadrant
+    not yet in farm["unlocked_quadrants"] contributes nothing.
+
+    An earlier version of this function returned a flat MAX_ANIMALS the
+    instant a second quadrant was purchased, without checking whether
+    anything on it was actually buildable yet - the same class of bug this
+    function exists to close, just relocated from day 0 (before any land
+    is owned) to whenever BUY_LAND lands instead of eliminating it.
+    """
+    tiles = farm.get("tiles") or []
+    unlocked_quadrants = set(farm.get("unlocked_quadrants") or ["NW"])
+
+    structures_by_quadrant = {}
+    buildable_by_quadrant = {}
+
+    for y in range(board_size):
+        row = tiles[y] if y < len(tiles) else []
+        for x in range(board_size):
+            tile = row[x] if x < len(row) else None
+            q = tile_quadrant(x, y, board_size)
+            if q not in unlocked_quadrants:
+                continue
+            if isinstance(tile, dict) and tile.get("kind") in ANIMAL_STRUCTURE_KINDS:
+                structures_by_quadrant[q] = structures_by_quadrant.get(q, 0) + 1
+            elif tile is None:
+                buildable_by_quadrant[q] = buildable_by_quadrant.get(q, 0) + 1
+
+    home_structures = structures_by_quadrant.get("NW", 0)
+    home_buildable = buildable_by_quadrant.get("NW", 0)
+    home_capacity = min(MAX_ANIMALS_ON_HOME_LAND, home_structures + home_buildable)
+    home_capacity = max(home_capacity, home_structures)  # never under-report what's already built
+
+    extra_capacity = 0
+    for q in unlocked_quadrants:
+        if q == "NW":
+            continue
+        extra_capacity += structures_by_quadrant.get(q, 0) + buildable_by_quadrant.get(q, 0)
+
+    return home_capacity + extra_capacity
+
+
 def decide_animal_market_actions(farm, private, board_size, day):
     """
     Build the list of BUY_ANIMAL / feed-safety-net BUY_PRODUCT orders for
@@ -1379,7 +1438,9 @@ def decide_animal_market_actions(farm, private, board_size, day):
     money = farm.get("money", 0)
     remaining_days = remaining_season_days(day)
 
-    if count_owned_animals(farm, private, board_size) < MAX_ANIMALS:
+    owned = count_owned_animals(farm, private, board_size)
+    ceiling = min(MAX_ANIMALS, available_placement_capacity(farm, board_size))
+    if owned < ceiling:
         held = species_owned_counts(farm, private, board_size)
         affordable = []
         for animal in ACTIVE_ANIMALS:
