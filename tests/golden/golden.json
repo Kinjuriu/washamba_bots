@@ -1,0 +1,6 @@
+{"opponent": "pass", "seed": 0, "bank": 70256.0, "status": "DONE", "elapsed_s": null, "per_turn_ms": null, "sells": 173, "market_orders": 716, "water": 57, "fertilizer": 6, "harvest": 29, "escapes": 0}
+{"opponent": "pass", "seed": 1, "bank": 86876.0, "status": "DONE", "elapsed_s": null, "per_turn_ms": null, "sells": 188, "market_orders": 761, "water": 82, "fertilizer": 13, "harvest": 45, "escapes": 0}
+{"opponent": "pass", "seed": 2, "bank": 75117.0, "status": "DONE", "elapsed_s": null, "per_turn_ms": null, "sells": 189, "market_orders": 753, "water": 75, "fertilizer": 9, "harvest": 36, "escapes": 0}
+{"opponent": "starter", "seed": 0, "bank": 71498.0, "status": "DONE", "elapsed_s": null, "per_turn_ms": null, "sells": 173, "market_orders": 716, "water": 57, "fertilizer": 6, "harvest": 29, "escapes": 0}
+{"opponent": "starter", "seed": 1, "bank": 78294.0, "status": "DONE", "elapsed_s": null, "per_turn_ms": null, "sells": 188, "market_orders": 758, "water": 70, "fertilizer": 8, "harvest": 34, "escapes": 0}
+{"opponent": "starter", "seed": 2, "bank": 65239.0, "status": "DONE", "elapsed_s": null, "per_turn_ms": null, "sells": 167, "market_orders": 719, "water": 63, "fertilizer": 5, "harvest": 34, "escapes": 0}

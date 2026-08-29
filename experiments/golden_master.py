@@ -122,49 +122,40 @@ def _collect_actions(env):
 
 
 def _measure_latency(agent_path, opponent, seed, *, n_warmup=2, n_measured=5):
-    """Measure per-turn latency (ms) for an episode. Returns (p50, p99)."""
-    latencies = []
+    """Measure per-turn latency (ms) for an episode. Returns (p50, p99).
 
-    def _one_timed_episode():
-        turn_times = []
+    We time the *whole* episode and divide by 720 turns for an average
+    per-turn latency, then repeat ``n_measured`` times and take the
+    median of per-turn averages (p50) and the 99th percentile across
+    those averages (p99).
+
+    The actTimeout is enforced by the engine per turn, so the per-turn
+    average is the relevant signal: any one turn may be slower, but a
+    sustained over-budget will show up as average > 1.0s. We do *not*
+    instrument the agent internals because the whole-episode wall-clock
+    is the conservative, simpler estimator.
+    """
+    import statistics
+
+    per_episode = []
+    for trial in range(n_warmup + n_measured):
         env = make(
             "kaggriculture",
             configuration={"episodeSteps": 720, "seed": seed},
             debug=False,
         )
-        steps = env.steps
+        t0 = time.perf_counter()
+        env.run([agent_path, opponent])
+        elapsed = time.perf_counter() - t0
+        per_turn_ms = (elapsed / 720.0) * 1000.0
+        if trial >= n_warmup:
+            per_episode.append(per_turn_ms)
 
-        # Time every turn where both sides provided actions.
-        # We inject timing around the agent call by reading obs and calling the agent.
-        for i, step in enumerate(steps):
-            if i == 0:
-                continue  # initial obs, no action taken yet
-            obs = step[0].observation
-            config = step[0].configuration
-            # Get agent's action for this turn
-            action_dict = step[0].action
-            if not action_dict:
-                continue
-            # Estimate per-turn overhead by re-running the agent on the same obs
-            # and timing it.  This is approximate (no caching) but stable.
-            t0 = time.perf_counter()
-            # We can't easily re-run the agent directly from here without
-            # exec, so instead we use the engine's own action-processing time
-            # as a proxy (the engine logs step processing time internally).
-            # For now, just report the engine step interval as a heuristic.
-            t1 = time.perf_counter()
-            # Fallback: no precise per-turn timing without engine hooks.
-            # Record engine-reported step time if available.
-            pass
-
-        # Return a dummy if we couldn't measure
-        return 0.0
-
-    # Actually, we can't reliably measure per-turn latency from outside the
-    # engine without instrumenting it. Instead, run a dedicated timing harness.
-    # For now, return (0.0, 0.0) and print a note that the engine's own
-    # timing hooks would be needed.
-    return (0.0, 0.0)
+    p50 = statistics.median(per_episode)
+    sorted_p = sorted(per_episode)
+    idx_p99 = max(0, int(round(0.99 * (len(sorted_p) - 1))))
+    p99 = sorted_p[idx_p99]
+    return (p50, p99)
 
 
 def _timed_episode_latency(agent_path, opponent, seed):
@@ -297,9 +288,8 @@ def main():
         if args.time:
             print("\n=== Latency measurement ===")
             opp, seed = args.opponents[0], args.seeds[0]
-            elapsed, status, bank = _timed_episode_latency(args.agent, opp, seed)
-            print(f"  {opp} seed={seed}: {elapsed:.2f}s total  "
-                  f"({elapsed/720*1000:.2f}ms/turn)  status={status}  bank={bank:.0f}")
+            p50, p99 = _measure_latency(args.agent, opp, seed)
+            print(f"  {opp} seed={seed}: p50={p50:.1f}ms/turn  p99={p99:.1f}ms/turn")
     else:
         records = [run_episode(args.agent, opp, seed, measure_time=args.time)
                   for opp, seed in opponent_seed_pairs]
@@ -318,13 +308,12 @@ def main():
         if args.time:
             print("\n=== Latency ===")
             opp, seed = args.opponents[0], args.seeds[0]
-            elapsed, status, bank = _timed_episode_latency(args.agent, opp, seed)
-            print(f"  {opp} seed={seed}: {elapsed:.2f}s total  "
-                  f"({elapsed/720*1000:.2f}ms/turn)  status={status}  bank={bank:.0f}")
-            if elapsed / 720 > 1.0:
-                print("  WARNING: per-turn average exceeds 1s actTimeout!")
-            elif elapsed / 720 > 0.5:
-                print("  NOTE: per-turn average > 500ms — tight on the 1s limit.")
+            p50, p99 = _measure_latency(args.agent, opp, seed)
+            print(f"  {opp} seed={seed}: p50={p50:.1f}ms/turn  p99={p99:.1f}ms/turn")
+            if p99 > 1000.0:
+                print("  WARNING: p99 exceeds 1s actTimeout!")
+            elif p50 > 500.0:
+                print("  NOTE: p50 > 500ms — tight on the 1s limit.")
 
         print("\n=== Current records ===")
         for r in records:
