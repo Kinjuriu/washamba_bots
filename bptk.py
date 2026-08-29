@@ -171,6 +171,29 @@ PATH_C_GATE_FERT_SELL = True
 # fertilize-elevation trigger ("After >=3 animals on tiles"); pulled out as
 # its own named constant here rather than left as a bare literal.
 PATH_C_FERT_ELEVATE_MIN_ANIMALS = 3
+# Fix pass (mydocs/Path C System Dynamics Diagnosis.md), off by default so the
+# broken core-C control stays byte-reproducible; ladder arms turn these on.
+# PIN_WHEAT_VALVE: fix #1 - the STRAW pin only fires while shed+carried WHEAT
+#   >= MIN_WHEAT_RESERVE_FOR_FEEDING * (owned_animals + 1); below that it falls
+#   through to normal choose_crop, which can pick WHEAT on its own glut-aware
+#   terms. Restores the pin's missing connector to the feed subsystem.
+# SCALE_WHEAT_BUFFER: fix #2 - replaces the toothless "wheat_stock > 0" scale
+#   check. None = the original broken check (control); a number N requires
+#   stock >= MIN_WHEAT_RESERVE_FOR_FEEDING * N before the cap may jump to
+#   scale_max; "owned" keys the same requirement to owned+1 instead of
+#   scale_max - the F8 guard, since 2*10=20 may be unreachable while the valve
+#   sawtooths around 2*(owned+1)=8 and the herd would stick at the beach-head.
+PATH_C_PIN_WHEAT_VALVE = False
+PATH_C_SCALE_WHEAT_BUFFER = None  # None | number | "owned"
+# Composite arm (2026-08-26, user-designed sequence - never before run as ONE
+# arm): phase-0 filler policy, force WHEAT plantings while day <= end_day and
+# live WHEAT tiles are under `tiles`. Bounded twice over - by tile count and by
+# day window - unlike the recorded F7 unbounded force-wheat flood (200+
+# WHEAT plantings); it releases before STRAWBERRY's planting window opens, so
+# filler phase and carpet phase never overlap. Default 0 = off, keeping every
+# pre-existing arm byte-reproducible.
+PATH_C_WHEAT_FRONTLOAD_TILES = 0
+PATH_C_WHEAT_FRONTLOAD_END_DAY = 4
 
 
 @contextlib.contextmanager
@@ -740,7 +763,10 @@ class EconomyModel:
     def _end_of_day(self):
         farm, private = self.farm, self.private
         _daily_refresh_plants(farm, self.day, TURNS_PER_DAY)
+        filled_before, _ = agent_main.scan_animal_structures(farm, BOARD_SIZE)
         _daily_refresh_animals(farm, self.day)
+        filled_after, _ = agent_main.scan_animal_structures(farm, BOARD_SIZE)
+        # Animals never leave voluntarily, so any drop across the nightly
         _spawn_weeds(farm, BOARD_SIZE, WEED_SPAWN_CHANCE, self.rng)
         _drop_inventories_to_shed(private, SHED_CAPACITY)
         farm["farmer"] = list(HOME_SPAWN)
@@ -756,6 +782,7 @@ class EconomyModel:
 
     def _record_daily_snapshot(self):
         farm = self.farm
+        filled_animals, _ = agent_main.scan_animal_structures(farm, BOARD_SIZE)
         kinds = collections.Counter()
         for row in farm["tiles"]:
             for tile in row:
@@ -777,6 +804,7 @@ class EconomyModel:
                 "market_inventory": dict(self.market["inventory"]),
                 "market_prices": dict(self.market["prices"]),
                 "tiles": dict(kinds),
+                "animals": filled_animals,
                 "unlocked_shops": len(self.town["unlocked_shops"]),
             }
         )
@@ -1452,6 +1480,10 @@ def _path_c_defaults():
         "melon_pause_day": PATH_C_MELON_PAUSE_DAY,
         "gate_fert_sell": PATH_C_GATE_FERT_SELL,
         "fert_elevate_min_animals": PATH_C_FERT_ELEVATE_MIN_ANIMALS,
+        # Fix-pass keys (mydocs/Path C System Dynamics Diagnosis.md); defaults
+        # off/None so run_path_c() with no overrides is still the broken core.
+        "pin_wheat_valve": PATH_C_PIN_WHEAT_VALVE,
+        "scale_wheat_buffer": PATH_C_SCALE_WHEAT_BUFFER,
     }
 
 
@@ -1461,6 +1493,15 @@ def _path_c_straw_tile_count(farm):
         for row in farm["tiles"]
         for tile in row
         if isinstance(tile, dict) and tile.get("kind") == "PLANT" and tile.get("crop") == "STRAWBERRY"
+    )
+
+
+def _path_c_wheat_tile_count(farm):
+    return sum(
+        1
+        for row in farm["tiles"]
+        for tile in row
+        if isinstance(tile, dict) and tile.get("kind") == "PLANT" and tile.get("crop") == "WHEAT"
     )
 
 
@@ -1474,31 +1515,53 @@ def _path_c_wheat_stock(private):
     return shed_wheat + carried
 
 
+def _path_c_wheat_buffer_met(private, owned, cfg):
+    """The scale-unlock's wheat safety check. With `scale_wheat_buffer=None`
+    this is PATH_C_CORE.md's original "wheat_stock > 0" - which the real-engine
+    trace showed is nearly always true, i.e. toothless (mydocs/Path C System
+    Dynamics Diagnosis.md, culprit #2). A number N instead requires stock >=
+    MIN_WHEAT_RESERVE_FOR_FEEDING * N; "owned" keys it to owned+1 so growing
+    the herd by one animal always leaves one reserve-worth of buffer behind.
+    """
+    req = cfg.get("scale_wheat_buffer")
+    stock = _path_c_wheat_stock(private)
+    if req is None:
+        return stock > 0
+    if req == "owned":
+        req = owned + 1
+    return stock >= agent_main.MIN_WHEAT_RESERVE_FOR_FEEDING * req
+
+
 def _path_c_animal_cap(farm, private, day, cfg):
     """PATH_C_CORE.md's "Animal sequencing": up to `early_animals` while
     day <= early_day_limit; frozen at whatever's already owned (pause) until
     the STRAW carpet reaches `scale_straw_done` tiles or day reaches
-    `scale_day`; then a ceiling of `scale_max` - unless there is no wheat
-    buffer at all, in which case the freeze holds regardless (the doc's
-    "soft safety: do not scale while wheat_stock <= 0").
+    `scale_day`; then a ceiling of `scale_max` - unless the wheat-buffer gate
+    (`_path_c_wheat_buffer_met`) fails, in which case the freeze holds.
     """
     owned = agent_main.count_owned_animals(farm, private, BOARD_SIZE)
     straw_tiles = _path_c_straw_tile_count(farm)
     scale_unlocked = straw_tiles >= cfg["scale_straw_done"] or day >= cfg["scale_day"]
-    if scale_unlocked and _path_c_wheat_stock(private) > 0:
+    if scale_unlocked and _path_c_wheat_buffer_met(private, owned, cfg):
         return cfg["scale_max"]
     if day <= cfg["early_day_limit"]:
         return max(cfg["early_animals"], owned)
     return owned  # pause: freeze, no further buys/builds until scale unlocks
 
 
-def _path_c_straw_pin_active(farm, day, cfg):
+def _path_c_straw_pin_active(farm, private, day, cfg):
     """PATH_C_CORE.md's crop policy #1: "while in STRAW window and
     straw_tiles < 50, always prefer STRAWBERRY (inviolable)". The window's
     start day is read from main.py's own CROP_PLANTING_WINDOWS (its real
     STRAWBERRY start), extended through cfg['straw_window_end'] rather than
     CROP_PLANTING_WINDOWS's own (shorter) end - matching PATH_C_STRAW_WINDOW_END's
     documented role ("Pin active through" 14, vs. the base window's 12).
+
+    Fix #1 (mydocs/Path C System Dynamics Diagnosis.md): with pin_wheat_valve,
+    the pin additionally yields while shed+carried WHEAT is under
+    MIN_WHEAT_RESERVE_FOR_FEEDING * (owned+1), letting choose_crop plant WHEAT
+    on its own terms - the connector the original pin lacked (it starved the
+    herd's only organic food source for the whole window).
     """
     window = agent_main.CROP_PLANTING_WINDOWS.get("STRAWBERRY")
     if window is None:
@@ -1506,6 +1569,11 @@ def _path_c_straw_pin_active(farm, day, cfg):
     window_start = window[0]
     if not (window_start <= day <= cfg["straw_window_end"]):
         return False
+    if cfg.get("pin_wheat_valve"):
+        owned = agent_main.count_owned_animals(farm, private, BOARD_SIZE)
+        stock = _path_c_wheat_stock(private)
+        if stock < agent_main.MIN_WHEAT_RESERVE_FOR_FEEDING * (owned + 1):
+            return False
     return _path_c_straw_tile_count(farm) < cfg["straw_cap"]
 
 
@@ -1577,7 +1645,7 @@ def path_c_overrides(**cfg_overrides):
         farm, market_state, private, day, unlocked_shops=(), start_step=None,
         opponent_pipeline=None, require_held_seed=False,
     ):
-        if not require_held_seed and _path_c_straw_pin_active(farm, day, cfg):
+        if not require_held_seed and _path_c_straw_pin_active(farm, private, day, cfg):
             return "STRAWBERRY"
         return original_crop(
             farm, market_state, private, day, unlocked_shops, start_step,
@@ -1634,6 +1702,36 @@ def run_path_c(seeds=range(12), days=SEASON_DAYS, **cfg_overrides):
     ]
 
 
+def _episode_mechanism_stats(result):
+    """Mechanism-gate counters for the Path C fix pass (mydocs/Path C System
+    Dynamics Diagnosis.md). Read these BEFORE any bank number: the diagnosis's
+    claim is about the wheat/feed mechanism, so the fix is only credible if
+
+    - ``escapes`` goes to ~0 (real engine showed 17-20 per 12 episodes),
+    - shed WHEAT leaves the MIN_WHEAT_RESERVE_FOR_FEEDING=2 floor mid-season,
+    - peak STRAW tiles shows whether the straw>=scale_straw_done unlock branch
+      is reachable at all (it never fired in the traced seeds; peak was 49),
+    - final filled animals stays above the beach-head of 3 (an F8-stuck herd -
+      herd frozen at beach-head because a hard buffer never accumulates - is
+      the fix failing in the opposite direction).
+    """
+    log = result.get("daily_log") or []
+    shed = [d.get("shed", {}).get("WHEAT", 0) for d in log if 15 <= d["day"] <= 25]
+    animals = [d.get("animals", 0) for d in log]
+    return {
+        "buy_product_wheat": result["counters"].get("BUY_PRODUCT_WHEAT", 0),
+        "shed_wheat_d15_25_mean": (sum(shed) / len(shed)) if shed else None,
+        "shed_wheat_d15_25_min": min(shed) if shed else None,
+        "straw_tiles_peak": max(
+            (d.get("tiles", {}).get("PLANT:STRAWBERRY", 0) for d in log), default=0
+        ),
+        "animals_final": animals[-1] if animals else 0,
+        "animals_min_post_day15": min((a for a, d in zip(animals, log) if d["day"] >= 15), default=0)
+        if log
+        else 0,
+    }
+
+
 def compare_path_c(seeds=range(12), days=SEASON_DAYS, verbose=True, **cfg_overrides):
     """Paired Path C vs Path A comparison, same seed both sides, win-count
     first per this repo's own standing rule (CLAUDE.md). bptk-only signal -
@@ -1649,6 +1747,8 @@ def compare_path_c(seeds=range(12), days=SEASON_DAYS, verbose=True, **cfg_overri
         candidate = run_episode(
             seed=seed, days=days, overrides=overrides, path_c=True, path_c_cfg=cfg
         )
+        base_mech = _episode_mechanism_stats(baseline)
+        cand_mech = _episode_mechanism_stats(candidate)
         base_money = baseline["final_money"]
         cand_money = candidate["final_money"]
         rows.append(
@@ -1669,21 +1769,42 @@ def compare_path_c(seeds=range(12), days=SEASON_DAYS, verbose=True, **cfg_overri
                 ),
                 "path_c_feed": candidate["counters"].get("FEED", 0),
                 "path_c_l2_turns": candidate["counters"].get("path_c_l2_active_turns", 0),
+                **{f"path_a_{k}": v for k, v in base_mech.items()},
+                **{f"path_c_{k}": v for k, v in cand_mech.items()},
             }
         )
     deltas = [r["delta"] for r in rows]
     wins = sum(1 for d in deltas if d > 0)
     mean_delta = sum(deltas) / len(deltas) if deltas else 0.0
     if verbose:
+        n = max(len(rows), 1)
+
+        def _avg(key):
+            vals = [r[key] for r in rows if r.get(key) is not None]
+            return sum(vals) / len(vals) if vals else float("nan")
+
         print(f"Path C vs Path A, {len(rows)} seeds")
         for r in rows:
             print(
                 f"  seed {r['seed']:>2}: path_a={r['path_a_money']:.0f}  "
                 f"path_c={r['path_c_money']:.0f}  delta={r['delta']:+.0f}  "
                 f"L2 turns={r['path_c_l2_turns']}  "
-                f"animals A/C={r['path_a_animals_bought']}/{r['path_c_animals_bought']}"
+                f"animals A/C={r['path_a_animals_bought']}/{r['path_c_animals_bought']}  "
+                f"escapes A/C={r['path_a_escapes']}/{r['path_c_escapes']}  "
+                f"final animals A/C={r['path_a_animals_final']}/{r['path_c_animals_final']}"
             )
         print(f"mean delta: {mean_delta:+.0f}  wins: {wins}/{len(rows)}")
+        print(
+            "mechanism (mean over seeds; read before bank): "
+            f"buy_product_wheat A/C={_avg('path_a_buy_product_wheat'):.1f}/"
+            f"{_avg('path_c_buy_product_wheat'):.1f}  "
+            f"shed_wheat d15-25 mean A/C={_avg('path_a_shed_wheat_d15_25_mean'):.1f}/"
+            f"{_avg('path_c_shed_wheat_d15_25_mean'):.1f}  "
+            f"min A/C={_avg('path_a_shed_wheat_d15_25_min'):.1f}/"
+            f"{_avg('path_c_shed_wheat_d15_25_min'):.1f}  "
+            f"straw peak(max) C={max(r['path_c_straw_tiles_peak'] for r in rows)}  "
+            f"animals min post-d15 C={min(r['path_c_animals_min_post_day15'] for r in rows)}"
+        )
     return {"rows": rows, "mean_delta": mean_delta, "wins": wins, "n": len(rows)}
 
 
@@ -1720,9 +1841,41 @@ def compare_path_c_ladder(seeds=range(6), days=SEASON_DAYS, verbose=True):
     no_fert_gate["gate_fert_sell"] = False
     arms["path_c_no_fert_gate"] = no_fert_gate
 
+    # Fix-pass arms (mydocs/Path C System Dynamics Diagnosis.md). One factor at
+    # a time from broken core, per the team agreement - except fixes #1+#2,
+    # which are one subsystem (the pin's missing wheat connector) and only
+    # make sense together: #2 alone gates scaling on a buffer nothing refills
+    # (the F8 hard-freeze failure mode), #1 alone leaves the toothless ">0"
+    # gate in place. Two #2 flavours because the diagnosis's max-keyed target
+    # (MIN_WHEAT_RESERVE * scale_max = 20) may be unreachable while the valve
+    # sawtooths around MIN_WHEAT_RESERVE * (owned+1) = 8 - the owned-keyed
+    # flavour is the F8 guard. straw42 / no_l2 ride on the owned base; if the
+    # max-keyed base ends up winning, re-run them via run_path_c(**overrides).
+    fix1 = _path_c_defaults()
+    fix1["pin_wheat_valve"] = True
+    arms["path_c_fix1_valve"] = fix1
+
+    fix12_max = dict(fix1)
+    fix12_max["scale_wheat_buffer"] = PATH_C_SCALE_MAX_ANIMALS
+    arms["path_c_fix12_buf_scalemax"] = fix12_max
+
+    fix12_owned = dict(fix1)
+    fix12_owned["scale_wheat_buffer"] = "owned"
+    arms["path_c_fix12_buf_owned"] = fix12_owned
+
+    fix123 = dict(fix12_owned)
+    fix123["scale_straw_done"] = 42  # traced straw-tile peak was 49 vs threshold 50
+    arms["path_c_fix123_straw42"] = fix123
+
+    fix123_no_l2 = dict(fix123)
+    fix123_no_l2["level2_crew"] = False  # fix #4 ablated separately, not bundled
+    arms["path_c_fix123_no_l2"] = fix123_no_l2
+
     results = collections.OrderedDict()
+    mechs = collections.OrderedDict()
     for name, cfg in arms.items():
         rows = []
+        arm_mechs = []
         for seed in seeds:
             if cfg is None:
                 report = run_episode(seed=seed, days=days)
@@ -1732,18 +1885,37 @@ def compare_path_c_ladder(seeds=range(6), days=SEASON_DAYS, verbose=True):
                     seed=seed, days=days, overrides=overrides, path_c=True, path_c_cfg=cfg
                 )
             rows.append(report["final_money"])
+            arm_mechs.append(_episode_mechanism_stats(report))
         results[name] = rows
+        mechs[name] = arm_mechs
 
     path_a_rows = results["path_a"]
     if verbose:
+
+        def _arm_mech_line(name):
+            m = mechs[name]
+            n = max(len(m), 1)
+            shed = [
+                x["shed_wheat_d15_25_mean"] for x in m if x["shed_wheat_d15_25_mean"] is not None
+            ]
+            return (
+                f"escapes={sum(x['escapes'] for x in m)}  "
+                f"buy_wheat/ep={sum(x['buy_product_wheat'] for x in m) / n:.0f}  "
+                f"shedW d15-25={sum(shed) / len(shed) if shed else float('nan'):.1f}  "
+                f"final_animals={sum(x['animals_final'] for x in m) / n:.1f}  "
+                f"F8-stuck seeds={sum(1 for x in m if x['animals_min_post_day15'] <= 3)}  "
+                f"straw_peak(max)={max(x['straw_tiles_peak'] for x in m)}"
+            )
+
         print(f"Path C ablation ladder, {len(seeds)} seeds")
         for name, rows in results.items():
             mean = sum(rows) / len(rows)
             if name == "path_a":
-                print(f"  {name:<24} mean={mean:>9.0f}")
+                print(f"  {name:<26} mean={mean:>9.0f}")
             else:
                 wins = sum(1 for a, b in zip(rows, path_a_rows) if a > b)
-                print(f"  {name:<24} mean={mean:>9.0f}  wins vs path_a: {wins}/{len(seeds)}")
+                print(f"  {name:<26} mean={mean:>9.0f}  wins vs path_a: {wins}/{len(seeds)}")
+            print(f"    {_arm_mech_line(name)}")
     return results
 
 
