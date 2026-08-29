@@ -7,7 +7,36 @@ ladder result stays reproducible after the session that produced it is gone.
 Everything here is public, Apache-2.0-licensed third-party work plus a stated
 change of ours. Nothing private and nothing another competitor shared with us.
 
-## `route_v20.py` - the route upgrade, and the current best base
+## `route_moon_deficit_fix.py` - the current best base
+
+One step further than `route_moon_tuned.py`: a third constant,
+`_V88_MIN_POST_SUPPLY_DEFICIT` 300 -> 0. That floor was silently blocking
+every real case where the late-game STRAWBERRY->TOMATO replant logic
+(`_v65_decision`) cleared its legitimate cost gate, because the code always
+evaluates at the NPV-optimal quantity with no fallback to a smaller one.
+
+**87.5% win rate (21/24) on the 24% of seeds the fix can ever affect, zero
+risk on the rest by construction - but not loss-free.** Two of twelve
+affected seeds are real, reproducible losses with no single-lever fix found
+yet. See the file's own header for the full measurement and
+`docs/V20_ANATOMY.md`'s 2026-08-29 entries for the diagnostic trail,
+including the two dead-end sweeps (`_V17_FEED_GUARD`, three `_preempt_shift`
+constants) that came before this finding.
+
+## `route_moon_tuned.py` - the previous base
+
+boatlee's v20 lineage continues in prvsiyan's ["Kaggriculture Frontier | The
+Moon Counts Melons"][moon] (Apache 2.0, licence verified 2026-08-23), decoded
+the same way as `route_v20.py` below. Beats v20 +730 at 14/16 unmodified, and
+two constants tuned on top (`_ADAPT_MIN_EVIDENCE` 2.0->1.0,
+`_PREEMPT_MAX_BATCH` 12->24): **+196 mean, 19/24 wins** over the stock route.
+See the file's own header for the full sweep table - the finding was that
+three other knobs on the same mechanism measured *exactly* the unmodified
+control, meaning they sit downstream of the one gate that was actually shut.
+
+[moon]: https://www.kaggle.com/code/prvsiyan/kaggriculture-frontier-the-moon-counts-melons
+
+## `route_v20.py` - two generations back
 
 boatlee's [V20-Adaptive-R1 multi-route agent][v20], **Apache 2.0** (licence read
 off the notebook page 2026-08-23), decoded from its base85+zlib payload and
