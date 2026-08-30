@@ -1,14 +1,23 @@
-# Washamba Bots
+<h1 align="center">Washamba Bots</h1>
 
-An autonomous decision-making agent for a two-player, turn-based resource-management simulation, built and evaluated with a strict emphasis on proving a change actually helps before trusting it.
-
-<p>
-  <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img alt="NumPy" src="https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white" />
-  <img alt="Pandas" src="https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" />
-  <img alt="Jupyter" src="https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white" />
-  <img alt="unittest" src="https://img.shields.io/badge/Testing-unittest-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+<p align="left">
+  An autonomous decision-making agent for a two-player, turn-based
+  resource-management simulation,<br/>
+  built and evaluated with a strict emphasis on proving a change actually helps
+  before trusting it.
 </p>
+
+<p align="left">
+  <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img alt="pandas" src="https://img.shields.io/badge/pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" />
+  <img alt="NumPy" src="https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white" />
+  <img alt="Matplotlib" src="https://img.shields.io/badge/Matplotlib-11557C?style=for-the-badge&logo=matplotlib&logoColor=white" />
+  <img alt="SciPy" src="https://img.shields.io/badge/SciPy-8CAAE6?style=for-the-badge&logo=scipy&logoColor=white" />
+  <img alt="Jupyter" src="https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white" />
+  <img alt="License: CC BY 4.0" src="https://img.shields.io/badge/License-CC%20BY%204.0-EF9421?style=for-the-badge" />
+</p>
+
+---
 
 ## Table of Contents
 
@@ -30,6 +39,8 @@ An autonomous decision-making agent for a two-player, turn-based resource-manage
 - [License](#license)
 - [Contact](#contact)
 - [Acknowledgments](#acknowledgments)
+
+<img width="1430" height="736" alt="washamba_bots" src="https://github.com/user-attachments/assets/550d87af-a8ae-482b-bd0c-81079960065f" />
 
 ## About the Project
 
@@ -66,32 +77,7 @@ Evaluation discipline is the prerequisite for the "real" agent work, and it matt
 
 ## Tech Stack
 
-**Core language**
-
-<p>
-  <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-</p>
-
-**Data / numerical computing**
-
-<p>
-  <img alt="NumPy" src="https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white" />
-  <img alt="Pandas" src="https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" />
-</p>
-
-**Analysis / visualization**
-
-<p>
-  <img alt="Matplotlib" src="https://img.shields.io/badge/Matplotlib-11557C?style=for-the-badge&logo=matplotlib&logoColor=white" />
-  <img alt="Seaborn" src="https://img.shields.io/badge/Seaborn-4C72B0?style=for-the-badge" />
-  <img alt="Jupyter" src="https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white" />
-</p>
-
-**Testing**
-
-<p>
-  <img alt="unittest" src="https://img.shields.io/badge/Testing-unittest-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-</p>
+Python 3.12 throughout. The shipped agent's decision logic depends only on the Python standard library and the competition's simulation engine (named in [CONTRIBUTING.md](CONTRIBUTING.md)), so the agent is a single self-contained file with no heavy runtime dependencies and nothing to look up mid-match. The analysis and evaluation side uses **pandas**, **NumPy**, **SciPy**, **Matplotlib** and **Seaborn** inside **Jupyter** notebooks for exploring and visualizing match results, and Python's built-in **unittest** for the agent's unit tests.
 
 ## Features
 
@@ -99,9 +85,9 @@ Since this is a single autonomous agent rather than a service with a frontend an
 
 - **A four-stage decision pipeline** — state manager → strategy → planner → executor — that turns each raw observation into exactly one legal action every turn. See [Project Structure](#project-structure) for the diagram.
 - **A layered evaluation harness**, purpose-built because single-run scores are not trustworthy here: paired comparison (same conditions, two versions, compare the difference), self-play (the agent against itself, the number that best predicts a live match), and seeded batch runs against a set of reference opponents.
+- **A round-robin ranking harness** that plays any set of candidate agents against each other, both seats, over many seeds, and ranks them by a match-accurate score (win, loss, or tie, margin ignored) so a candidate is judged locally before it ever costs a live submission.
 - **A frozen-checkpoint system**, so a new idea is always measured against a fixed, known-good baseline rather than against whatever is currently on the main branch.
 - **A documented negative-results log** — strategies that were tried, measured, and rejected are written down alongside *why*, so the same dead end isn't re-explored by intuition months later.
-- **An in-progress forward-pricing module**, developed and validated as a standalone piece before being wired into the agent's live decisions.
 - **A unit test suite** covering the agent's decision logic in isolation, independent of running a full match.
 - **A single-file, deployable agent** — the entire decision logic ships as one self-contained file with no external service dependencies at run time.
 
@@ -109,7 +95,7 @@ Since this is a single autonomous agent rather than a service with a frontend an
 
 ### Prerequisites
 
-- Python 3.13 or later
+- Python 3.12 (pinned in `.python-version`)
 - [`uv`](https://docs.astral.sh/uv/) for environment and dependency management — it also provisions the Python interpreter itself, so a separate Python install isn't required
 
 ### Installation
@@ -119,11 +105,11 @@ git clone https://github.com/Kinjuriu/washamba_bots.git
 cd washamba_bots
 
 # Creates an isolated environment and provisions the interpreter
-uv venv --python 3.13 .venv
+uv venv --python 3.12 .venv
 
 # Installs the numerical and analysis dependencies
 uv pip install --python .venv/bin/python \
-  numpy pandas matplotlib seaborn jupyterlab ipykernel
+  numpy pandas matplotlib seaborn scipy jupyterlab ipykernel
 ```
 
 Running the agent locally also requires the third-party simulation package used to execute matches. Its exact name, pinned version, and one-time account setup are covered in [CONTRIBUTING.md](CONTRIBUTING.md) rather than repeated here; the version matters, since the simulation's rules have changed mid-project and an older version silently simulates different rules.
@@ -144,6 +130,10 @@ Running the agent locally also requires the third-party simulation package used 
 # comparisons can't see a contested market at all
 .venv/bin/python experiments/head_to_head.py variant.py baseline.py
 
+# Round-robin rank a set of candidate agents against each other, both seats,
+# scored the way live matches are (win / loss / tie, margin ignored)
+.venv/bin/python experiments/rank_bases.py 12 agents/baseline.py candidate.py
+
 # The agent against itself, over several match seeds, the single local
 # number that best predicts how a change performs in a live match
 .venv/bin/python experiments/selfplay_bench.py
@@ -159,52 +149,36 @@ There is no `.env` file, and no secrets are stored anywhere in this repository. 
 
 ```text
 washamba_bots/
-├── main.py            # The agent itself — a single file, deployable as-is
-├── pricing.py          # A more accurate standalone pricing model (research; not yet wired into the agent)
-├── tests/              # Unit tests for the agent's decision logic, run in isolation
-├── experiments/         # Evaluation tooling: paired comparison, self-play, seeded batches, diagnostics
+├── main.py              # The deterministic agent — a single file, deployable as-is
+├── pricing.py           # A standalone pricing model (research; not wired into the agent)
+├── agents/              # Reference and candidate agents used as sparring opponents
+├── tests/               # Unit tests for the agent's decision logic, run in isolation
+├── experiments/         # Evaluation tooling: paired comparison, self-play,
+│                        #   round-robin ranking (rank_bases.py), reference-agent
+│                        #   reconstruction (decode_route.py), seeded batches, diagnostics
 ├── notebooks/           # Exploratory analysis and result visualization
 ├── docs/                # Architecture notes, frozen checkpoints, and internal reference material
 ├── CLAUDE.md            # Internal engineering notes: gotchas, decisions, and documented dead ends
-├── CONTRIBUTING.md       # How the team works, and the evaluation standard every change is held to
+├── CONTRIBUTING.md      # How the team works, and the evaluation standard every change is held to
 ├── ROADMAP.md           # Where the project has been and where it's headed
 └── LICENSE
 ```
 
 ### Decision pipeline
 
-```
-        OBSERVATION
-             │
-             ▼
-      ┌───────────────┐
-      │ STATE MANAGER │  turns the raw observation into a model of
-      └───────┬───────┘  the world: own resources, market, time left
-              │
-              ▼
-      ┌───────────────┐
-      │   STRATEGY    │  what should the agent be trying to
-      └───────┬───────┘  accomplish right now?
-              │
-              ▼
-      ┌───────────────┐
-      │    PLANNER    │  what is the efficient way to get there?
-      └───────┬───────┘
-              │
-              ▼
-      ┌───────────────┐
-      │   EXECUTOR    │  emit exactly one legal action
-      └───────┬───────┘
-              │
-              ▼
-           ACTION  ──────▶  back into the simulation, which
-                            returns the next OBSERVATION, and
-                            the cycle repeats
+```mermaid
+flowchart TD
+    O([Observation]) --> S[State manager<br/><i>raw observation into a world model:<br/>own resources, market, time left</i>]
+    S --> ST[Strategy<br/><i>what should the agent be trying<br/>to accomplish right now?</i>]
+    ST --> P[Planner<br/><i>the efficient way to get there</i>]
+    P --> E[Executor<br/><i>emit exactly one legal action</i>]
+    E --> A([Action])
+    A -->|the simulation returns the next observation,<br/>and the cycle repeats| O
 ```
 
 ## Roadmap
 
-- [x] **Deterministic agent** — a fully rule-based agent, plus the evaluation harness (paired comparison, self-play, frozen checkpoints, a documented negative-results log) needed to trust any claim made about it.
+- [x] **Deterministic agent** — a fully rule-based agent, plus the evaluation harness (paired comparison, self-play, round-robin ranking, frozen checkpoints, a documented negative-results log) needed to trust any claim made about it.
 - [ ] **Forward-pricing model** — a more accurate model of how trading a given quantity moves the market price, developed and validated as a standalone module before it's wired into the agent's live decisions.
 - [ ] **Learned agent** — a model trained on experience rather than hand-written rules, once the measurement process built above can be trusted to evaluate it fairly.
 
@@ -222,7 +196,7 @@ This is currently a closed, private team project and isn't open to outside contr
 
 ## License
 
-This repository's code is licensed under **CC BY 4.0** — see [LICENSE](LICENSE) for the full text. The third-party simulation environment and its game data are licensed separately by their own maintainers and are not covered by this repository's license.
+This repository's code is licensed under **CC BY 4.0** — see [LICENSE](LICENSE) for the full text. Some reference agents in `agents/` are reconstructed from third-party sources under their own upstream licenses (Apache 2.0), each credited in its own file header; those licenses cover that agent's code, not this repository. The third-party simulation environment and its game data are licensed separately by their own maintainers and are not covered by this repository's license.
 
 ## Contact
 
