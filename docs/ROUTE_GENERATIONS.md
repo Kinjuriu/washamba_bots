@@ -773,3 +773,48 @@ precisely the ones that died here.
 What this predicts: the next real gain on this base is **not** an overlay. It
 is either a newer public route, or a change to which tape is played - which
 is why the ladder record split by tape is the thing to read next.
+
+### The ladder record split by tape: no remap is justified yet
+
+All 119 completed episodes across `55891543` and `55891517`, each replay
+fetched and the tape read from its own `town.unlocked_shops` fed through the
+router's imported `route_index`:
+
+| tape | n | win rate | our bank | opp bank | margin | opp rating |
+|---|---|---|---|---|---|---|
+| 0 | 62 | 63% | 88,184 | 83,681 | +4,503 | 1,869 |
+| 1 | 18 | 72% | 90,941 | 80,419 | +10,522 | 1,726 |
+| 2 | 6 | **100%** | 96,825 | 84,018 | +12,807 | 2,101 |
+| 3 | 3 | 67% | 48,972 | 37,484 | +11,488 | 1,585 |
+| 4 | 9 | 78% | 93,008 | 85,414 | +7,593 | 1,957 |
+| 5 | 9 | 67% | 88,867 | 73,315 | +15,552 | 1,602 |
+| 6 | 6 | **33%** | 121,871 | 120,214 | +1,657 | 1,821 |
+| 7 | 2 | 1/2 | 100,524 | 99,322 | +1,203 | 2,402 |
+| 8 | 2 | 2/2 | 78,491 | 63,484 | +15,007 | 2,406 |
+| 9 | 2 | 1/2 | 129,886 | 109,340 | +20,546 | 1,265 |
+| **all** | **119** | **66%** | **90,908** | **83,584** | **+7,325** | **1,844** |
+
+By opponent rating band:
+
+| band | n | win rate | margin |
+|---|---|---|---|
+| 0-1500 | 20 | 100% | +34,883 |
+| 1500-1800 | 49 | **57%** | +2,104 |
+| 1800-2100 | 3 | 2/3 | -1,037 |
+| 2100+ | 47 | 62% | +1,575 |
+
+**No tape justifies a remap on this evidence.** Tape 2 is the standout (6/6)
+and tape 6 the weakest (2/6), but both sit at n=6, tape 6's losses are narrow
+(-112, -2,006, -2,645, -9,796) and two of its six draws were opponents rated
+2,378 and 2,404. That neither confirms the local forced sweep's 0/12 nor the
+later finding that tape 6 is fine under its own trigger - it sits between
+them, and n=6 cannot settle it. Tape 3, whose -46k local floor was the
+motivation for three remap sweeps, has been drawn **three times** on the
+ladder and collapsed on none of them.
+
+Two things worth carrying forward. **Tape 8 was drawn twice on the ladder and
+never once in a 120-seed local census** - the local shop-unlock distribution
+against one opponent is not the field's. And the weakest band is
+**1500-1800 at 57%**, not the top: against 2100+ we win 62%. The old agent's
+problem band was 1700-1900 and this one's is similar, so the mid-field is
+still where the margin is thinnest even after a +600 rating move.
