@@ -599,3 +599,40 @@ a repair of what the script intended, the safe overlay class per the price
 gate note above. Everything else on this base today was either dead or
 underpowered, so per the rule set before the sweep ran, tuning stops here and
 the unmodified router is the submission.
+
+### The ladder answer: 1,850 -> 2,472, rank 689 -> 59
+
+`55891543` (`router_yhay.py`, unmodified) after 34 episodes on the evening of
+2026-08-30:
+
+| | previous best (`55809595`) | **router `55891543`** | same-day `55891517` |
+|---|---|---|---|
+| episodes | 89 | 34 | 32 |
+| wins | 45/89 (51%) | **29/34 (85%)** | 22/32 |
+| rating | 1,850.3 | **2,472.2** | 1,623.8 |
+| our bank | 93,219 | **98,155** | 94,887 |
+| opponent bank | 90,514 | **83,530** | 83,222 |
+| opponent rating | 1,737 | 1,832 (20/32 above 1700) | 1,412 (1/32) |
+
+Team score 2,459.1, **rank 59 of ~6,600** against 689 that morning. Best
+previous submission of the project was 1,914.5.
+
+**The bank relationship inverted, and that is the part that matters.** Every
+submission before this one banked *less* than its opponents - the pooled
+figure was 52,517 against 60,815, 16% behind. This one banks **17% ahead**,
+against a *harder* field than the one we were losing to. `PUBLIC_META.md`
+recorded that we won 36% in the 1700-1900 band; the router wins 85% against a
+field averaging 1,832.
+
+`55891517`'s 1,623.8 is **not** a comparable reading and is not evidence
+against the deficit port: matchmaking gave it opponents averaging 1,412 with
+one above 1700. Beating a 1,200 opponent barely moves a rating - the same
+trap recorded for `55650592` vs `55687852`.
+
+**Where the remaining gap is, stated precisely.** #1 is 3,040. The author of
+this route, Yusuke Hayashi, sits at **2,919.9** - roughly 460 above our copy
+of their own published agent, and they submitted again 33 minutes after we
+did. A published notebook is not a team's live build. So the gap to the top
+is not an unknown strategy; it is the delta between a public release and a
+private one, and closing it means tuning this base rather than hunting for
+another.
