@@ -636,3 +636,140 @@ did. A published notebook is not a team's live build. So the gap to the top
 is not an unknown strategy; it is the delta between a public release and a
 private one, and closing it means tuning this base rather than hunting for
 another.
+
+### Correction: the tape-3 "cash-starved sheep" does not reproduce
+
+The seed-0 diagnosis recorded above - a scripted `BUY_ANIMAL SHEEP` firing at
+$68 against a $500 price, silently rejected - **is wrong, and it was recorded
+here as measured fact.** Re-checked by instrumenting the real engine's
+`_commit_unit` rather than reading a trace: on seed 0, **26 of 26
+`BUY_ANIMAL` commits succeed** against `route_moon_md_floor_deficit` and there
+are zero rejections against indarkarhana. Real cash rejections do exist, but
+on **seed 43** (a COW at step 170, a SHEEP at step 198), not seed 0.
+
+So every remap measured against "tape 3 is cash-starved" was aimed at a
+failure that was not there. The remaps still lost on their own merits, but the
+reason given for running them was not established.
+
+**Seed 0's three empty pastures have a different cause: the tape buys 26
+animals and places 10.** Sixteen head, at $400-500 each, sit in the shed
+producing nothing. That is not a cash bug and not something an overlay caused
+- it is what the recorded schedule does in our episodes.
+
+A cash guard was built anyway and measured: defer an unaffordable
+`BUY_ANIMAL`/`BUY_LAND`, re-issue when affordable, and drive a
+walk/PICKUP/PLACE state machine to deliver it. Mirror **2/16**, paired vs
+indarkarhana **0/16** - and both numbers are noise, because the guard never
+fired on any of the 16 census matches. Where it did fire for real (seed 43, a
+$400 COW deferred six steps, re-issued, delivered and placed) the season
+ended **worse**: 59,756 against the stock tape's 70,407. Once again: on a
+recorded route, moving cash by $400 in week one re-rolls the remaining 700
+turns.
+
+Three implementation notes kept because each one would have shipped a
+disaster: simulating a whole order's cost instead of the engine's per-unit
+partial fills drives simulated money negative; a delivery state machine that
+waits for an empty pasture parks a unit on `PASS` for 40 turns (-58,000);
+and `market_price(item, inv, params)` indexes `params[item]` internally, so
+passing `MARKET_PARAMS[item]` raises inside a `try/except` and silently zeroes
+every simulated sale.
+
+Generalises, and it is the repo's own rule turned on itself: **a diagnosis is
+a measurement too.** This one was read off a trace and written up without
+instrumenting the engine call it claimed was failing, and three sweeps were
+scoped against it before anyone checked.
+
+### Correction 2, and the real fragility underneath it
+
+"The tape buys 26 animals and places 10" is **also wrong**, and wrong the same
+way the cash-starved sheep was: counted from an action stream instead of the
+engine. `PICKUP` moves several animals in one call (`["PICKUP","SHEEP",2]`)
+while `PLACE` moves exactly one, so counting calls invents a gap. Instrumented
+across 25 episodes, 9 of the 10 tapes and 3 opponents: **`BUY_ANIMAL` never
+fails**, `PLACE` never fails for want of a pasture, and the buy/place gap is
+**0 in 22 of 25 episodes**, 1-2 animals when it appears - about 1% of bank.
+
+Two bad diagnoses in one afternoon, both from reading an action stream. This
+repo already has the rule (`count what lands`) recorded twice, for `PLANT`
+and for `SELL`. It now applies to diagnosis as well as measurement.
+
+**What the instrumentation did find is real and larger.** `action_for_depth`
+ends with:
+
+    hands = list(action.get("hands") or [])
+    hands.extend([["PASS"] for _ in range(max(0, expected - len(hands)))])
+    action["hands"] = hands[:expected]
+
+`expected` is our **live** hand count. The tape blindly replays a `HIRE`
+order; our cash diverges from the recorded episode as soon as the opponent
+does, so that hire can fail silently - and then `hands[:expected]` deletes the
+tail of the recorded hand-action list for the rest of the day. On seed 0 that
+is **138 dropped unit-actions in one day**: WATER x22, NORTH x24, EAST x16,
+FEED x5, CARE x4, PICKUP x2, PLACE x2.
+
+`hire_fail > 0` predicts `truncation > 0` with **perfect correlation across
+all 25 episodes**, and the three episodes with any animal gap are exactly the
+three with the largest truncation counts. The same seed and tape truncates
+against `route_moon_md_floor_deficit` and in self-play but **not** against
+indarkarhana, so it is a narrow cash-timing effect, not a fixed tape defect.
+
+Only the animal sliver of that has been priced (~1% of bank). The dropped
+watering and feeding have not.
+
+### Six overlays, six failures: a blind tape replay resists being helped
+
+The truncation above was priced properly before anything was built. It fires
+on **9 of 123 instrumented episodes (7.3%)**, in two regimes:
+
+| regime | what happens | cost |
+|---|---|---|
+| transient burst shortfall | the tape queues several `HIRE`s in one turn, cash runs out mid-batch, and the tape's own next turns catch up | 22-23 dropped actions; in 4 of 5 cases **100% of them `PASS`** - literally free |
+| full-day cash trough | money sits at **$0 all day** | 138-184 dropped actions including 22-37 `WATER` - real, and **unreachable by any same-day fix, because the cash is not there** |
+
+So the expensive case cannot be fixed by retrying, and the fixable case is
+mostly free. Both repairs were built and measured anyway, 12 seeds x 2 seats,
+three harnesses, exact-copy control at ~0, counting **activated** matches
+separately:
+
+| variant | mirror (activated) | vs floor_deficit | vs indarkarhana |
+|---|---|---|---|
+| `hireretry` (re-issue the failed hire) | **0/2, -23,042** | 0/4, -187 | 0/2, -1,483 |
+| `nodrop` (re-pack high-value actions into surviving slots) | 2/2, +5,379 | 2/4, -5,393 | 0/2, **+0 exact no-op** |
+
+`hireretry` is actively harmful and the reason is the point of this whole
+section: **a hand hired one turn later than the tape recorded is a different
+hand.** Seed 0 self-play, it fixed the hire deficit exactly (`hire_ok`
+268 -> 274) and `feed_ok` collapsed **203 -> 135** with `animals_alive`
+9 -> 5, because the wheat got picked up by a unit that was no longer where
+the schedule assumed. `nodrop` is safe and a true no-op when inactive, but
+clears only one of three harnesses on 2-4 activations - unresolved, not a win.
+
+Two implementation notes worth keeping: reassembling the market list by
+category every turn moved bank by ~$30 **on seeds with zero hire failures**,
+because `_process_market` pairs our queue index *i* against the opponent's
+index *i* - order is state. And a first version that cleared its pending flag
+on any hand growth missed every partial multi-hire failure, i.e. was a silent
+no-op on exactly the case it targeted.
+
+**The tally for this base, one day:**
+
+| overlay | result |
+|---|---|
+| minimum-price sell gate | 1/12, 0/12 |
+| weed repair | 6/9 activated, underpowered |
+| tape remaps (0, 1, 2, 9) | none clear 12/16 on both |
+| deferred-purchase cash guard | never fires; harms when it does |
+| hire retry | 0/2, 0/4, 0/2 |
+| high-value action re-pack | 1 of 3 harnesses |
+
+Generalises, and it is the through-line of every row: **a recorded route has
+no state to correct, so every overlay is a perturbation rather than a
+repair.** The schedule's later steps assume the exact positions, inventories
+and cash the recording had; move any of them and the assumption fails
+somewhere downstream, usually far from the change. The only overlays that
+survived on the *re-planning* Moon base (the price gate, the MD lead) are
+precisely the ones that died here.
+
+What this predicts: the next real gain on this base is **not** an overlay. It
+is either a newer public route, or a change to which tape is played - which
+is why the ladder record split by tape is the thing to read next.
