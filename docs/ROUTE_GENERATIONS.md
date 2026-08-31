@@ -1160,3 +1160,40 @@ One repair class is already closed by measurement: terminal liquidation is
 monotone by construction, but end-of-season shed value is **65 for us against
 21 for top-20 teams** - both effectively zero. There is nothing stranded to
 collect.
+
+### The 80-tape screen: #1's recording is worse than ours, and a tape cannot be spliced across openings
+
+Every novel tape from a top-20 team was replayed whole against
+`agents/router_fam_yarn.py` (our live agent, rank 18) on the census seeds
+matching its own route key, both seats. 79 candidates, 594 games.
+
+**Tetsuya's three tapes, from the #1 team, lose: 4-4, 4-4 and 0-8 (-13,773).**
+The published field guide predicted this - source-team rating is a *negative*
+predictor of tape transfer - and it is now measured on our own harness rather
+than taken on faith. The strength of the leading agent is in machinery that
+does not travel with the recording. **"Copy #1" is closed.**
+
+24 of 79 candidates beat our live agent, and they concentrate hard: seven of
+the top eight are YARN_STORE route keys, at +3,957 to +11,743, mostly 8-0.
+Our wool handling is the weak spot in the current build.
+
+**But assembling the winners into a router loses**, and the failure is the most
+transferable thing in this entry. A 20-tape key-router scored **18-12, -834**
+switching at step 144 and **20-22, -4,104** switching at 72 (worst game
+-35,073) on fresh seeds 240-271. Per-seed, most seeds tie exactly (no tape for
+that key) while the seeds that do switch produce both +9,555 and -16,699.
+
+The cause is visible without any further games. **13 of the 20 winners share
+only 6-53% of our opening over turns 0-71.** A tape is a plan timed against
+the state its own opening produced; entering it at step 144 hands it a farm,
+a bank and a shed it was never written for. It wins as a whole season and
+loses as a continuation. The seven that *do* share our opening (>=0.90) are
+not foreign at all - they are **islet (#4), xi luo (#16) and gogogo (#11),
+our own cluster 2** - and five of the seven are the high-margin YARN keys.
+
+Generalises: **before splicing a harvested tape behind a branch point, check
+its agreement with the opening it will inherit.** Route selection is only safe
+between recordings of the same plan; between plans it is a state mismatch with
+a recording pasted over it. This is the same wall the six overlays hit on
+2026-08-31, reached from the opposite direction - there the layer was foreign
+to the tape, here the tape is foreign to the opening.
