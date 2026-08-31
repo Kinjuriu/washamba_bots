@@ -1098,3 +1098,65 @@ Cut 2's ten worst episodes: **nine of the ten sit in the shared cell**, where
 the two agents are the same program, all against opponents rated 2,493-2,620.
 In the divergent cell above the burst it is cut 1 3-0 and cut 2 1-2, on three
 episodes each. Not settled, not worth a slot to settle, and both stay live.
+
+## The field's schedule map, and why "find a better base" has run out of room (2026-09-01)
+
+The episode endpoint unblocked overnight, so all 40 top teams' current
+submissions were resolved and their recent episodes harvested: **376 tapes**,
+both seats, clustered at 90% action agreement over turns 0-399. The map is
+more decision-relevant than any single candidate in it.
+
+| cluster | tapes | teams | anchored by | what it is to us |
+|---|---|---|---|---|
+| 0 | **72** | 29 | **#2 MtN** | the family screened on 2026-08-31 and **rejected** - 10 of 50 beat our router |
+| 1 | 62 | 17 | #3 Driz Lo | matches yhay `ref:0` - **we already carry it** |
+| **2** | **45** | **15** | **#4 islet** | **our live schedule** (islet, gogogo, boatlee, yarneo, us) |
+| 4 | 19 | 9 | #3 Driz Lo | matches yhay `ref:1` - we carry it |
+| 5 | 18 | 3 | #8 QQ Farming | novel, small |
+| - | 3 | 1 | **#1 tetsuya** | singleton, matches nothing at all |
+
+Three readings follow, and together they close a line of work.
+
+**We already run a top-tier base.** Cluster 2 is the schedule behind #4, and we
+are in it. Cluster 1 is the schedule behind #3, and it is `ref:0`, which the
+router has carried since 2026-08-30. The single largest family in the field -
+29 teams, anchoring **#2** - is the one our own screen measured as *worse* than
+ours in direct play. So the teams sitting 90-100 points above us are not there
+because of a recording we lack.
+
+**And #1 cannot be copied, which is measurable rather than a guess.** Tetsuya's
+three harvested games agree with each other **100% over turns 0-71**, then
+0.36 and 1.00 over 72-143 (a real branch on the shop draw), 0.02-0.38 over
+144-399, and **0.00 over 400-718 for every pair**. Zero self-agreement in the
+last third of the season is not a route table; it is state-dependent decision
+making. There is no fixed plan in there to take, which is exactly what the
+public field guide predicted when it measured source-team rating as a
+*negative* predictor of tape transfer.
+
+What tetsuya's tapes do give is an economic profile, and two gaps are large:
+
+| | our base | tetsuya |
+|---|---|---|
+| HIRE, turns 0-71 | 13 | **19** |
+| WHEAT bought / sold, turns 0-71 | 23 / 11 | **59 / 48** |
+| FERTILIZER bought / sold, turns 144-719 | 62 / 305 | **274 / 524** |
+
+Those are quantities, not schedules, so they are testable without copying
+anything - but note that each is a *purchase*, and this file already records
+what inserting purchases into a recorded cash-flow schedule does.
+
+**The gap we can name is the rim, not the tape.** Our agent replays a tape,
+pads the hands list, and returns PASS on exception. That is the entire rim.
+Every agent in the published survey of sixteen ships repair machinery on top -
+retry what the tape asked for and could not have - and that survey calls it
+"most of the value the rim adds". Six overlays failed here on 2026-08-31, two
+of them repair-class, but all six were measured on the *yhay router* base, and
+the reason recorded for their failure was specific to it: a blind replay of a
+foreign schedule has no state worth repairing. The current base is a different
+lineage. That makes repair a live hypothesis again rather than a settled dead
+end - and it needs its own measurement, not an assumption in either direction.
+
+One repair class is already closed by measurement: terminal liquidation is
+monotone by construction, but end-of-season shed value is **65 for us against
+21 for top-20 teams** - both effectively zero. There is nothing stranded to
+collect.
