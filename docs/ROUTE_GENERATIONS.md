@@ -1011,3 +1011,53 @@ wool seeds won (226 lost -2,388). Mirror: +0 mean. Gate `['DONE','DONE']`.
 It replaces `55891543` (the plain router, 2,461 - the slot is dead weight now
 that the team score is the max) so `55908478` and the second cut can be read
 against each other at equal episode count.
+
+### Correction: the second cut is not worse, and the change was unmeasurable before it shipped
+
+`55916283` (cut 2) read **2,575 against cut 1's 2,727 at n=64** and that looked
+like a clean regression. All 137 ladder replays of the two submissions were
+downloaded and split by the shop draw. The two agents differ on **exactly one**
+branch - episodes where YARN_STORE unlocks first - so the split is the whole
+experiment:
+
+| submission | YARN first? | n | wins | our bank | margin | opp rating | min bank |
+|---|---|---|---|---|---|---|---|
+| cut 1 (yhay tape 1) | **yes** | 6 | **6/6** | 97,861 | +20,527 | 1,976 | 83,460 |
+| cut 1 | no | 66 | 48/66 | 90,221 | +8,496 | 2,342 | 43,854 |
+| **cut 1 all** | | 72 | 54/72 | 90,858 | **+9,498** | 2,311 | 43,854 |
+| cut 2 (family wool branch) | **yes** | 5 | **3/5** | 105,773 | +9,212 | 2,212 | 85,672 |
+| cut 2 | no | 60 | 43/60 | 83,942 | +9,503 | 2,184 | 32,587 |
+| **cut 2 all** | | 65 | 46/65 | 85,622 | **+9,481** | 2,186 | 32,587 |
+
+Read the `no` rows first, because there the two agents **are the same
+program**. They post the same win rate (72.7% vs 71.7%) and cut 2 posts the
+*larger* margin (+9,503 vs +8,496) - yet their mean banks differ by **6,279**
+and their opponent fields by 158 points. That is the size of pure draw
+variance on 60-odd episodes of identical code, measured here for free.
+
+Season margins land within **17 dollars of each other**: +9,498 and +9,481.
+The 152-point score gap is the opponent field (2,311 against 2,186 - cut 1
+beat a field 125 points harder at the same rate), not the wool branch. On the
+cell where the two actually differ the counts are 6 and 5; cut 1 went 6/6 and
+cut 2 3/5, which leans cut 1 and settles nothing at n=11.
+
+**The number that should have stopped this before it was submitted: a
+YARN_STORE-first draw is 8-9% of ladder episodes** (6 of 72, 5 of 65), and the
+local census agrees at 7.5% (9 seeds of 120). It was written up here as "~22%"
+- that was a conflation of *YARN_STORE first* with *YARN_STORE anywhere in the
+first two*, and it is the error that made the change look worth a slot. At the
+true rate, the local wool-seed result (+8,527 on 28-4) has an expected
+aggregate effect of **0.08 x 8,527 = ~680 bank** - below the ~903 that
+byte-identical agents differ by. The change was **unmeasurable on the ladder
+by construction**, and no per-episode reading was ever going to resolve it.
+
+Generalises, and it is cheap to apply: **before spending a submission slot,
+multiply the measured local effect by the fraction of games the change can
+touch, and compare that to the noise floor.** A large margin on a rare branch
+is a small number. This repo already had the rule for judging a change
+(win count first, both harnesses); it did not have one for deciding whether
+the ladder *can* see it at all.
+
+Both cuts stay live. They are the same agent for 91% of games, so the pair is
+now a second natural experiment on the noise floor rather than a comparison of
+two strategies.
