@@ -1197,3 +1197,51 @@ between recordings of the same plan; between plans it is a state mismatch with
 a recording pasted over it. This is the same wall the six overlays hit on
 2026-08-31, reached from the opposite direction - there the layer was foreign
 to the tape, here the tape is foreign to the opening.
+
+### The ladder pays for WINS, not for bank margin - and this file has been quoting the wrong number
+
+Measured on our own 135 rated episodes, using each episode's `initialScore` and
+`updatedScore`, restricted to steady state (both ratings >= 2,000, which drops
+the opening burst):
+
+| | n | mean rating change |
+|---|---|---|
+| wins | 68 | **+23.63** |
+| losses | 37 | **-11.83** |
+| wins, small-margin half (+119 .. +2,529) | 34 | +18.51 |
+| wins, large-margin half (+2,709 .. +34,128) | 34 | +28.75 |
+| losses, big-loss half (-11,791 .. -2,091) | 18 | -12.91 |
+| losses, small-loss half (-1,696 .. -205) | 19 | -10.80 |
+
+**`corr(rating change, margin | steady-state wins) = +0.002`.** Zero. Winning
+by 34,000 is worth the same rating as winning by 119, and losing by 11,791 costs
+the same as losing by 205. The apparent margin effect over the full record
+(+0.584) is entirely the opening burst, where huge margins and huge rating gains
+co-occur because the rating is converging up from 600 - not because the margin
+earned it.
+
+This matters immediately, because it inverts a live decision. The
+Semyon Epanov schedule, replayed whole against `agents/router_fam_yarn.py` on
+fresh seeds 400-431, both seats:
+
+| | win-loss | mean margin | median margin |
+|---|---|---|---|
+| Semyon Epanov (#20) | **54-10 of 64** | **-795** | +2,096 |
+| cygn (#14) | **52-12 of 64** | -907 | +1,784 |
+
+By mean margin both look like losses. By the metric the ladder actually pays
+they beat our live agent in **84%** and **81%** of games - it wins small and
+often, and loses rarely and hugely (5 seeds at -7,700 to -24,500). A negative
+mean bought with an 84% win rate is a **good** trade here, and this repo's own
+"read the win count before any t-value" rule was right for a reason it had not
+yet measured.
+
+Both are pure blind replayers: one fixed 719-step schedule, byte-identical
+across four and six different shop draws respectively, with **no routing at
+all**. They beat a router.
+
+Correction to earlier entries in this file: every "+X mean bank" claim used to
+justify or reject a change was measuring a quantity the ladder does not score.
+The win counts quoted alongside them were the load-bearing numbers all along.
+Rankings by margin should be re-read as rankings by win count wherever the two
+disagree - and they disagree here, on the largest candidate of the day.
