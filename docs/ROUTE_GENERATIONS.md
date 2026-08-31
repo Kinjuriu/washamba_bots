@@ -818,3 +818,154 @@ against one opponent is not the field's. And the weakest band is
 **1500-1800 at 57%**, not the top: against 2100+ we win 62%. The old agent's
 problem band was 1700-1900 and this one's is similar, so the mid-field is
 still where the margin is thinnest even after a +600 rating move.
+
+## Route generation five: the #2 team's schedule, spliced to the router's YARN_STORE tapes (2026-08-31)
+
+Overnight the field resubmitted around us and the router slid from rank 59 to
+**115 of 7,003** without changing - 2,470.9, flat for 40 episodes, 51/79 wins,
+against a #1 at 3,025.7. The docs above already say where the next gain had to
+come from: *not an overlay - a newer route, or a change to which tape is
+played.* This entry is both.
+
+### How the corpus was built
+
+Two notebooks published on 2026-08-30 changed the method. The #3 team
+published *how* they build tapes (pull public replays, replay one seat's
+actions across thousands of seeds, keep what transfers), and a long
+measurement of the whole field ("a field guide to replay agents") put numbers
+on three things this entry relies on: the recording underneath is worth ~73
+points of win rate between best and worst founder while a perfect market layer
+with hindsight is worth ~1.7% of bank; the source team's rating predicts
+whether its tape transfers *negatively*; and candidates must be scored against
+the population the ladder actually deals you - ranked against the strongest
+agents instead, the ordering *inverts*.
+
+So: public replays are downloadable per episode (`kaggleusercontent.com/
+episodes/<id>.json`, ~31 MB, no auth), and the episode list per submission is
+an internal endpoint that accepts `{"submissionId"}` or `{"ids": [...]}` only
+(not `teamId`) and rate-limits hard - it went 429 after 19 calls and stayed
+there for hours, which is why #1's own tapes were never fetched. From 87
+replays (32 of the top-60 teams plus 31 of our own episodes spanning opponent
+ratings 583-2,529) both seats were extracted: **174 tapes**, keyed by the shop
+unlocked at step 72 and the pair at 144.
+
+**63 of the 174 match one of our ten tapes at >=90% agreement.** Fourteen
+teams run our slot-0 tape alone. The public commons the router stands on is
+also the field's, which is the structural reason mirror games tie at the
+margin and why an unmodified public router has a ceiling.
+
+### The screen, and what it found
+
+Every novel tape (111) was replayed as a single-tape agent against
+`router_yhay.py` on the census seeds of its own route key, both seats - the
+router plays the incumbent tape there, so the margin is candidate-minus-
+incumbent under a router opponent. Grouped by schedule family:
+
+| family | tapes | teams | best LB rank | beat router | games | mean margin |
+|---|---|---|---|---|---|---|
+| the 51-tape cluster (one 649-action farmer line, 20 teams) | 50 | 20 | 9 | 10/50 | 127-233 | -3,038 |
+| **the #2 team's family** | 10 | 5 | **2** | **7/10** | **55-15** | **+10,095** |
+| everything else | 51 | - | - | 17/51 | - | mixed |
+
+The largest family on the ladder loses to the router. The one that wins is a
+single schedule - byte-identical through step 143, >=90% to step 400, the rest
+differing only in sell ordering - run by A Poor Vul (#2), gogogo (#12), cmasch,
+islet and Lucien de Rubempre. It is not a published notebook (checked against
+every candidate on the Code tab, including skomuro's "silver medal route",
+which is a third, unrelated tape).
+
+### Why it cannot be swapped in, and what can
+
+Its opening agrees with ours on **6% of actions over turns 0-71** - a different
+family, so no tape from it can be spliced into the router at step 72 or 144
+the way the ten existing tapes are (those agree 100% through step 143 with
+each other; that shared opening is what makes yhay81's design work at all).
+
+Replayed whole on 16 fresh seeds (200-215, never used to select anything)
+against the router, all four family tapes tested came out identical, 20-12,
+mean +254 to +918 - a coin flip on mean. But the per-seed pattern is not a
+coin flip:
+
+| first two shops | seeds | family vs router |
+|---|---|---|
+| YARN_STORE among them | 6 | **0/6**, -7,249 to -20,708 |
+| no YARN_STORE | 10 | **10/10**, +841 to +25,957, mean +10.5k |
+
+Seven cows and three sheep against the router's nine or ten sheep on the
+YARN_STORE tapes: the family has no answer to a wool draw, and a large edge
+everywhere else.
+
+The two lineages build the **same farm** in the opening - 3 COW, 2 SHEEP,
+12 MELON, 10 WHEAT, 12-13 hires by step 72; the 6% agreement is walk order and
+hand order, not a different plan. So the handover the router already performs
+at its branch points is possible in one direction: play the family schedule,
+and at step 72 (YARN_STORE first) or step 144 (YARN_STORE second) hand the
+season to the yhay tape the router would have chosen.
+
+### Measured: seeds 200-231, both seats, vs `router_yhay.py`
+
+| build | W-L of 64 | mean | median | worst |
+|---|---|---|---|---|
+| **family opening, hand over on YARN_STORE** (`agents/router_fam_yarn.py`) | **47-17** | **+9,533** | **+7,738** | -14,522 |
+| family schedule alone | 41-23 | +3,956 | +5,812 | -20,708 |
+| yhay opening, family after step 72 | 34-18 | +4,496 | +860 | -12,884 |
+| hand over on BAKERY-first as well | 43-21 | +8,834 | +6,592 | -14,522 |
+
+The splice recovers the YARN_STORE seeds: where the family alone lost
+-11.9k/-20.7k/-7.2k on seeds 208/204/210 (YARN_STORE second), the spliced
+build wins them +13.0k/+6.7k/+8.1k - the family's turns 72-143 are better
+than ours and the yhay tape continues cleanly from them. The residual is the
+seven YARN_STORE-*first* seeds, where yhay tape 1 on the family opening's
+state loses 0.3k-3.5k against +7k to +32k on the other 25. Handing over on
+BAKERY too is worse on every seed it changes; the family is only weak to wool.
+Mirror control: 0-0 of 8, margin exactly +0.
+
+This is the same size as the base swap that took us 689 -> 59 (+11,455,
+10/12). Be exact about which seeds did what, because half of the confirm set
+is contaminated: the tapes were screened on seeds 0-119, the YARN_STORE rule
+was *derived* from the 16-seed run on 200-215, and only 216-231 saw nothing
+before the confirm. Split accordingly:
+
+| seeds | role | W-L of 32 | mean | median |
+|---|---|---|---|---|
+| 200-215 | rule derived here | 26-6 | +7,909 | +7,394 |
+| **216-231** | **untouched** | **21-11** | **+11,157** | **+8,550** |
+
+The untouched half is, if anything, the stronger one. Provenance and the
+Apache 2.0 attribution for the yhay81 half are in the file header.
+
+### The population check: equal on replays, better against everything live
+
+The field guide's sharpest warning is that ranking against the strongest
+agents inverts the ordering you get against the opponents the ladder actually
+deals you. So both builds were also run, seeds 200-215 both seats, against a
+ten-opponent panel: eight tapes replayed from the opponents `55891543` really
+drew (ratings 583-2,529, chosen to span the band) plus the two strongest
+live public agents we hold (kaito v48, indarkarhana).
+
+| opponent | H1 W-L | H1 bank | router W-L | router bank |
+|---|---|---|---|---|
+| eight drawn-opponent replays (256 games) | 220-36 | 97,386 | 222-34 | 98,606 |
+| kaito v48 (live, adaptive) | **30-2** | 90,007 | 26-6 | 86,449 |
+| indarkarhana (live, adaptive) | **28-4** | 92,736 | 24-8 | 91,547 |
+| **all** | **278/320** | 96,183 | 272/320 | 96,684 |
+
+Read carefully, because the two halves say different things. Against
+**replayed** opponents - fixed tapes that neither route nor repair - the two
+builds are indistinguishable (220 vs 222 wins), and the spliced build banks
+~1.2k less; against the one replay that is a stale copy of our own slot-0 tape
+it is 18-14 where the router is 30-2. Against every **live** opponent - the
+router itself (47-17), kaito (30-2 vs 26-6), indarkarhana (28-4 vs 24-8) - it
+wins more. By seed class across all ten opponents the splice costs nothing:
+YARN_STORE-first 52 vs 48 wins, YARN_STORE-second 54 vs 54, no wool 172 vs 170.
+
+The reading that fits all of it: the family schedule does not out-farm the
+router tape, it **out-sells it in company** - its edge is what it lets a live
+co-seller bank alongside it, which a replayed tape (already off-route, selling
+into the wrong shops) cannot express. That is exactly the mechanism the field
+guide names for why one tape beats another, and it is the quantity the ladder
+pays for. Floor: min bank 37,272 vs 40,492 over the 320 games.
+
+Ship decision: it goes to the ladder in the slot `55891517` occupies (the Moon
+deficit build at 1,626, kept only as a control), alongside `55891543`, so the
+two can be read at equal episode count against a shared field.
