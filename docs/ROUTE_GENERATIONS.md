@@ -636,3 +636,336 @@ did. A published notebook is not a team's live build. So the gap to the top
 is not an unknown strategy; it is the delta between a public release and a
 private one, and closing it means tuning this base rather than hunting for
 another.
+
+### Correction: the tape-3 "cash-starved sheep" does not reproduce
+
+The seed-0 diagnosis recorded above - a scripted `BUY_ANIMAL SHEEP` firing at
+$68 against a $500 price, silently rejected - **is wrong, and it was recorded
+here as measured fact.** Re-checked by instrumenting the real engine's
+`_commit_unit` rather than reading a trace: on seed 0, **26 of 26
+`BUY_ANIMAL` commits succeed** against `route_moon_md_floor_deficit` and there
+are zero rejections against indarkarhana. Real cash rejections do exist, but
+on **seed 43** (a COW at step 170, a SHEEP at step 198), not seed 0.
+
+So every remap measured against "tape 3 is cash-starved" was aimed at a
+failure that was not there. The remaps still lost on their own merits, but the
+reason given for running them was not established.
+
+**Seed 0's three empty pastures have a different cause: the tape buys 26
+animals and places 10.** Sixteen head, at $400-500 each, sit in the shed
+producing nothing. That is not a cash bug and not something an overlay caused
+- it is what the recorded schedule does in our episodes.
+
+A cash guard was built anyway and measured: defer an unaffordable
+`BUY_ANIMAL`/`BUY_LAND`, re-issue when affordable, and drive a
+walk/PICKUP/PLACE state machine to deliver it. Mirror **2/16**, paired vs
+indarkarhana **0/16** - and both numbers are noise, because the guard never
+fired on any of the 16 census matches. Where it did fire for real (seed 43, a
+$400 COW deferred six steps, re-issued, delivered and placed) the season
+ended **worse**: 59,756 against the stock tape's 70,407. Once again: on a
+recorded route, moving cash by $400 in week one re-rolls the remaining 700
+turns.
+
+Three implementation notes kept because each one would have shipped a
+disaster: simulating a whole order's cost instead of the engine's per-unit
+partial fills drives simulated money negative; a delivery state machine that
+waits for an empty pasture parks a unit on `PASS` for 40 turns (-58,000);
+and `market_price(item, inv, params)` indexes `params[item]` internally, so
+passing `MARKET_PARAMS[item]` raises inside a `try/except` and silently zeroes
+every simulated sale.
+
+Generalises, and it is the repo's own rule turned on itself: **a diagnosis is
+a measurement too.** This one was read off a trace and written up without
+instrumenting the engine call it claimed was failing, and three sweeps were
+scoped against it before anyone checked.
+
+### Correction 2, and the real fragility underneath it
+
+"The tape buys 26 animals and places 10" is **also wrong**, and wrong the same
+way the cash-starved sheep was: counted from an action stream instead of the
+engine. `PICKUP` moves several animals in one call (`["PICKUP","SHEEP",2]`)
+while `PLACE` moves exactly one, so counting calls invents a gap. Instrumented
+across 25 episodes, 9 of the 10 tapes and 3 opponents: **`BUY_ANIMAL` never
+fails**, `PLACE` never fails for want of a pasture, and the buy/place gap is
+**0 in 22 of 25 episodes**, 1-2 animals when it appears - about 1% of bank.
+
+Two bad diagnoses in one afternoon, both from reading an action stream. This
+repo already has the rule (`count what lands`) recorded twice, for `PLANT`
+and for `SELL`. It now applies to diagnosis as well as measurement.
+
+**What the instrumentation did find is real and larger.** `action_for_depth`
+ends with:
+
+    hands = list(action.get("hands") or [])
+    hands.extend([["PASS"] for _ in range(max(0, expected - len(hands)))])
+    action["hands"] = hands[:expected]
+
+`expected` is our **live** hand count. The tape blindly replays a `HIRE`
+order; our cash diverges from the recorded episode as soon as the opponent
+does, so that hire can fail silently - and then `hands[:expected]` deletes the
+tail of the recorded hand-action list for the rest of the day. On seed 0 that
+is **138 dropped unit-actions in one day**: WATER x22, NORTH x24, EAST x16,
+FEED x5, CARE x4, PICKUP x2, PLACE x2.
+
+`hire_fail > 0` predicts `truncation > 0` with **perfect correlation across
+all 25 episodes**, and the three episodes with any animal gap are exactly the
+three with the largest truncation counts. The same seed and tape truncates
+against `route_moon_md_floor_deficit` and in self-play but **not** against
+indarkarhana, so it is a narrow cash-timing effect, not a fixed tape defect.
+
+Only the animal sliver of that has been priced (~1% of bank). The dropped
+watering and feeding have not.
+
+### Six overlays, six failures: a blind tape replay resists being helped
+
+The truncation above was priced properly before anything was built. It fires
+on **9 of 123 instrumented episodes (7.3%)**, in two regimes:
+
+| regime | what happens | cost |
+|---|---|---|
+| transient burst shortfall | the tape queues several `HIRE`s in one turn, cash runs out mid-batch, and the tape's own next turns catch up | 22-23 dropped actions; in 4 of 5 cases **100% of them `PASS`** - literally free |
+| full-day cash trough | money sits at **$0 all day** | 138-184 dropped actions including 22-37 `WATER` - real, and **unreachable by any same-day fix, because the cash is not there** |
+
+So the expensive case cannot be fixed by retrying, and the fixable case is
+mostly free. Both repairs were built and measured anyway, 12 seeds x 2 seats,
+three harnesses, exact-copy control at ~0, counting **activated** matches
+separately:
+
+| variant | mirror (activated) | vs floor_deficit | vs indarkarhana |
+|---|---|---|---|
+| `hireretry` (re-issue the failed hire) | **0/2, -23,042** | 0/4, -187 | 0/2, -1,483 |
+| `nodrop` (re-pack high-value actions into surviving slots) | 2/2, +5,379 | 2/4, -5,393 | 0/2, **+0 exact no-op** |
+
+`hireretry` is actively harmful and the reason is the point of this whole
+section: **a hand hired one turn later than the tape recorded is a different
+hand.** Seed 0 self-play, it fixed the hire deficit exactly (`hire_ok`
+268 -> 274) and `feed_ok` collapsed **203 -> 135** with `animals_alive`
+9 -> 5, because the wheat got picked up by a unit that was no longer where
+the schedule assumed. `nodrop` is safe and a true no-op when inactive, but
+clears only one of three harnesses on 2-4 activations - unresolved, not a win.
+
+Two implementation notes worth keeping: reassembling the market list by
+category every turn moved bank by ~$30 **on seeds with zero hire failures**,
+because `_process_market` pairs our queue index *i* against the opponent's
+index *i* - order is state. And a first version that cleared its pending flag
+on any hand growth missed every partial multi-hire failure, i.e. was a silent
+no-op on exactly the case it targeted.
+
+**The tally for this base, one day:**
+
+| overlay | result |
+|---|---|
+| minimum-price sell gate | 1/12, 0/12 |
+| weed repair | 6/9 activated, underpowered |
+| tape remaps (0, 1, 2, 9) | none clear 12/16 on both |
+| deferred-purchase cash guard | never fires; harms when it does |
+| hire retry | 0/2, 0/4, 0/2 |
+| high-value action re-pack | 1 of 3 harnesses |
+
+Generalises, and it is the through-line of every row: **a recorded route has
+no state to correct, so every overlay is a perturbation rather than a
+repair.** The schedule's later steps assume the exact positions, inventories
+and cash the recording had; move any of them and the assumption fails
+somewhere downstream, usually far from the change. The only overlays that
+survived on the *re-planning* Moon base (the price gate, the MD lead) are
+precisely the ones that died here.
+
+What this predicts: the next real gain on this base is **not** an overlay. It
+is either a newer public route, or a change to which tape is played - which
+is why the ladder record split by tape is the thing to read next.
+
+### The ladder record split by tape: no remap is justified yet
+
+All 119 completed episodes across `55891543` and `55891517`, each replay
+fetched and the tape read from its own `town.unlocked_shops` fed through the
+router's imported `route_index`:
+
+| tape | n | win rate | our bank | opp bank | margin | opp rating |
+|---|---|---|---|---|---|---|
+| 0 | 62 | 63% | 88,184 | 83,681 | +4,503 | 1,869 |
+| 1 | 18 | 72% | 90,941 | 80,419 | +10,522 | 1,726 |
+| 2 | 6 | **100%** | 96,825 | 84,018 | +12,807 | 2,101 |
+| 3 | 3 | 67% | 48,972 | 37,484 | +11,488 | 1,585 |
+| 4 | 9 | 78% | 93,008 | 85,414 | +7,593 | 1,957 |
+| 5 | 9 | 67% | 88,867 | 73,315 | +15,552 | 1,602 |
+| 6 | 6 | **33%** | 121,871 | 120,214 | +1,657 | 1,821 |
+| 7 | 2 | 1/2 | 100,524 | 99,322 | +1,203 | 2,402 |
+| 8 | 2 | 2/2 | 78,491 | 63,484 | +15,007 | 2,406 |
+| 9 | 2 | 1/2 | 129,886 | 109,340 | +20,546 | 1,265 |
+| **all** | **119** | **66%** | **90,908** | **83,584** | **+7,325** | **1,844** |
+
+By opponent rating band:
+
+| band | n | win rate | margin |
+|---|---|---|---|
+| 0-1500 | 20 | 100% | +34,883 |
+| 1500-1800 | 49 | **57%** | +2,104 |
+| 1800-2100 | 3 | 2/3 | -1,037 |
+| 2100+ | 47 | 62% | +1,575 |
+
+**No tape justifies a remap on this evidence.** Tape 2 is the standout (6/6)
+and tape 6 the weakest (2/6), but both sit at n=6, tape 6's losses are narrow
+(-112, -2,006, -2,645, -9,796) and two of its six draws were opponents rated
+2,378 and 2,404. That neither confirms the local forced sweep's 0/12 nor the
+later finding that tape 6 is fine under its own trigger - it sits between
+them, and n=6 cannot settle it. Tape 3, whose -46k local floor was the
+motivation for three remap sweeps, has been drawn **three times** on the
+ladder and collapsed on none of them.
+
+Two things worth carrying forward. **Tape 8 was drawn twice on the ladder and
+never once in a 120-seed local census** - the local shop-unlock distribution
+against one opponent is not the field's. And the weakest band is
+**1500-1800 at 57%**, not the top: against 2100+ we win 62%. The old agent's
+problem band was 1700-1900 and this one's is similar, so the mid-field is
+still where the margin is thinnest even after a +600 rating move.
+
+## Route generation five: the #2 team's schedule, spliced to the router's YARN_STORE tapes (2026-08-31)
+
+Overnight the field resubmitted around us and the router slid from rank 59 to
+**115 of 7,003** without changing - 2,470.9, flat for 40 episodes, 51/79 wins,
+against a #1 at 3,025.7. The docs above already say where the next gain had to
+come from: *not an overlay - a newer route, or a change to which tape is
+played.* This entry is both.
+
+### How the corpus was built
+
+Two notebooks published on 2026-08-30 changed the method. The #3 team
+published *how* they build tapes (pull public replays, replay one seat's
+actions across thousands of seeds, keep what transfers), and a long
+measurement of the whole field ("a field guide to replay agents") put numbers
+on three things this entry relies on: the recording underneath is worth ~73
+points of win rate between best and worst founder while a perfect market layer
+with hindsight is worth ~1.7% of bank; the source team's rating predicts
+whether its tape transfers *negatively*; and candidates must be scored against
+the population the ladder actually deals you - ranked against the strongest
+agents instead, the ordering *inverts*.
+
+So: public replays are downloadable per episode (`kaggleusercontent.com/
+episodes/<id>.json`, ~31 MB, no auth), and the episode list per submission is
+an internal endpoint that accepts `{"submissionId"}` or `{"ids": [...]}` only
+(not `teamId`) and rate-limits hard - it went 429 after 19 calls and stayed
+there for hours, which is why #1's own tapes were never fetched. From 87
+replays (32 of the top-60 teams plus 31 of our own episodes spanning opponent
+ratings 583-2,529) both seats were extracted: **174 tapes**, keyed by the shop
+unlocked at step 72 and the pair at 144.
+
+**63 of the 174 match one of our ten tapes at >=90% agreement.** Fourteen
+teams run our slot-0 tape alone. The public commons the router stands on is
+also the field's, which is the structural reason mirror games tie at the
+margin and why an unmodified public router has a ceiling.
+
+### The screen, and what it found
+
+Every novel tape (111) was replayed as a single-tape agent against
+`router_yhay.py` on the census seeds of its own route key, both seats - the
+router plays the incumbent tape there, so the margin is candidate-minus-
+incumbent under a router opponent. Grouped by schedule family:
+
+| family | tapes | teams | best LB rank | beat router | games | mean margin |
+|---|---|---|---|---|---|---|
+| the 51-tape cluster (one 649-action farmer line, 20 teams) | 50 | 20 | 9 | 10/50 | 127-233 | -3,038 |
+| **the #2 team's family** | 10 | 5 | **2** | **7/10** | **55-15** | **+10,095** |
+| everything else | 51 | - | - | 17/51 | - | mixed |
+
+The largest family on the ladder loses to the router. The one that wins is a
+single schedule - byte-identical through step 143, >=90% to step 400, the rest
+differing only in sell ordering - run by A Poor Vul (#2), gogogo (#12), cmasch,
+islet and Lucien de Rubempre. It is not a published notebook (checked against
+every candidate on the Code tab, including skomuro's "silver medal route",
+which is a third, unrelated tape).
+
+### Why it cannot be swapped in, and what can
+
+Its opening agrees with ours on **6% of actions over turns 0-71** - a different
+family, so no tape from it can be spliced into the router at step 72 or 144
+the way the ten existing tapes are (those agree 100% through step 143 with
+each other; that shared opening is what makes yhay81's design work at all).
+
+Replayed whole on 16 fresh seeds (200-215, never used to select anything)
+against the router, all four family tapes tested came out identical, 20-12,
+mean +254 to +918 - a coin flip on mean. But the per-seed pattern is not a
+coin flip:
+
+| first two shops | seeds | family vs router |
+|---|---|---|
+| YARN_STORE among them | 6 | **0/6**, -7,249 to -20,708 |
+| no YARN_STORE | 10 | **10/10**, +841 to +25,957, mean +10.5k |
+
+Seven cows and three sheep against the router's nine or ten sheep on the
+YARN_STORE tapes: the family has no answer to a wool draw, and a large edge
+everywhere else.
+
+The two lineages build the **same farm** in the opening - 3 COW, 2 SHEEP,
+12 MELON, 10 WHEAT, 12-13 hires by step 72; the 6% agreement is walk order and
+hand order, not a different plan. So the handover the router already performs
+at its branch points is possible in one direction: play the family schedule,
+and at step 72 (YARN_STORE first) or step 144 (YARN_STORE second) hand the
+season to the yhay tape the router would have chosen.
+
+### Measured: seeds 200-231, both seats, vs `router_yhay.py`
+
+| build | W-L of 64 | mean | median | worst |
+|---|---|---|---|---|
+| **family opening, hand over on YARN_STORE** (`agents/router_fam_yarn.py`) | **47-17** | **+9,533** | **+7,738** | -14,522 |
+| family schedule alone | 41-23 | +3,956 | +5,812 | -20,708 |
+| yhay opening, family after step 72 | 34-18 | +4,496 | +860 | -12,884 |
+| hand over on BAKERY-first as well | 43-21 | +8,834 | +6,592 | -14,522 |
+
+The splice recovers the YARN_STORE seeds: where the family alone lost
+-11.9k/-20.7k/-7.2k on seeds 208/204/210 (YARN_STORE second), the spliced
+build wins them +13.0k/+6.7k/+8.1k - the family's turns 72-143 are better
+than ours and the yhay tape continues cleanly from them. The residual is the
+seven YARN_STORE-*first* seeds, where yhay tape 1 on the family opening's
+state loses 0.3k-3.5k against +7k to +32k on the other 25. Handing over on
+BAKERY too is worse on every seed it changes; the family is only weak to wool.
+Mirror control: 0-0 of 8, margin exactly +0.
+
+This is the same size as the base swap that took us 689 -> 59 (+11,455,
+10/12). Be exact about which seeds did what, because half of the confirm set
+is contaminated: the tapes were screened on seeds 0-119, the YARN_STORE rule
+was *derived* from the 16-seed run on 200-215, and only 216-231 saw nothing
+before the confirm. Split accordingly:
+
+| seeds | role | W-L of 32 | mean | median |
+|---|---|---|---|---|
+| 200-215 | rule derived here | 26-6 | +7,909 | +7,394 |
+| **216-231** | **untouched** | **21-11** | **+11,157** | **+8,550** |
+
+The untouched half is, if anything, the stronger one. Provenance and the
+Apache 2.0 attribution for the yhay81 half are in the file header.
+
+### The population check: equal on replays, better against everything live
+
+The field guide's sharpest warning is that ranking against the strongest
+agents inverts the ordering you get against the opponents the ladder actually
+deals you. So both builds were also run, seeds 200-215 both seats, against a
+ten-opponent panel: eight tapes replayed from the opponents `55891543` really
+drew (ratings 583-2,529, chosen to span the band) plus the two strongest
+live public agents we hold (kaito v48, indarkarhana).
+
+| opponent | H1 W-L | H1 bank | router W-L | router bank |
+|---|---|---|---|---|
+| eight drawn-opponent replays (256 games) | 220-36 | 97,386 | 222-34 | 98,606 |
+| kaito v48 (live, adaptive) | **30-2** | 90,007 | 26-6 | 86,449 |
+| indarkarhana (live, adaptive) | **28-4** | 92,736 | 24-8 | 91,547 |
+| **all** | **278/320** | 96,183 | 272/320 | 96,684 |
+
+Read carefully, because the two halves say different things. Against
+**replayed** opponents - fixed tapes that neither route nor repair - the two
+builds are indistinguishable (220 vs 222 wins), and the spliced build banks
+~1.2k less; against the one replay that is a stale copy of our own slot-0 tape
+it is 18-14 where the router is 30-2. Against every **live** opponent - the
+router itself (47-17), kaito (30-2 vs 26-6), indarkarhana (28-4 vs 24-8) - it
+wins more. By seed class across all ten opponents the splice costs nothing:
+YARN_STORE-first 52 vs 48 wins, YARN_STORE-second 54 vs 54, no wool 172 vs 170.
+
+The reading that fits all of it: the family schedule does not out-farm the
+router tape, it **out-sells it in company** - its edge is what it lets a live
+co-seller bank alongside it, which a replayed tape (already off-route, selling
+into the wrong shops) cannot express. That is exactly the mechanism the field
+guide names for why one tape beats another, and it is the quantity the ladder
+pays for. Floor: min bank 37,272 vs 40,492 over the 320 games.
+
+Ship decision: it goes to the ladder in the slot `55891517` occupies (the Moon
+deficit build at 1,626, kept only as a control), alongside `55891543`, so the
+two can be read at equal episode count against a shared field.
