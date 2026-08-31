@@ -969,3 +969,45 @@ pays for. Floor: min bank 37,272 vs 40,492 over the 320 games.
 Ship decision: it goes to the ladder in the slot `55891517` occupies (the Moon
 deficit build at 1,626, kept only as a control), alongside `55891543`, so the
 two can be read at equal episode count against a shared field.
+
+### The ladder answer, and the second cut: the family's own wool branch
+
+`router_fam_yarn.py` went in as `55908478` at 05:56 UTC. Four hours later:
+**2,732.2, rank 16 of 7,045** (from 115 at 2,471), with #1 at 2,915.7. The
+per-episode endpoint has been 429 all day, so win rate and opponent field are
+unread and n is at most ~20 - by yesterday's measurement of two identical
+agents, that is still inside the noise. The rank move is large enough to
+believe; the exact number is not yet.
+
+The one weakness the first cut left was the YARN_STORE-*first* draw (7 of 32
+fresh seeds), where it hands over to yhay tape 1 on a foreign opening and
+loses 0.3k-3.5k. The harvest holds the answer: `103391169_1`, the family's own
+YARN_STORE-first branch, recorded by Lucien de Rubempre **against our router**
+(105,851 to 92,407 under YARN_STORE -> PET_CAFE), opening **100% identical to
+the base schedule over turns 0-71**. The step-72 handover to it is between
+two recordings of one plan, not a splice across families.
+
+Sixteen YARN_STORE-first seeds (census 2, 25, 28, 38, 42, 55, 61, 96, 118 plus
+fresh 200, 206, 214, 217, 222, 226, 227), both seats, vs `router_yhay.py`:
+
+| YARN_STORE-first handling | W-L of 32 | mean | median |
+|---|---|---|---|
+| yhay tape 1 (first cut, `55908478`) | 0-32 | -1,754 | -1,641 |
+| **family wool branch, whole season** (`agents/router_fam_yarn2.py`) | **28-4** | **+8,527** | **+10,805** |
+| family wool branch to 144, then yhay pair tape | 0-32 | -2,642 | -2,515 |
+
+The tape had been screened on seeds 2, 25, 28, 38; on the twelve it had never
+seen it is 10-2 (losses 118 -1,947 and 226 -4,417). Handing it to a yhay tape
+at step 144 kills it again - the family's wool line has to be played whole,
+which is the same lesson as the first cut read the other way round.
+
+Three checks before it goes out. Off YARN_STORE-first seeds the two cuts are
+the same policy: six non-wool seeds vs the router reproduce the first cut's
+margins **to the dollar** (201 +15,069, 203 +2,001, 204 +6,702, 208 +13,002,
+209 +25,957, 213 +13,860). Head-to-head, second cut vs first, seeds 200-231:
+**14-4 of 64, +1,551**, every non-wool seed an exact tie and six of the seven
+wool seeds won (226 lost -2,388). Mirror: +0 mean. Gate `['DONE','DONE']`.
+
+It replaces `55891543` (the plain router, 2,461 - the slot is dead weight now
+that the team score is the max) so `55908478` and the second cut can be read
+against each other at equal episode count.
