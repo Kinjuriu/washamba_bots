@@ -1061,3 +1061,40 @@ the ladder *can* see it at all.
 Both cuts stay live. They are the same agent for 91% of games, so the pair is
 now a second natural experiment on the noise floor rather than a comparison of
 two strategies.
+
+### And the season aggregate is inflated: exclude the opening burst before reading anything
+
+The same 137-replay split, cut again by opponent rating, exposes a second
+error that affects every number in this file, not just this comparison.
+
+**The first 16-18 episodes of a submission are played against provisional-rated
+opponents around 1,200, and we beat them by about +30,000.** After that the
+matchmaking converges on a steady state of 2,550-2,700. So a season mean folds
+two different games together. Excluding everything under an opponent rating of
+2,000:
+
+| | n | win rate | margin | opp rating |
+|---|---|---|---|---|
+| cut 1, all episodes | 72 | 75.0% | **+9,498** | 2,344 |
+| cut 1, opponents 2000+ | 54 | 66.7% | **+2,244** | 2,630 |
+| cut 2, all episodes | 65 | 70.8% | **+9,481** | 2,220 |
+| cut 2, opponents 2000+ | 45 | 62.2% | **+1,584** | 2,521 |
+
+The season margin overstates the steady-state margin by roughly **4x**. Our
+real standing against the field we now draw is a **~65% win rate at about
++2,000 bank** - a genuine edge, and a much narrower one than +9,498 suggests.
+It is also self-consistent: 65% against a 2,630 field implies a rating near
+2,730, which is what the board says.
+
+Two consequences. **Any future ladder comparison must drop the burst before
+computing anything** - it is 25% of a submission's episodes carrying 4x the
+margin, and two submissions with different burst lengths are not comparable at
+all. And it re-prices the target: closing the 195 points to #1 means going from
+~65% to roughly ~78% against a 2,650 field, which is a base-quality change, not
+a branch fix.
+
+On the original question the refined cut says the same thing as the crude one.
+Cut 2's ten worst episodes: **nine of the ten sit in the shared cell**, where
+the two agents are the same program, all against opponents rated 2,493-2,620.
+In the divergent cell above the burst it is cut 1 3-0 and cut 2 1-2, on three
+episodes each. Not settled, not worth a slot to settle, and both stay live.
