@@ -21,3 +21,5 @@ experiments/.meta_kernel/
 # Fetched on demand by experiments/route_v20.py - never committed.
 experiments/.v20_agent.py
 experiments/.v20_kernel/
+experiments/.decoded/
+experiments/.kernel_cache/
