@@ -1245,3 +1245,37 @@ justify or reject a change was measuring a quantity the ladder does not score.
 The win counts quoted alongside them were the load-bearing numbers all along.
 Rankings by margin should be re-read as rankings by win count wherever the two
 disagree - and they disagree here, on the largest candidate of the day.
+
+### The population check, and what it rejected
+
+Three candidates went to the same ten-opponent panel - eight tapes of opponents
+`55908478` actually drew on the ladder (rated 583-2,529) plus kaito v48 and
+indarkarhana - on seeds 200-215, both seats, 320 games each. Win count, since
+that is what the rating pays:
+
+| agent | panel record | vs `router_fam_yarn.py` head to head |
+|---|---|---|
+| `agents/router_fam_keys.py` (V4) | **280-40 (87.5%)** | 46-20 of 320 decided |
+| `agents/router_fam_yarn.py` (live, rank 18) | 278-42 (86.9%) | - |
+| Semyon Epanov's schedule | **262-58 (81.9%)** | **54-10 of 64** |
+
+**Semyon Epanov's schedule is rejected, and it is the sharpest counter-example
+this repo has recorded.** It beats our live agent in 84% of head-to-head games
+- decisive by every rule in this file - and is 5 points *worse* against the
+field. It is a counter to our specific schedule, not a better agent, and the
+ladder matches us against the field. Shipping on the head-to-head number alone
+would have traded 86.9% for 81.9% while every local reading said we had
+improved. cygn's schedule (52-12 head to head) has the same shape.
+
+This is the documented "head to head can bless a change that only works because
+the opponent is a copy of us", in its sharper form: the opponent need not be a
+copy, only a specific counter. **A head-to-head win against the incumbent is
+not evidence of a field improvement. Only the panel is.**
+
+V4 ships on a weaker claim than the ones this file usually makes, and the claim
+is stated as it is: **+2 games in 320 against the base is inside noise.** It is
+the base agent by construction on every draw outside its six route keys, it
+wins more than it loses on the rest (46-20), its worst single game against the
+base is -6,579 against an identical minimum bank, and the slot it occupies was
+otherwise holding `55916283`, which is the same program as the base on 91% of
+games. Weakly dominant, in a slot that was doing nothing.
