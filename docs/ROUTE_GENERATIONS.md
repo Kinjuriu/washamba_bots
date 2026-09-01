@@ -1279,3 +1279,108 @@ wins more than it loses on the rest (46-20), its worst single game against the
 base is -6,579 against an identical minimum bank, and the slot it occupies was
 otherwise holding `55916283`, which is the same program as the base on 91% of
 games. Weakly dominant, in a slot that was doing nothing.
+
+## The eviction, the wave, and the sell-advance rim (2026-09-02)
+
+### First, a correction: `55928263` evicted the best agent, not the duplicate
+
+The entry above says `55928263` "replaces the near-duplicate slot". It did
+not. The latest-2 rule evicts the **oldest** active submission, and the oldest
+was `55908478` - the 2,722 agent. `55916283` (the yarn2 cut) stayed active. By
+the 2026-09-01 19:55 UTC snapshot the team read **2,435.9, rank 186 of 7,216**,
+because that is the better of the two submissions that were actually active.
+The record of the evicted agent is frozen at 77 episodes; nothing about it is
+lost except its slot.
+
+### The field resubmitted on 2026-09-01, and our lineage stopped winning mirrors
+
+`55916283`, in steady state (opponent rated 2,000+), before and after the wave:
+
+| window | record | opponent rating |
+|---|---|---|
+| all 111 rated episodes | 45-66 (41%) | 2,519 |
+| **last 30** | **4-26 (13%)** | 2,490 |
+
+Not a rating artefact - 4 of 30 is p < 0.0001 against a coin. Every
+top-20 team's last submission date on the leaderboard is 2026-09-01.
+
+Replays of the last 24 episodes, our seat against the opponent's, action
+agreement by window:
+
+| group | n | agreement 0-71 / 144-399 / 400-718 | typical margin |
+|---|---|---|---|
+| **mirror: our schedule with a market rim** | 11 | 1.00 / 0.94-0.99 / 0.7-0.9 | **-96 to -2,311** |
+| a related opening variant | 3 | 0.83 / 0.86 / 0.61 | -790 to +247 |
+| our wool branch vs a different wool branch | 3 | 1.00 / 0.35 / 0.5 | -4,669 to -7,248 |
+| unrelated agents | 2 | 0.12-0.14 | -1,147, -14,893 |
+
+The mirror group is the story. Eleven different teams play our farm schedule
+**action for action** (first divergence at step 120, and that one is an
+order-of-orders change), and their per-product season SELL totals are ours to
+within 3 fertilizer and 2 strawberries. The whole difference is **timing**:
+
+| their SELL order relative to ours | count |
+|---|---|
+| same step | 1,969 |
+| 1 step earlier | 114 |
+| 2 steps earlier | 48 |
+| 3 steps earlier | 16 |
+| 5-6 steps earlier | 4 |
+| later | 8 |
+
+In a mirror match both agents hold the same goods on the same hour. Whoever
+sells first takes the quoted price; the other sells into the crash their order
+just made. That is the whole margin, a few hundred dollars out of ~100,000,
+and the ladder pays for the win regardless of its size. Front-running a copy
+of yourself by one hour is worth +23.6 rating per game.
+
+### The rim: pull the tape's own SELL orders forward, never change them
+
+`agents/router_fam_lead.py` = `router_fam_keys.py` plus: at step >= 144, look
+`LEAD_K` steps ahead in the currently selected tape; any SELL of a product
+other than WHEAT or FERTILIZER whose quantity the shed already holds is placed
+now and skipped at its original step. Tape orders first, cap 10. Quantities
+are untouched (verified: identical per-product season totals in a mirror
+game). WHEAT and FERTILIZER stay on schedule because the tape feeds and
+fertilizes out of them.
+
+Measured, `fam/run_agents.py`, both seats:
+
+| test | K=1 | K=3 | K=6 | K=12 |
+|---|---|---|---|---|
+| mirror vs `router_fam_keys`, seeds 200-215 (32 games) | 32-0, +1,907 | 32-0, +2,213 | 32-0, +1,854 | 32-0, +1,051 |
+| vs the 9 recorded front-runners as tapes, seeds 200-207 (144 games) | 84-58 | - | **144-0** | - |
+| base `router_fam_keys` on the same 9 | 64-80 | | | |
+
+The base loses to the recorded front-runners locally the way it does on the
+ladder (64-80). A one-step lead beats the one-step opponents and ties the
+rest; K=6 beats every observed lead (max 6) in every game. K=12 is already
+paying for the extra hours in lost recovery time (+1,051 against +2,213), so
+the lead is the smallest one that clears the field, not the largest one that
+still wins a mirror.
+
+Non-mirror panel (8 drawn-opponent tapes, seeds 200-215): K=6 **230-26 (89.8%)** against the base's **222-34 (86.7%)** on the same eight opponents, and never worse on any single one:
+
+| opponent | base | K=6 |
+|---|---|---|
+| 103310582_0 | 32-0 | 32-0 |
+| 103330604_1 | 32-0 | 32-0 |
+| 103366436_0 | 28-4 | **32-0** |
+| 103391169_1 | 22-10 | **26-6** |
+| 103395570_0 | 18-14 | 18-14 |
+| 103397845_0 | 28-4 | 28-4 |
+| 103404555_0 | 32-0 | 32-0 |
+| 103415744_1 | 30-2 | 30-2 |
+
+Selling an hour or two earlier is free against a non-mirror, and against the
+two panel opponents that share our late-season sells it is a win. No slot
+is being spent on a head-to-head-only claim this time: mirror, front-runners
+and panel all point the same way.
+
+**Size it honestly.** Mirrors were 11 of the last 24 draws and we lost 10 of
+them. Flipping those returns the lineage to roughly its pre-wave standing -
+rank ~20 - and it is only good until the field advances its own sells again.
+It is a repair, not the 195-point lever to #1. What it does establish is the
+class of lever that lever will come from: the recording underneath is now the
+field's commons, so the remaining edge is in the rim, and the rim's first job
+is the market.
