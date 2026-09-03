@@ -1472,11 +1472,11 @@ seeds 200-231 unless noted:
 | vs Renoir Vieira's tape | 14-2, +8,695 | 12-4 |
 | vs Renoir's router, head to head | **28-4, +6,832** | - |
 | rim K=6 vs K=0 on this base | K=0 loses **0-32, -1,946** | - |
-| panel, 6 of 8 read | 32-0, 29-3, 32-0, 32-0, **20-12**, 32-0 | 32-0, 32-0, 32-0, 32-0, 16-16, 32-0 |
+| panel, all 8 | **241-15**: 32-0, 29-3, 32-0, 32-0, **20-12**, 32-0, 32-0, 32-0 | 234-22 |
 
 The 20-12 is the same yhay-clade tape that read 11-21 against the first cut
 and 18-14 against every family agent; this is the first of ours to beat it.
-Two panel opponents were still running at commit time. The rim earns +1,946
+The rim earns +1,946
 a game on this base as it did on the last two: **the market layer transfers
 across recordings, the recordings do not.**
 
