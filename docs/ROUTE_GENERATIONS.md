@@ -1456,3 +1456,30 @@ same tests; whichever beats this one replaces it.
   only in comma lists; the INERT flag the harness prints is the tell.
 - Two multiprocessing pool runs hung with no output for over an hour. Every
   stage now runs under `timeout`.
+
+### Second cut: Yuan800's plan, and it beats the first cut 64-0
+
+The same builder on Yuan800 (#2, 2,925)'s 63 harvested tapes - all 63 share
+one opening, 8 first shops covered. `agents/router_yuan.py`, both seats,
+seeds 200-231 unless noted:
+
+| test | Yuan800 router | (Renoir's router, same tests) |
+|---|---|---|
+| vs `router_am.py` (gen six, live) | **64-0, +17,792, worst +496** | 63-1, +14,995 |
+| vs `router_fam_lead.py` | 32-0, +29,472 | 32-0, +19,436 |
+| vs its own source tape | 16-0, +10,185 | - |
+| vs ActiveMusyoku / Osaka / Zyy / dong & shen tapes | 16-0 each, +18k to +60k | 16-0 each |
+| vs Renoir Vieira's tape | 14-2, +8,695 | 12-4 |
+| vs Renoir's router, head to head | **28-4, +6,832** | - |
+| rim K=6 vs K=0 on this base | K=0 loses **0-32, -1,946** | - |
+| panel, 6 of 8 read | 32-0, 29-3, 32-0, 32-0, **20-12**, 32-0 | 32-0, 32-0, 32-0, 32-0, 16-16, 32-0 |
+
+The 20-12 is the same yhay-clade tape that read 11-21 against the first cut
+and 18-14 against every family agent; this is the first of ours to beat it.
+Two panel opponents were still running at commit time. The rim earns +1,946
+a game on this base as it did on the last two: **the market layer transfers
+across recordings, the recordings do not.**
+
+Order of the field as we can now measure it locally: Yuan800 > Renoir >
+ActiveMusyoku > wool lineage > family + rim > family. Each step is 10-30k a
+game. We were at the bottom of that ladder yesterday morning.
