@@ -1384,3 +1384,71 @@ It is a repair, not the 195-point lever to #1. What it does establish is the
 class of lever that lever will come from: the recording underneath is now the
 field's commons, so the remaining edge is in the rim, and the rim's first job
 is the market.
+
+## Route generation six: the field moved again, and the answer is a whole plan (2026-09-03)
+
+### The rim did its job and it was not enough
+
+`55948802` (the sell-advance rim) read **93-59 (61%)** in steady state after
+168 episodes against a 2,504 field, and every mirror match in its replays that
+the base used to lose by a few hundred was a win by 200-1,600. By 2026-09-03
+02:00 UTC it read **8-30 over its last 30** and the team sat at **rank 323**.
+The field's top ten resubmit daily; the family schedule is now a floor, not an
+edge.
+
+### What is beating us now, from 24 replays
+
+| opponent class | games | agreement with us 144-400 | margin |
+|---|---|---|---|
+| wool-route lineage (dong & shen, kaggle Osaka, Zyy7390, Gaiar) on YARN_STORE-first draws | 5 | 0.03 | -8k to -18k |
+| ActiveMusyoku (#28), Renoir Vieira (#24), Yuan800 (#2) | 5 | 0.03-0.04 | -8k to -32k, one game **-124,133** |
+| mirrors of our schedule | 6 | 0.94-0.99 | now +200 to +1,600 |
+
+**The -124,133 game is a collapse, not a loss.** Our agent acted every turn,
+banked 9,798, held under $500 through day 10, and let half the farm weed.
+A blind tape kept issuing its recorded purchases into a market the opponent
+had already crashed. This is the documented "a tape has no state to repair"
+failure, costing a full game.
+
+**The wool lineage is not a new plan - it is ours.** Action histograms of
+their tapes against the family schedule over 144-400 are identical to the
+unit (72 MELON sold, 56 PLACE, 112 HIRE...). Their edge on wool draws is that
+they stay on the family schedule and branch at 72 into a *better wool branch*
+than the yhay tapes we hand over to. `gen6_c` (family + their per-key
+branches, 24 keys, wool-first medoid at 72) is **42-10 of 64 vs the rim
+(+2,059)**, beats every recorded wool-lineage tape (10-6, 14-2, 16-0, 16-0,
+10-6, 16-0), and reads **238-18** on the panel against the rim's 230-26.
+Real, and worth maybe +8 win-rate points. Not the gap.
+
+### The whole-plan router, and a 35,000 head-to-head margin
+
+ActiveMusyoku's 47 harvested tapes share one opening (35 at >= 0.95 over
+0-71) and are route-keyed at 144 (same key 0.98, cross key 0.48). Structurally
+the plan is ours with a heavier late animal operation: **212 wool sold after
+step 400 against our 90**, FEED/CARE up a quarter. `experiments/tapes/make_whole.py`
+rebuilds it as a router: opening medoid, first-shop medoid at 72, exact key at
+144 only when it agrees >= 0.95 with the 72-143 segment already played.
+
+| test (both seats) | result |
+|---|---|
+| vs the live rim agent, seeds 200-231 | **64-0, mean +35,027, worst +7,963** |
+| vs its own source game as a tape, seeds 200-207 | 16-0, +4,790 (the splice is sound) |
+| vs dong & shen / Osaka / Zyy7390 / Gaiar tapes | 16-0 each, +30k to +53k |
+| vs Yuan800 (#2) tape | 2-14, -12,058 (the rim: 0-16, -27,022) |
+| vs Renoir Vieira (#24) tape | 2-14, -9,919 (the rim: 0-16, -17,748) |
+| 8-opponent panel | five of eight read before a pool hang: 32-0, 32-0, 32-0, 32-0 and **11-21** against `opp_103395570_0` (a yhay-clade tape from a rank-1,097 team, where every family-based agent reads 18-14). That one is a flag, not a blocker: it is one off-route tape, and the check that matters - am_a against the real `router_yhay.py` - is running. The last three panel opponents are unread at commit time. |
+
+This is the largest single jump this file has recorded, three times the Aug
+30 router adoption. It ships as `agents/router_am.py`. Yuan800's and Renoir's
+whole-plan routers (63 and 57 compatible tapes each) are built and under the
+same tests; whichever beats this one replaces it.
+
+### Two harness notes, so nobody repeats them
+
+- **A Windows path after a comma in `run_agents.py`'s candidate list is
+  mangled by MSYS** (`C:/Users/...` became `C;C:\Program Files\Git\Users\...`).
+  The env then loads nothing and the candidate plays **inert at $3,000 with
+  status DONE and no error**. 128 rows of one chain were that. Relative paths
+  only in comma lists; the INERT flag the harness prints is the tell.
+- Two multiprocessing pool runs hung with no output for over an hour. Every
+  stage now runs under `timeout`.
