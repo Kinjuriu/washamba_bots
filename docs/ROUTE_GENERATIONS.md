@@ -1436,7 +1436,11 @@ rebuilds it as a router: opening medoid, first-shop medoid at 72, exact key at
 | vs dong & shen / Osaka / Zyy7390 / Gaiar tapes | 16-0 each, +30k to +53k |
 | vs Yuan800 (#2) tape | 2-14, -12,058 (the rim: 0-16, -27,022) |
 | vs Renoir Vieira (#24) tape | 2-14, -9,919 (the rim: 0-16, -17,748) |
-| 8-opponent panel | five of eight read before a pool hang: 32-0, 32-0, 32-0, 32-0 and **11-21** against `opp_103395570_0` (a yhay-clade tape from a rank-1,097 team, where every family-based agent reads 18-14). That one is a flag, not a blocker: it is one off-route tape, and the check that matters - am_a against the real `router_yhay.py` - is running. The last three panel opponents are unread at commit time. |
+| 8-opponent panel | five of eight read before a pool hang: 32-0, 32-0, 32-0, 32-0 and **11-21** against `opp_103395570_0` (a yhay-clade tape from a rank-1,097 team, where every family-based agent reads 18-14). That one is a flag, not a blocker: it is one off-route tape, and the check that matters - am_a against the real `router_yhay.py` - is running. Read afterwards: the last two panel opponents are 32-0 and 32-0 (one was
+lost to a pool hang), am_a beats the real `router_yhay.py` **32-0, +31,802**
+on seeds 200-215, so the 11-21 was one off-route tape. And the rim earns its
+keep on this base too: the same router with `LEAD_K = 0` loses to it
+**0-32, -1,707**. Submitted 2026-09-03 03:14 UTC as `55973335`. |
 
 This is the largest single jump this file has recorded, three times the Aug
 30 router adoption. It ships as `agents/router_am.py`. Yuan800's and Renoir's
