@@ -1483,3 +1483,53 @@ across recordings, the recordings do not.**
 Order of the field as we can now measure it locally: Yuan800 > Renoir >
 ActiveMusyoku > wool lineage > family + rim > family. Each step is 10-30k a
 game. We were at the bottom of that ladder yesterday morning.
+
+### The flip: Yuan800's opening collapses against anyone who does not copy it exactly
+
+Within ten hours of shipping the Yuan800 router, its copies were on the
+ladder (GURU Prasaatha S, Khanh, Bx LLLLLLLL - 0.93 opening agreement) and
+beat `router_am` by 20-30k a game. Replayed locally against our Yuan800
+router they do worse than that: **0-16, -148,269**. Our bank in those games
+is **342**.
+
+Mechanism, traced step by step. Yuan800's recorded opening buys 53 WHEAT at
+step 0 and sells 48 at step 1 (~$300 net loss), then buys two cows, two
+sheep, five hands and 19 seeds and lands on **exactly $0**. Orders process in
+index lockstep against the opponent's list, so any opponent whose wheat
+orders shift our sale by a few dollars leaves us short at the last orders.
+The mirror leaves $29 and survives. The copies buy 13 and sell 8 - same held
+wheat, $300 more cash - and against them we land on $0, the day-1 hires fail
+for want of $1, 12 fresh melons go unwatered, 16 tiles are weeds by day 3.
+
+Guards were the wrong fix and the numbers say why. HIRE-first ordering
+prevents the collapse (5-11 from 0-16) but loses the mirror **4-28**: an
+order moved later in the list sells later in the lockstep, and that is the
+whole sell-first war again. PLANT-only-what-you-hold changes nothing here.
+
+The right fix is the copies' fix. `agents/router_yuan_nf.py` = the Yuan800
+router with step 0 BUY 53 -> 13 and step 1 SELL 48 -> 8. Everything else
+identical.
+
+| test (both seats) | no-flip router |
+|---|---|
+| vs `router_yuan.py` (our live agent), 32 games | **32-0, +150,363** |
+| vs Yuan800's own source tape | 16-0, +157,763 |
+| vs Renoir Vieira's tape | 16-0, +94,681 |
+| vs the GURU copy that collapsed us | 8-8, +3,512 |
+| vs the Khanh copy | 16-0, +14,135 |
+| vs the two other new winners | 16-0 +35,723, 16-0 +163,545 |
+| vs `router_am.py` | 14-2, +20,551 |
+| vs `router_fam_lead.py` | 16-0, +5,340 (the flip router: 32-0, +29,472) |
+| vs `router_yhay.py` | 8-8, +14,419 |
+| vs the yhay-clade panel tape | 10-6, +11,091 |
+
+Read it straight: **every agent still running the recorded flip - Yuan800,
+Renoir, our own live submission - collapses against this one.** The cost is
+a thinner margin against the family lineage (still 16-0) and a coin flip
+against the yhay lineage. Yuan-lineage agents were 6 of `router_am`'s last
+24 opponents and rising; family 7; the rest scattered.
+
+Generalises, and it is the sharpest form yet of "a tape has no state to
+repair": **a recorded plan that lands on $0 is a plan that only works
+against its own recording.** Check the cash floor of any harvested opening
+before shipping it, and if it touches zero, look at what its copies changed.
