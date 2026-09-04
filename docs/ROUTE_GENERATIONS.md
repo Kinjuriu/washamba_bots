@@ -1533,3 +1533,65 @@ Generalises, and it is the sharpest form yet of "a tape has no state to
 repair": **a recorded plan that lands on $0 is a plan that only works
 against its own recording.** Check the cash floor of any harvested opening
 before shipping it, and if it touches zero, look at what its copies changed.
+
+## Route coverage: the router's own missing keys were worth ~16,600 bank a season
+
+`router_yuan_nf` held 38 of the 64 possible `first__second` shop keys. The other 26
+fell back to `W_SIB[first]` - a route recorded for a *different* second shop. That
+fallback is not free, and it is the largest single lever measured on this base.
+
+Probed over 64 seeds in self-play (`cov/probe.py`), reading the key at step 144:
+
+| | seeds | mean bank |
+|---|---|---|
+| exact key | 34 | 92,628 |
+| fallback to sibling | 30 | 76,038 |
+
+**47% of seasons fell back, each costing about 16,600 bank.** That maps onto the
+ladder record directly. Over `55992408`'s first 194 rated episodes our own bank -
+not the opponent's - predicts the result:
+
+| our bank | n | win rate |
+|---|---|---|
+| 60-80k | 37 | 54% |
+| 80-100k | 46 | 72% |
+| 100-120k | 44 | 68% |
+| 120-140k | 29 | 90% |
+| 140k+ | 23 | 100% |
+
+The 52 losses in those 194 episodes are spread across ~48 *different* teams, the
+worst is only -27k, and in most of them our own bank collapses rather than the
+opponent playing well. **This is a within-plan variance problem, not a lineage
+problem** - which is why the fix is coverage on the existing base rather than
+cloning the tier above.
+
+Filling the keys needed 343 more Yuan800 replays (`top/harvest_par.py`, six
+threads; ~1 episode/min, bandwidth-bound at ~31 MB each). All 26 missing keys
+found a tape at ag143 = 1.00 against their first-shop medoid: **64 of 64 keys**.
+
+`experiments/tapes/augment_keys.py` *adds* keys only - it never rebuilds a medoid.
+That matters: re-running `make_whole.py` on the larger manifest would regenerate
+the opening medoid and bring the wheat flip back. The script asserts the opening
+tape is unchanged and prints `open[0]`/`open[1]` for eyeballing.
+
+Result vs the live `router_yuan_nf`, 64 seeds x 2 seats:
+
+| seeds | games | record | mean |
+|---|---|---|---|
+| exact-key (already covered) | 68 | 5-5, 58 exact ties | +0 |
+| fallback (the fix applies) | 60 | **38-12** | **+1,847** |
+
+Nothing that already worked moved; all the gain is where the gap was. The 58 exact
+ties are the evidence that no medoid shifted.
+
+**A reward floor on the added tapes is worse, and the reason is worth keeping.**
+The losses cluster on keys whose only tape came from a weak Yuan800 season (seed 57's
+tape banked 70k and lost -11,603). Gating on reward >= 80k drops 11 keys and does
+remove that tail - min bank barely moves, 40,960 -> 41,469 - but it costs more in
+forgone wins than it saves: 25-9 / +84,940 against full coverage's 38-12 / +110,799.
+Since the ladder pays for wins, full coverage wins on both counts. Tuning the floor
+further would be fitting a hyperparameter to 64 seeds; not done.
+
+Panel: 62-2 (+5,488) vs `router_fam_lead`, gate `['DONE','DONE']`. Cash floor is
+unchanged by construction - the added tapes only act from step 144 and the season
+minimum lands at step 101.
