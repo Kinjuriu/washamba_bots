@@ -78,21 +78,16 @@ decides the 1700–1900 band where 80% of matches are under 5,000 apart).
 
 ## What is in git vs local
 
-**Committed with this session** (`9f0f36c`, so the next session can bisect):
-`mydocs/FACTS.md` (acceptance bar + T1 + rewritten rows),
-`mydocs/AGENT_BUILDING_PROTOCOL.md` (contested judge), `CLAUDE.md`,
-`.cursor/rules/agent-facts.mdc`, `.gitignore` (throwaway no longer
-ignored), `experiments/tape_profile.py`, `experiments/_facts_v20.py`
-(baseline *before* T1 — the losing shape, on purpose), plus the small
-protocol pointers in `CONTRIBUTING.md` / `docs/EXPERIMENT_WORKFLOW.md`.
+This branch is the **lab checkout**. Clone/pull
+`investigation/animal-diagnosis-and-route-v20-bench` on the other
+machine — do not merge or PR it onto `main`. When the throwaway wins,
+port only the winning `main.py` (and any spec/tool you still want
+shipped) onto a **fresh branch from then-current `main`**.
 
-**Follow-up (same day, other-computer move):** the “stays local”
-convention broke the flow. `tape_profile.py` is in git but its tapes
-were ignored; HANDOFF and the four T1 tracers were on disk only. Those
-are now versioned. Still local: `mydocs/scratch/`, old plan notes,
-and the historical `_facts_v20_{B1,R1,…}.py` pile (one-off experiments,
-not the shape). On the other machine: `git pull` this branch, then
-read `FACTS.md` + this file. Do not USB-copy the archaeology.
+**On this branch:** `9f0f36c` (FACTS / protocol / throwaway /
+`tape_profile.py` / contested judge) then `95c296b` (HANDOFF, TOOLS_GUIDE,
+tapes, four T1 tracers). Still untracked: `mydocs/scratch/`, old plan
+notes, the historical `_facts_v20_{B1,R1,…}.py` pile.
 
 ## Open
 
