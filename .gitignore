@@ -7,12 +7,16 @@ __pycache__/
 replay*.json
 experiments/*.json
 
-# Personal working files — not shared with the team
+# Personal working files — not shared with the team.
+# The living spec, diary, method, tool list, and v20 tapes *are* the
+# session flow: another checkout cannot run tape_profile.py or pick up
+# T1 without them. Scratch / old plan notes stay local.
 /mydocs/*
-# Living spec + method: versioned so every session (and teammate) has them.
-# HANDOFF.md stays local (session diary).
 !/mydocs/FACTS.md
 !/mydocs/AGENT_BUILDING_PROTOCOL.md
+!/mydocs/HANDOFF.md
+!/mydocs/TOOLS_GUIDE.md
+!/mydocs/tape_transcripts/
 
 # Replay JSONs pulled from the host episode dumps (~30MB each)
 replays/
