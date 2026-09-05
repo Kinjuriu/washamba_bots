@@ -23,6 +23,13 @@ A change is not done because it looks right, and not because the suite is
 green. It is done when you have measured the number the change was supposed
 to move.
 
+**Shape vs knob.** From 2026-09-01, an agent-shape change starts in
+`mydocs/FACTS.md` (add / remove / supplement a row, then a throwaway).
+`docs/EXPERIMENT_WORKFLOW.md` below is how we measure **knobs inside** a
+fact-set that already holds. Do not “change one thing” on shipped
+`main.py` as a way to discover architecture. See
+`mydocs/AGENT_BUILDING_PROTOCOL.md`.
+
 ## Evidence standard
 
 **One episode is not evidence.** Run-to-run spread is enormous: the same

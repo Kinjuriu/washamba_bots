@@ -8,7 +8,11 @@ replay*.json
 experiments/*.json
 
 # Personal working files — not shared with the team
-/mydocs/
+/mydocs/*
+# Living spec + method: versioned so every session (and teammate) has them.
+# HANDOFF.md stays local (session diary).
+!/mydocs/FACTS.md
+!/mydocs/AGENT_BUILDING_PROTOCOL.md
 
 # Replay JSONs pulled from the host episode dumps (~30MB each)
 replays/
@@ -21,3 +25,22 @@ experiments/.meta_kernel/
 # Fetched on demand by experiments/route_v20.py - never committed.
 experiments/.v20_agent.py
 experiments/.v20_kernel/
+
+# The animal-first shape throwaway (mydocs/FACTS.md) is versioned on
+# purpose: seven sessions of "audit CLEAR" hid a falling contested bank and
+# there was no earlier revision to bisect against. Keep it tracked.
+# experiments/_facts_v20.py
+
+# Throwaway MAX_ANIMALS=5 copy and cliff-trace helper. Never commit.
+experiments/_max5.py
+experiments/_max10.py
+experiments/_tape_cal.py
+experiments/_cliff_dump.py
+experiments/_facts_v20_pre_f20.py
+experiments/_facts_dump.py
+experiments/_facts_trace.py
+experiments/_facts_loss_diag.py
+experiments/_facts_seed8.py
+experiments/_facts_escape.py
+experiments/_facts_feed_miss.py
+experiments/_facts_leftover.py

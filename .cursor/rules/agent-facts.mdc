@@ -1,0 +1,31 @@
+---
+description: Fact-first agent building. Shape edits start in mydocs/FACTS.md; do not patch main.py until counters hold.
+alwaysApply: true
+---
+
+# Fact-first agent building
+
+Before any shape edit, read `mydocs/FACTS.md` and `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+
+Classify first:
+- **Fact** — add / remove / supplement a row in `FACTS.md`, then the throwaway. Not a sweep.
+- **Knob** — number inside rows that already hold. `docs/EXPERIMENT_WORKFLOW.md` only.
+- **Slogan** — “match v20”, “STRAW pin”, “raise MAX_ANIMALS”. Expand to a fact or drop.
+
+Do not patch shipped `main.py` until a throwaway (`experiments/_*.py`) shows the named counters. Diff the throwaway against **every** row before running. A half-stack that breaks a row you already had (hour-0 batch → d0 **1/1**) is a failed run, not a partial win.
+
+Judge fact counters before bank, and judge them **contested vs `agents/route_v20.py` on seeds 0 and 8** — that is the acceptance bar. `starter` is a crash/escape smoke check only; it never sells and never buys wheat, so it blessed seven sessions during which the contested bank fell from ~51k to ~8k. Run `experiments/tape_profile.py` (per-day crew / herd / plant / sell against the tapes) before the bank: a row whose day is off the tape is a failing row even when its own counter passes. Do not use `bptk.py` for pens, travel, or animal cadence.
+
+Path A is shipped `main.py`. Path C is parked. Do not paste tape orders onto crop-first gates.
+Do not paste Path A crop-first gates into the animal-first throwaway (same failure mode as Path C).
+
+Contested `$`: use `experiments/_trace_cashflow_v20.py` (lockstep) and
+`experiments/_trace_straw_wool.py` / `_trace_d10_melon.py` for path stages.
+**Live card: timing card T1** in `FACTS.md` — rewrite rows 9/15/17/21/22/
+27/28/39 and add 43 so each names the tape's day, in five steps (fert
+cadence → wheat as the empty-tile default → STRAW d5–8 → herd ladder →
+crew). Facts 40/41/42 are **closed, not paused**: they were buying back
+with sell paths, fert and crew walks what those rows gave away. Fact 34
+d10 MELON DROP holds; fact 38 is folded into 22; fact 39's NW STRAW ban
+is withdrawn. The throwaway `experiments/_facts_v20.py` is tracked in
+git — commit it with each step so a regression can be bisected.

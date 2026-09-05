@@ -1,11 +1,19 @@
 # Experiment Workflow
 
-This is the sequence every strategic change to `main.py` goes through, from
-noticing something to (maybe) putting it on the ladder. It exists because
-this repo has a documented habit of shipping changes that looked right,
-passed the suite, and turned out to be noise or a regression — see
-`CONTRIBUTING.md`'s evidence standard and the dead ends recorded in
-`CLAUDE.md` (`BUY_LAND`, a denser crew — both tested twice, both losses).
+This is **step 4** of `mydocs/AGENT_BUILDING_PROTOCOL.md`: how we measure
+a knob **inside** a fact-set that already holds. The live spec is
+`mydocs/FACTS.md`. If the change is a new farm invariant (pens not
+cash-gated, fert sold before the cow, wheat reserve keyed on owned), it
+is a fact — edit that table and a throwaway first. Do not use this
+sequence to discover architecture.
+
+This is the sequence every strategic change to `main.py` goes through
+once the facts hold, from noticing something to (maybe) putting it on
+the ladder. It exists because this repo has a documented habit of
+shipping changes that looked right, passed the suite, and turned out to
+be noise or a regression — see `CONTRIBUTING.md`'s evidence standard and
+the dead ends recorded in `CLAUDE.md` (`BUY_LAND`, a denser crew — both
+tested twice, both losses).
 
 For **who's submitting what and when**, see the live thread:
 **[Issue #4](https://github.com/Kinjuriu/washamba_bots/issues/4)**. This

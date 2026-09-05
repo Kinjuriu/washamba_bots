@@ -2,6 +2,36 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## How we build (from 2026-09-01)
+
+Shape is specified in **`mydocs/FACTS.md`**, not as slogans (Path A–C) or
+knob sweeps. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`. Diary:
+`mydocs/HANDOFF.md`.
+
+Before a shape edit: add / remove / supplement a row in `FACTS.md`, then
+diff a throwaway `experiments/_*.py` against **every** row, then measure
+the named counters. Do not patch shipped `main.py` until those counters
+hold. `docs/EXPERIMENT_WORKFLOW.md` is for knobs **inside** a fact-set
+that already holds — not a substitute for writing the facts.
+
+Path A **is** shipped `main.py`. Path C is parked. Do not paste v20 tape
+orders onto crop-first gates. Do not paste Path A crop-first gates into
+the animal-first throwaway (same failure as Path C). Do not use `bptk.py`
+for animal cadence.
+
+**A row is judged contested against `agents/route_v20.py` on seeds 0 and
+8, not against `starter` (2026-09-05).** Seven sessions of "audit CLEAR"
+on the built-in judge sat on top of a contested bank falling from ~51k to
+~8k: the shape was right in composition and **4–6 days late on every
+producing asset**, and no counter in `FACTS.md` measured *when*. The four
+dollar gaps (STRAWBERRY −29.6k, WOOL −25.3k, WHEAT-net −20k, FERTILIZER
+−4.1k on seed 0) each trace to a row added as an escape-defence patch
+against the tape, and the "STRAW acreage bind" three sessions chased was
+self-inflicted by two of them. `experiments/tape_profile.py` now diffs
+crew, herd, plantings and sells per engine day against the tapes — run it
+before the bank. Live next lever: **timing card T1** in `mydocs/FACTS.md`
+(rows 9/15/17/21/22/27/28/39 + 43). Facts 40–42 are closed, not paused.
+
 ## What this repo is
 
 An agent for the Kaggle **Kaggriculture** simulation competition: two agents each manage a virtual farm over a 30-day season (720 turns, 24/day) and compete for the highest bank balance. There is no static train/test set — everything is scored via live episodes against other agents plus a final Bradley-Terry tournament.
