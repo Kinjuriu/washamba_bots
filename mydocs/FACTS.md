@@ -79,42 +79,53 @@ so there was no revision to bisect. Commit it with each fact card.
 | `partial` | Some of the invariant holds; the named counter still fails. |
 | `true` | Shipped code already affords it. Throwaway must not break it. |
 
-## Throwaway status (2026-09-05, after the timing diagnosis)
+## Throwaway status (2026-09-06, T1 vs v20 still ~75k)
 
-`experiments/_facts_v20.py` clears facts **1–36 + 38 plant half + 39
-starter claim** on seeds 0 and 8 (`_facts_prerun_audit.py`: 28/28 source,
-74/74 counter) — **and loses contested by ~85k / ~51k.** The audit is not
-wrong; it measures the wrong thing. See the acceptance bar above.
+`experiments/_facts_v20.py` has the funding stack, the d5–d6 STRAW/wheat
+supplement, and fact 44 (shop mix picks species; no yarn → sheep stay at
+2). Contested vs `route_v20` **banks: 40,236 / 55,411**. That is
+**−74k / −78k versus v20** (114,305 / 133,123). The fact-44 **−570**
+is only versus our prior throwaway (40,806), not versus v20 — park it.
+Two WHEN supplements of the d11 burst failed (hold-burst: shop reroll;
+d12h0 slack: escapes). Do not revert the yarn lock. Do not hunt a
+third fert-only bind. Throwaway is back on hold-6 + `MAX_ANIMALS=18`
+(15/17 align dropped). Fact 33 first-buy reserve 0 is dropped
+(same 28,751 / 36,766 / herd 18 as the land-reserve bundle).
 
-**Contested (seed 0, executed `$`, `_trace_cashflow_v20.py`):** the whole
-gap is four inflow streams, and each one traces to a row in this file
-that was written *against* the tapes as an escape-defence patch:
+Timing both seeds (same shape): wheat **d0 = 7** (tape 7); STRAW d5
+**1/4**, d6 **5/8**, d7 **0/4**, d8 **1/4**; d11 carpet **15**; MELON after
+d0 = 0; land **[8, 11]**. Seed-8 town/yarn split is closed by fact 44.
 
-| stream | us | v20 | gap | row that causes it |
+**Contested executed `$` (2026-09-06, `_trace_cashflow_v20.py`):**
+
+| stream | seed 0 gap | seed 8 gap | vs pre-T1 | next? |
 |---|---|---|---|---|
-| STRAWBERRY | 17.3k | 46.9k | **−29.6k** | 27 + 39 (SW carpet only; NW/NE forbidden) |
-| WOOL | 21.6k | 46.9k | **−25.3k** | 15 (herd 6 through d10; tape is 14 by d10) |
-| WHEAT net | −16.2k | +3.7k | **−20k** | 22 (all feed bought; tape grows it from d0) |
-| MELON | 12.5k (40 seeds) | 17.7k (17 seeds) | −5.3k | 27 (NE refills d7–11 into the crashed post-wave market) |
-| FERTILIZER | 10.5k | 14.6k | −4.1k | 9 + 21 (hold for STRAW, never buy back) |
+| STRAWBERRY | **−43.5k** (18.3 / 61.8) | **−38.7k** (20.3 / 59.0) | widened (−29.6k) | **live** (27/30) |
+| WHEAT net | −12.2k | −16.6k | smaller (−20k) | after STRAW `$` |
+| MILK | −5.6k | **−11.4k** | new (no-yarn cows) | with herd (15) |
+| WOOL | −6.5k | −3.0k | smaller (−25.3k) | with herd (15) |
+| MELON | −3.2k | −3.2k | smaller (−5.3k) | parked |
+| FERTILIZER | −1.4k | −1.4k | smaller (−4.1k) | parked — no third fert bind |
 
-`tape_profile.py` seed 0 says the same thing in timing: crew matches
-(±2), **herd −7 at d10** then overshoots — **21 `BUY_ANIMAL` against an
-18 cap**, with the placed herd *falling* 18 → 16 over d25–27 (animals
-lost late, contested; `starter` reads 0 escapes on the same build) —
-**WHEAT −7 on d0 and −5…−13 every day after**, **STRAW −4/−8/−4/−4 on
-d5–8**, **MELON +8/+3/+20/+7 replanted d7–11 against a tape that plants
-melon once**.
+The pre-T1 table (STRAW 17.3/46.9, WOOL 21.6/46.9, wheat −16.2/+3.7,
+MELON 12.5/17.7, fert 10.5/14.6) is **stale**. Do not judge against it.
+Funding-stack seed 0 was STRAW −19.8k / WOOL −3.5k / wheat −9.7k /
+fert −3.0k at bank 16,628 — streams better, bank worse. The d5–d6
+supplement raised the bank and **widened STRAW `$`**.
 
-The acreage bind the last three sessions chased (facts 40/41/42, peak
-STRAW field 22|34) was therefore **self-inflicted by rows 27/39**, not a
-crew or yield limit. Do not reopen 40–42 as written; they are attempts to
-buy back with sell paths and fert what the timing rows gave away.
+`tape_profile.py` still: crew ±2; **herd −8 at d10** (held at 6; tape
+14); STRAW d6 holds half-tape, d7/d8 miss; d5=1 is structural (2
+empties + BUILD — do not judge d5 against half-tape); wheat d0 holds;
+MELON after d0 = 0. Do not reopen 40–42 (crew-wide walk / DROP / SW
+fert).
 
-**Live card: timing card T1** — rows 9 / 15 / 17 / 21 / 22 / 27 / 28 / 39
-rewritten to the tape's days, plus 43 (crew). One diagnosis, but land it
-in the five steps the card names, not one commit.
-**Do not merge Path A.** Do not port `main.py`.
+**Live card: fact 33 first-buy reserve dropped.** Waive-alone
+hit 28,751 / 36,766, land [7, 11], herd 18 — same pair as the
+bundle. 15/17 align stays dropped. Throwaway is hold-6 + cap 18
+(40,236 / 55,411, land [8, 11]). Do not retry first-buy waive,
+the bundle, d6 wool DROP, the tape ladder, or cap 14 alone.
+Fact 44 −570 is parked. **Do not merge Path A.** Do not port
+`main.py`.
 
 The `Shipped` column below is still about **shipped `main.py`**, not the
 throwaway. Do not read throwaway-clear as shipped. K=3; fact 32 bar ≥14.
@@ -185,18 +196,18 @@ tiles wheat-flood) without importing Path C.
 | ID | Invariant | When | Counter | Code that must afford it | Shipped |
 |---|---|---|---|---|---|
 | 21 | **Buy fertilizer back to apply it, in the tens per season** (tape: 35–64 `BUY_PRODUCT FERTILIZER`, alongside 280–360 sold). Fact 9 sells the flow because holding it is a liquidity cost; this row buys the few units a tile actually wants at the hour it wants them. That is not the arbitrage `CLAUDE.md` rules out (buy-the-dip / sell-the-recovery, −1,486), and not shipped `main.py`'s liquidation-era incidental buying — it is fert-on-demand for `FERTILIZE`. | when a tile is fertilized and the shed is empty of fert | `BUY_PRODUCT FERTILIZER` between ~20 and ~70 for the season; `FERTILIZE` count does not fall when fact 9 starts selling the flow | `decide_market_actions` top-up sized to the turn's `FERTILIZE` demand, never to a stock target. | false |
-| 22 | **WHEAT is the default crop on any empty tile, from day 0** (tape: 7 on d0, then a continuous 3–14/day to d28, ~190 plantings and ~190 `BUY_SEED WHEAT` a season). Its harvest is what feeds the herd; `BUY_PRODUCT` (facts 5, 18, 19) is the top-up, not the supply. Buying every mouthful instead cost **−20k net** contested on seed 0 (we paid 16.9k for wheat and sold 0.7k; v20 paid 47.4k and sold 51.1k — and its churn is what pushes the price we pay). Still forbidden, and this is the distinction the row exists for: no wrapper that force-plants because **stock is low** or `tiles < animals` (Path C F7), and no blocked-MELON→WHEAT mapping. Default-crop-on-empty is keyed on the **tile**, not on the shed. | season, every empty tile without a window occupant | `tape_profile.py` PLANT WHEAT within ~±3/day of tape from d0; `PLANT WHEAT` does not scale with herd size; `SELL WHEAT` > 0 by d2 | `choose_crop` / empty-tile plant: WHEAT is the fallback pick everywhere, including SW and NE, whenever no window occupant (27) claims the tile. `BUY_SEED WHEAT` follows plantings. | partial (no force-wheat; fact 38 plant half is home-only and d13+) |
+| 22 | **WHEAT is the default crop on any empty tile, from day 0** (tape: 7 on d0, then a continuous 3–14/day to d28, ~190 plantings and ~190 `BUY_SEED WHEAT` a season). Its harvest is what feeds the herd; `BUY_PRODUCT` (facts 5, 18, 19) is the top-up, not the supply. Buying every mouthful instead cost **−20k net** contested on seed 0 (we paid 16.9k for wheat and sold 0.7k; v20 paid 47.4k and sold 51.1k — and its churn is what pushes the price we pay). Still forbidden, and this is the distinction the row exists for: no wrapper that force-plants because **stock is low** or `tiles < animals` (Path C F7), and no blocked-MELON→WHEAT mapping. Default-crop-on-empty is keyed on the **tile**, not on the shed. **d0 leftover after the melon opening (~12) is WHEAT** — fact 36's bulk and this restock are not exclusive; an `if melon_opening: elif wheat` chain left 9 NW tiles empty on d0 (measured seed 0). Plant falls through to WHEAT when melon budget is exhausted. | season, every empty tile without a window occupant | `tape_profile.py` PLANT WHEAT within ~±3/day of tape from d0 (d0 itself > 0); `PLANT WHEAT` does not scale with herd size; `SELL WHEAT` > 0 by d2 | `choose_crop` / empty-tile plant: WHEAT is the fallback pick everywhere, including SW and NE, whenever no window occupant (27) claims the tile. `BUY_SEED WHEAT` follows plantings and emits **alongside** d0 `BUY_SEED MELON`, not behind it. | partial (no force-wheat; fact 38 plant half is home-only and d13+) |
 | 23 | Never plant TOMATO. | season | `PLANT TOMATO` = 0 | `CROP_PLANTING_WINDOWS["TOMATO"] is None` / `choose_crop`. Independent of carrying the rest of the window gate as a fact. | true |
 | 24 | Do not skip CARE to free crop turns. | daily | wool/milk sold does not collapse | `choose_unit_action`: no “skip CARE if STRAW ready / bonus ≥ 2” (Path C F5). | true |
 | 25 | Do not mutate `WORK_TILES_PER_HAND` or inject forced extra `HIRE`s. | ever | no F6 spiral | `decide_hire_orders` stays work+ceiling+affordability. Facts 4 and 12 are *when* hires list relative to buys, not a density mutation. | true |
 | 26 | Do not gate the n-th animal on `wheat ≥ reserve × (owned+1)` or `k × (owned+1)` cash. | buy days | calendar (15) still fires | no F8-class floor in `decide_animal_market_actions`. Soft `wheat_stock ≤ 0` as escape-prevention is allowed; a hard buffer before scale is not. | true |
-| 27 | **STRAW is an early crop on home and the first extra, and the SW carpet is its second wave, not its only one.** Tape: STRAW plantings **d5 ≈4, d6 ≈8, d7 ≈4, d8 ≈4** on NW/NE, then the d11 carpet ≈15. STRAW first-yields 10 days out, so a d5 planting sells from ~d15 (tape `SELL STRAWBERRY` starts d15) and a d11 one from ~d21 — the early wave is where the season's strawberry money is. Carpet-only cost **−29.6k** contested on seed 0 (peak field 22 vs 34). **MELON is planted once, on d0 (12), and never replanted** — the old row's NE-refill-during-window put 31 extra melons in the ground on d7–11 that ripen into the market our own d10 wave just crashed, for **−5.3k on 23 extra seeds**. Not a pin of 50. | d5–8 on NW/NE; d11 carpet on SW | `tape_profile.py` PLANT STRAWBERRY ≥ half the tape on **each** of d5–d8; d11 carpet still ≥14; **PLANT MELON after d0 = 0**; STRAW field peak ≥ 30 | empty-tile PLANT prefers STRAW on home/NE leftover d5–8 and on SW on the carpet day; MELON is a d0-only opening (fact 36) and is never re-preferred; WHEAT (22) fills whatever STRAW's seed budget does not. BUILD still beats PLANT (fact 16). | false |
+| 27 | **STRAW is an early crop on home and the first extra, and the SW carpet is its second wave, not its only one.** Tape: STRAW plantings **d5 ≈4, d6 ≈8, d7 ≈4, d8 ≈4** on NW/NE, then the d11 carpet ≈15. STRAW first-yields 10 days out, so a d5 planting sells from ~d15 (tape `SELL STRAWBERRY` starts d15) and a d11 one from ~d21 — the early wave is where the season's strawberry money is. Carpet-only cost **−29.6k** contested on seed 0 (peak field 22 vs 34). **MELON is planted once, on d0 (12), and never replanted** — the old row's NE-refill-during-window put 31 extra melons in the ground on d7–11 that ripen into the market our own d10 wave just crashed, for **−5.3k on 23 extra seeds**. Not a pin of 50. **d5=1 is structural** (2 empty NW tiles, BUILD takes 1 for the pen — fights fact 16); do not judge d5 against half-tape. | d5–8 on NW/NE; d11 carpet on SW | `tape_profile.py` PLANT STRAWBERRY ≥ half the tape on **each** of d6–d8 (d5 is 1 by construction); d11 carpet still ≥14; **PLANT MELON after d0 = 0**; STRAW field peak ≥ 30 | empty-tile PLANT prefers STRAW on home/NE leftover d5–8 and on SW on the carpet day; MELON is a d0-only opening (fact 36) and is never re-preferred; WHEAT (22) fills whatever STRAW's seed budget does not. BUILD still beats PLANT (fact 16). **K units** may walk to first-extra empty when occupant is STRAW (d5–8); not a crew-wide walk (fact 42). | false |
 | 28 | When a unit **stands on** empty leftover, it plants that quadrant's window occupant (STRAW d5–8 / d11 carpet per 27, CARROT d21–25) and otherwise **WHEAT** (fact 22) — tiles no longer wait empty between windows, which is what left SW producing nothing for most of the season. Do **not** walk the whole crew onto a far quadrant ahead of local first-water (that is the fact 40/42 escape mode, and it stays closed). | any quadrant; underfoot | SW `PLANT WHEAT` > 0 between windows; end SW weeds not a cascade; 0 escapes contested | `leftover_occupant` plus WHEAT fallback on every quadrant; no crew-wide walk to a far empty. | false |
 | 29 | At most **K** units (start K=2) may work later-extra leftover in a turn **while SW is still locked** (before the engine day of the second `BUY_LAND`). Each plants only if it can water that tile before day end (`hour <= 21`: plant this hour, water next). After `PLANT`, WATER underfoot before walking to another empty. Everyone else keeps NE/home upkeep. On the **unlock day** (fact 32), K does not cap planters — full crew may carpet SW. Assignment, not hire-density (fact 25). | later extras; occupant windows; hour ≤ 21; pre-unlock only for K | d12 SW STRAW occupancy > 0 on seeds 0 and 8; each landed SW plant is watered the same day (0 night deaths from that day’s SW plants); NE STRAW > 0 by d8 (fact 27) without a crew-wide walk; NE weeds not a cascade vs ~5 at d12; d0 4/4; 0 escapes contested | `sw_slots` pre-unlock; K-unit later-extra empty walk after urgent water/harvest, **before** fert/weed; local WATER ignores `claimed`; refuse SW `PLANT` at `hour >= 22`. Unlock day uses fact 32, not `sw_slots`. | false |
-| 30 | **STRAW seed cadence (unlock halves):** held STRAW must not sit at **0** across whole days while SW still needs seed — pre-unlock dribble so ≥1 `BUY_SEED STRAW` lands before unlock day, and when SW is unlocked with empty later-extra STRAW occupant, restock outranks MELON. **Widened by T1:** STRAW seed must also be held from ~d4 so fact 27's NW/NE d5–8 wave can land, not only for the SW carpet — the “dribble” is now a real early demand. Not `straw_seed_supplement` (blunt always-buy). Not a STRAW pin. | d5–12; especially pre-unlock + d9–11 SW empty | held STRAW > 0 on ≥1 turn/day in d5–10; ≥1 `BUY_SEED STRAW` before SW unlock day; with SW unlocked d9–11: held STRAW > 0 before first SW `PLANT` attempt; MELON restock does not block those buys | `fact30_wants_straw_seed`: SW-empty or pre-unlock seed-habit only — not post-MELON home refill; same post-sell cash rules as facts 10–11 when buys compete with sells. | false |
+| 30 | **STRAW seed cadence (unlock halves):** held STRAW must not sit at **0** across whole days while SW still needs seed — pre-unlock dribble so ≥1 `BUY_SEED STRAW` lands before unlock day, and when SW is unlocked with empty later-extra STRAW occupant, restock outranks MELON. **Widened by T1:** STRAW seed must also be held from ~d4 so fact 27's NW/NE d5–8 wave can land, not only for the SW carpet — the “dribble” is now a real early demand. Sized to **empty STRAW-occupant tiles** (cap ~8, tape d6), not `MAX_SEED_STOCKPILE=3`. Do **not** apply `MIN_CASH_RESERVE_FOR_SEED_BUYING` (450) — that MELON-trough floor is why d5 `buyS=0` at $527 with 5 empty NW tiles (need $550 for one $100 seed). Same-turn `plant_budget` credit, not only unlock morning. Not `straw_seed_supplement` (blunt always-buy). Not a STRAW pin. Do not reorder around the d5 cow (facts 10–13 stay). | d5–12; especially pre-unlock + d9–11 SW empty | `tape_profile.py` PLANT STRAW ≥ half the tape on **each** of d6–d8 (d5=1 structural); held STRAW > 0 on ≥1 turn/day in d5–10; ≥1 `BUY_SEED STRAW` before SW unlock day; with SW unlocked d9–11: held STRAW > 0 before first SW `PLANT` attempt; MELON restock does not block those buys | `fact30_wants_straw_seed` + `straw_wave_restock_quantity`: empty STRAW-occupant demand, no 450 floor; `plant_budget` credits same-turn `BUY_SEED STRAW`. | false |
 | 31 | **SW unlock morning (market preamble):** on the engine day of the second `BUY_LAND`, hour-0 market sells **MELON then FERT** (fund the sprint), then bulk `BUY_SEED STRAWBERRY`, then hires; second `BUY_LAND` emits within ~1 hour using **post-sell** cash (pair with `land_first` reorder). v20 tapes: bulk **×23** on 9/10 tapes at tape d12 h0 (engine d11 h0); tape_5 uses ×5 but same shape. | engine day of 2nd `BUY_LAND`; hour 0–1 | on unlock day: `SELL MELON` + `SELL FERT` before bulk `BUY_SEED STRAW`; bulk ≥5 same day as 2nd `BUY_LAND`; land emits when post-sell affords even if pre-turn cash < reserve | `nikaangukia_meroni` market assembly: unlock-day sell block → seed bulk → hires → land; `_estimated_post_sell_cash` on `decide_land_orders`. | false |
 | 32 | **SW carpet day:** on the engine day SW unlocks, plant STRAW on SW empty leftover until seed or window exhausted — **full crew**, not K-limited (fact 29). WATER underfoot same day for every landed plant (`hour ≤ 21`). v20 tape_0: **18** SW STRAW landings unlock day; 9/10 tapes bulk-buy then carpet same day. | 2nd `BUY_LAND` day; SW quadrant; hour ≤ 21 | SW STRAW occupancy EOD unlock day **≥14** (K=3; seed 0 hits 14 under $100 STRAW + land floor — do not waive land reserve to chase 15); sw_landed unlock day >> K; 0 night deaths from that day’s SW plants; d9–11 SW `plant_actions` > 0 once facts 30–31 hold | unlock-day bypass of `sw_slots`; crew already sized by facts 4/12/25 (no `WORK_TILES_PER_HAND` mutation); carpet outranks BUILD while STRAW budget remains; `plant_budget` credits the unlock bulk `BUY_SEED` | false |
-| 33 | **Land timing:** first `BUY_LAND` engine **d6–7** preferred for NE (catch-up through **d10** if still NW-only); second engine **d11–12** (SW). Second purchase must not lose to same-turn animal spend (`land_first` + post-sell emit). SW must unlock with ≥1 STRAW-window day left (window ends engine d12). **No third buy (SE)** — v20 scale to ~14 animals runs on 3 quads; the $4k SE spend is not part of this shape. While NE is still pending, animal emits defer so the land drawer is not spent first. Counters tie facts 27–32 together. | d6–10 and d11–12 | `sw_unlock_day` ≤ 11; straw-eligible days on SW ≥ 1; unlocked **= 3** by late season (not 4); 1st land d6–10; 2nd land d11–12; both seeds 0 and 8 pass fact 27/28/29/30 counters | `decide_land_orders` (`MAX_LAND_PURCHASES=2`, `LAND_PURCHASE_DAY_WINDOWS`) + `nikaangukia_meroni` land-before-animals; `pending_second_land` / unlock helpers stay keyed on the **2nd** buy; reserve priced against post-sell need, not raw pre-turn cash. | false |
+| 33 | **Land timing:** first `BUY_LAND` engine **d6–7** preferred for NE (catch-up through **d10** if still NW-only); second engine **d11–12** (SW). Second purchase must not lose to same-turn animal spend (`land_first` + post-sell emit). SW must unlock with ≥1 STRAW-window day left (window ends engine d12). **No third buy (SE)** — v20 scale to ~14 animals runs on 3 quads; the $4k SE spend is not part of this shape. While NE is still pending, animal emits defer so the land drawer is not spent first. Counters tie facts 27–32 together. **First-buy reserve 0 is dropped** (28,751 / 36,766, herd 18 — same as the land-reserve bundle). Do not waive the $500 floor on either buy. | d6–10 and d11–12 | `sw_unlock_day` ≤ 11; straw-eligible days on SW ≥ 1; unlocked **= 3** by late season (not 4); 1st land d6–10; 2nd land d11–12; both seeds 0 and 8 pass fact 27/28/29/30 counters | `decide_land_orders` (`MAX_LAND_PURCHASES=2`, `LAND_PURCHASE_DAY_WINDOWS`) + `nikaangukia_meroni` land-before-animals; `pending_second_land` / unlock helpers stay keyed on the **2nd** buy; reserve priced against post-sell need, not raw pre-turn cash; first-buy floor stays 500. | false |
 | 34 | **Mid-season MELON cash wave (sell):** MELON matures at `first_yield_day=10`. Engine **d9–12**, MELON sold into cash (not held for $180). HARVEST → unit inventory; SELL reads shed only. Contested bind: ripe/HIRE/HARVEST match v20 but held≈60 shed=0 → d10 `$0` vs v20 ~$15k. **Same-day path:** force-sell qty = shed+held; on **d10 hour≥16** (after feed), all carriers walk-to-shed and DROP capped to shed room minus wheat reserve (shared budget). Sell-cap 60 drains fruit. Uncapped/early DROP walk → escapes (shed flood or crew diversion). Other wave days: shed-adj DROP only. Fact 35 crew required. | engine d9–12 sell | vs `starter` 0+8: sold d9–11 ≥20; SELL on **d10**; 0 escapes; fact 32 ≥14; **contested 0+8:** d10 `SELL_MELON` `$` ≫ 0; day-10 MELON widen not ~−15k | force-sell shed+held; d10 h≥16 room-capped DROP walk; shed-adj DROP other wave days | false |
 | 35 | **MELON-wave crew:** on cash-wave mornings when ripe MELON is on the board, `MIN_MONEY_TO_HIRE` must not strand the farm at **0 hires**. Contested seed 0: unlock bulk leaves ~$15 (< gate 20) on d10 with **6 ripe NW MELON** and hire=0 all day — only the farmer acts, one HARVEST at h23, bank stuck at $15 while v20 hires ~11 and dumps ~60. First hire costs $1; the flat $20 floor is mispriced against that (same pattern as the original hire-gate bug). Do not inject forced hires or mutate `WORK_TILES_PER_HAND` (fact 25). Re-check with cashflow: d10 MELON `$` still opens the contested gap after prior hire waiver. | d9–12, hour < `HIRE_BEFORE_HOUR`, when any MELON is harvestable | contested seed 0: d10 `HIRE` count > 0; d10 MELON `HARVEST` ≥ 3 (or MELON sold d10 > 0); 0 escapes; fact 32 unlock landed ≥14; fact 34 sell counters still hold vs `starter`; contested day-10 widen not dominated by missing `SELL_MELON` | `decide_hire_orders`: when `in_melon_cash_wave` and ripe MELON exists, skip `MIN_MONEY_TO_HIRE` — still stop when fib hire cost > money | false |
 | 36 | **Early MELON acreage:** day-0 `BUY_SEED MELON` is sized to beach-head field scale (~12, tape/v20 opening), not `MAX_SEED_STOCKPILE=3`. Same-turn `plant_budget` credits the bulk so hour-0 plants land. After opening the farm is ~$0 (v20 too); until first extra land unlocks, wheat restock tops **1× owned** (daily feed) so fert income is not absorbed into `BUY_PRODUCT WHEAT` and land/hires can recover. NW plant via `choose_crop` when seed held. **MELON is a day-0 opening only** — rewritten fact 27 stops the NE refill during the window, which was buying 23 extra seeds to sell into our own crashed d10 market. Contested pre-36: field MELON EOD d5 ≈7 vs v20 ≈12. Not a STRAW pin; do not raise hire density (fact 25); do not truncate `BUY_ANIMAL` (fact 6). | engine d0 (opening); NW+NE through MELON window; wheat 1× until first land | vs `starter` and contested seeds 0+8: field MELON EOD d5 ≥12; d0 `BUY_SEED MELON` bulk ≥10 or `PLANT MELON` d0 ≥10; d0 4/4; 0 escapes; fact 32 unlock ≥14; fact 34 sold d9–11 ≥20; fact 35 d10 HIRE>0; **`PLANT MELON` after d0 = 0**; 1st land d6–7 | `decide_market_actions` / `melon_opening_restock_quantity`; `decide_animal_market_actions` wheat 1× pre-land; `nikaangukia_meroni` credits same-turn `BUY_SEED MELON` into `plant_budget` | false |
@@ -208,10 +219,11 @@ tiles wheat-flood) without importing Path C.
 | 41 | **Post-carpet SW STRAW fert — PARKED.** Tried elevating FERTILIZE before DIG when carpet done + SW wants fert + SW prefer_quadrant. FERTILIZE rose ~13→19/21 (seeds 0/8) but season STRAW `$` flat/worse (−28.8k→−29.6k / −19.6k→−21.7k); peak field unchanged 22|34 / 19|42. Yield lever on SW carpet does not close the acreage bind. Fact 42 NE carve also parked (escape). Helpers may remain in the throwaway. | — | — | parked | false |
 | 43 | **Crew is sustained, not work-derived:** tape hires **4–5/day d0–d5**, then **8–11/day from d6 to the end** — the ramp lands the day the first extra quadrant does. Contested `tape_profile.py` shows the throwaway already within ±2 of this, so the row exists to stop a future edit trading it away (a fact-15 herd ramp with no crew to feed it is how the d11+ ramp produced escapes), not because it currently fails. Still no `WORK_TILES_PER_HAND` mutation and no forced hires (fact 25). | daily, before `HIRE_BEFORE_HOUR` | `tape_profile.py` crew row within ±2 of tape on every day; `MIN_MONEY_TO_HIRE` never strands a day at 0 hires (fact 35) | `decide_hire_orders` work+ceiling+affordability, with the ceiling following the tape ramp. | false (shipped is work-driven, ~6) |
 | 42 | **Bounded NE STRAW after MELON wave — PARKED (superseded).** The mechanism it was reaching for is now fact 27 as rewritten; do not re-run *this* version (a mid-season crew walk onto NE), which escaped. Tried NE leftover STRAW d11–12 after the d10 wave (d7–10 stay MELON; no NW refill). Seed 0: **1 escape** (6a walk to NE stole feeders). d11–12 NE STRAW landings **0 / 1** (SW carpet ate seed; occupant=STRAW blocked opportunistic d12 choose_crop). Same crew-diversion failure as fact 40 DROP. Reopen only with a mechanism that does not walk the crew off feed. | — | — | parked | false |
+| 44 | **The town is the demand schedule.** After the first shop (d3), produce what `unlocked_shops` eat; do not produce what they do not. **Count stays the calendar (15)** — shop mix picks *which* species, never *how many more*. No `YARN_STORE` → sheep stay at the day-0 beach-head (2); later slots are cows. `YARN_STORE` → existing yarn-heavy mix. Leftover STRAW/CARROT only while a shop consumes that crop; otherwise WHEAT (22). MELON/fert exempt (no shop / fact 9). Day 0 is still 2C2S (1) — no shop has opened. Not a sell-into-the-floor rule (that bind moved nothing). Not the d11+ count ramp. Not “hold the d11 burst” (shop reroll). Not d12h0 yarn slack (escapes). | d3+ buys; leftover plant | no-yarn seed: end `SHEEP` = 2 and `BUY_ANIMAL SHEEP` after d0 = 0; yarn seed: end `SHEEP` > 2; herd **count** is fact 15's ladder, cap 14; `PLANT STRAW` d6–8 ≥ half-tape when a straw shop is out (d5=1 structural); `PLANT CARROT` > 0 in the carrot window when `PET_CAFE`/`FARMERS_MARKET` is out; `PLANT TOMATO` = 0; d0 2C2S; 0 escapes contested; **contested bank not down** vs 40,806 / 34,567 | `shop_mix_target` + post-d0 `BUY_ANIMAL` follows mix at `calendar_owned_target`; `leftover_occupant(..., unlocked_shops)` | false |
 
 **Tape index:** `mydocs/tape_transcripts/tape_0.txt` … `tape_9.txt`, `all_tapes_turns.csv`. Transcript **day N = engine day N−1** (tape d12 = engine d11).
 
-## Timing card T1 — rewrite 9/15/17/21/22/27/28/39, add 43 (2026-09-05) **← live**
+## Timing card T1 — rewrite 9/15/17/21/22/27/28/39, add 43 (2026-09-05)
 
 ```text
 Kind: rewrite (facts 9, 15, 17, 21, 22, 27, 28, 39) + add (43)
@@ -236,17 +248,140 @@ Pre-run: facts 1–8, 10–14, 16, 18–20, 23–26, 29–36 still true in sourc
      d0 pens/herd 4/4; 0 escapes **contested**, not only vs starter
 Counters: tape_profile.py seeds 0+8 — crew ±2/day; herd ±1/day d0–d10 and
      ≤14 after; PLANT WHEAT within ±3/day from d0; PLANT STRAW ≥ half the
-     tape on each of d5–d8; PLANT MELON after d0 = 0; SELL FERTILIZER no
+     tape on each of d6–d8 (d5=1 is structural); PLANT MELON after d0 = 0; SELL FERTILIZER no
      dry spell > 1 day. Then _trace_cashflow_v20.py: STRAWBERRY, WOOL,
      WHEAT-net and FERTILIZER gaps all smaller than −29.6k / −25.3k /
      −20k / −4.1k, and **contested bank up on both seeds**.
 ```
 
-**Order of work.** The rows are one failure, but do not land them as one
-commit — land them cheapest-to-revert first and keep the contested bank
-after each: (1) 9 + 21 fert cadence, (2) 22 + 28 wheat as default crop,
-(3) 27 + 39 STRAW d5–8, (4) 15 + 17 herd ladder, (5) 43 crew ceiling.
-Steps 1–3 fund step 4; running 4 first is what the old d11+ ramp did.
+**Order of work.** The rows are one failure. Two fert-only landings
+(sell-all + buy-back; surplus-above-6) asked 9+21 to hold the full-season
+contested bank while 22/27/28/39 stayed on the escape-defence shape —
+the BUY_LAND-at-fixed-crew error. The five-step + per-step bank kill
+switch is withdrawn.
+
+1. **Funding stack** — 9 + 21 + 22 + 28 + 27 + 39 is in the throwaway.
+   Then the d5–d6 STRAW / wheat-d0 supplement and fact 44 (no-yarn
+   sheep stay at 2). Banks **40,236 / 55,411** versus v20 **114k /
+   133k**. Wheat d0 holds. Yarn lock stays (seed 8 +20,844 vs the
+   pre-44 supplement). Hold-the-burst and d12h0 slack both failed —
+   do not retry. The −570 self-nick is parked.
+2. **STRAW d5–8 / STRAW `$` (27/30) — four supplements dropped.**
+   Land-reserve bundle; seed-before-cow; leftover walk; d8 land-hour
+   seed + hold-6 pin. Do not retry. d5=1 is structural (stop judging
+   it against half-tape). Sequencing 27/30 before 15 was the Path C
+   pattern (STRAW asked to hold the bank while 15 stayed false).
+3. **15/17 align dropped (both binds).** Ladder: seed 0 −13k and
+   STRAW 0. Cap 14 only: seed 8 −8.7k (yarn d13 +4 was load-bearing).
+   Next ≠ those two. Re-judge STRAW `$` is still the hole, not
+   another calendar open. Then wheat net. Then crew (43). MELON
+   −3.2k and FERT −1.4k stay parked. Bank must not fall vs
+   40,236 / 55,411.
+4. **Fact 33 first-buy reserve dropped.** Waive $500 on the first
+   `BUY_LAND` only: land [7, 11], STRAW 1/5/2/0, banks **28,751 /
+   36,766**, herd 6 through d10 then **12 / 18**. Same pair as the
+   bundle. STRAW `$` narrowed (−35.2k / −33.9k) and d7 us hit $0.
+   Do not retry. Next ≠ another reserve waive, ≠ d6 wool DROP.
+
+## Fact 33 first-buy reserve (2026-09-06) **← failed, reverted**
+
+```text
+Kind: supplement (fact 33) — dropped
+Was: land [8, 11]; d7 post-sell $1,374 vs $1,500 floor
+Tried: first-buy reserve 0 in decide_land_orders (n_extra == 0).
+     Second buy kept $500. Not the bundle, not d6 wool DROP.
+Result: land [7, 11]; STRAW 1/5/2/0; wheat d0=7; MELON after d0=0;
+     d11 carpet 15; 0 escapes. Banks 28,751 / 36,766. Herd 6
+     through d10 then 12 / 18. d7 us $0. STRAW $ −35.2k / −33.9k
+     (narrowed) but milk/wool/melon/fert widened. Same banks as
+     the dropped land-reserve bundle.
+Now: revert. Do not retry first-buy waive, the bundle, d6 wool
+     DROP, ladder, cap 14, seed-before-cow, leftover walk,
+     land-hour seed.
+Fights: 15 (d11 dump once land is early); bank bar
+Throwaway: experiments/_facts_v20.py (reverted)
+Counters: land [8, 11]; wheat d0; MELON after d0 = 0; STRAW d6
+     half-tape; bank 40,236 / 55,411
+```
+
+## Fact 15/17 throwaway align (2026-09-06) **← both binds failed, reverted**
+
+```text
+Kind: remove (throwaway hold-6 + d11 ramp) — dropped
+Was: calendar holds 6 through d10, then 12 / MAX_ANIMALS=18
+Tried: (1) tape ladder + cap 14 — seed 0 27,204 (−13,032), seed 8
+     65,431. Land [7, 11]. STRAW d5–8 → 0/0/0/0 and 0/0/1/0.
+     (2) cap 14 only, hold-6 kept — seed 0 43,361 (+3,125), seed 8
+     46,746 (−8,665). Land [8, 11]. STRAW 1/5/0/1. Herd 14/14.
+Now: revert both. Throwaway back on hold-6 + MAX_ANIMALS=18.
+     Written 15/17 stay the spec. Do not retry the ladder without a
+     fact-33 land/deferral bind. Do not retry cap 14 alone (yarn
+     seed 8's d13 +4 is load-bearing vs 55,411).
+Fights: opening the ladder while land is d8; cutting yarn seed 8 to 14
+Throwaway: experiments/_facts_v20.py (reverted)
+Counters: land [8, 11]; wheat d0; MELON after d0 = 0; STRAW d6
+     half-tape; bank 40,236 / 55,411
+```
+
+## Fact 30 d8 land-hour seed + hold-6 pin (2026-09-06) **← failed, reverted**
+
+```text
+Kind: supplement (fact 30) — dropped
+Was: d8h00 SELL FERT | BUY_LAND (NE still LOCKED, buyS=0). d8h01 cow
+     catch-up + BUY_SEED STRAW ×6; cow takes the ~$703 drawer; pltS=1.
+Tried: land-hour BUY_SEED STRAW ×7 sized to post-land cash (pending
+     LOCKED NE counted); list after land before hires; calendar stays
+     6 until owned>=6.
+Result: d8 plants 1→3 both seeds (half-tape). Land [8,11]; wheat d0=7;
+     MELON after d0=0; d11 carpet 15. Seed 0 bank 40,646 (+410),
+     STRAW gap −35.0k (was −43.5k). Seed 8 bank 34,287 (−21,124).
+     The 6th animal still lands d10, so the pin releases and d11
+     opens: herd 6 through d10 then 12 / 14 (seed 0) and 12 / 18
+     (seed 8). Same dump class as seed-before-cow. Do not retry.
+Now: revert. Next ≠ land-hour seed, ≠ hold-6-until-owned pin, ≠
+     list reorder, ≠ land-reserve waiver, ≠ leftover walk.
+Fights: 15 (d11 open once the 6th exists); seed 8 bank
+Throwaway: experiments/_facts_v20.py (reverted)
+```
+
+## Fact 27 home leftover walk (2026-09-06) **← failed, reverted**
+
+```text
+Kind: supplement (fact 27) — dropped
+Was: K units walk to first-extra empty (incl. LOCKED pending NE) when
+     occupant is STRAW d5–8. On d7 that walk goes onto LOCKED NE while
+     1 empty NW sits all day (heldS=1) and pltS = 0/4.
+Tried: K-walk home leftover before first-extra. Ungated: d7h23 plant
+     dies overnight; d8 pltS 1→0; banks 32,928 / 63,418. Hour-21
+     arrive/water gate: d7 plant stays 0 (walk sits behind all-fed);
+     pltS back to 1/5/0/1; banks 23,735 / 44,211.
+Now: revert. Walk-after-feed cannot plant-and-water the sitting NW
+     the same day. Raising it above FEED reopens 40/42. Do not retry.
+Fights: 20 (all-fed before leftover walk); 7 (h23 night death)
+Throwaway: experiments/_facts_v20.py (reverted)
+```
+
+## Fact 44 WHEN supplements (2026-09-06) **← both failed**
+
+```text
+Kind: supplement (fact 44) — both arms reverted
+Was: no-yarn lock fills the whole d11 cap-12 burst with cows (after
+     carpet, ~h13); yarn first visible d12h0 with slots already 0;
+     extra sheep wait until d13. Seed 0 −570 vs live 40,806.
+Tried:
+  1. Hold calendar at 6 on d11, spend the burst on d12. Failed —
+     different d11 None-tiles change `_spawn_weeds` RNG calls before
+     the shop draw; yarn vanished; both seeds dumped to 18;
+     25,417 / 34,074.
+  2. Spend the d11 burst; open calendar to 14 once yarn is visible
+     so extra sheep emit d12h0. Failed — yarn held, sheep landed
+     d12, seed 8 no-op at 55,411, but seed 0 owned 14→13 twice
+     (escapes) and bank 36,885 (−3,351 vs fact 44).
+Now: leave fact 44 as written. Do not retry hold-the-burst or
+     d12h0 slack. Next ≠ those two, ≠ leftover, ≠ hold-2, ≠ herd.
+Fights: 7 (escapes); shop draw (weed-RNG); d11+ count dump
+Throwaway: experiments/_facts_v20.py (reverted)
+```
 
 ## Scale card B — rewrite 15/17/33 (2026-09-04) **← closed**
 
@@ -511,12 +646,14 @@ Counters: sw_unlock_day; straw-eligible days; fact 27/28/29 counters both seeds;
 
 ## Open hole (not a fact yet)
 
-**The hole is timing card T1, and it is written — the work is landing it
-in the throwaway in the five steps that card names.** Everything the
-previous sessions called an open hole (STRAW acreage 22 vs 34, contested
-WOOL `$`, fact 38's sell volume) is downstream of rows 9/15/22/27/39 and
-is expected to close with them; do not open a separate card for any of
-them until T1 is measured.
+**The hole is T1 versus v20 (~75k), led by STRAW `$` (−43.5k /
+−38.7k) and the d7/d8 half-tape miss** (d5=1 is structural). Fact
+44's −570 is a self-nick versus 40,806, not a v20 stream — parked.
+Two WHEN binds on the d11 burst stay dropped (shop reroll; escapes).
+15/17 throwaway align is dropped (ladder and cap-14 both failed
+a seed). Fact 33 first-buy reserve is dropped (same dump as the
+bundle). Re-judge STRAW `$` is still the hole, not another
+reserve waive or calendar open.
 
 After T1, and only after: later-extra CARROT d21–25 (tape plants ~7 over
 d21–27), post-d12 STRAW harvest slices (`docs/PUBLIC_META.md`
@@ -539,10 +676,13 @@ Do not re-add without removing the rows they fight.
 | Dropped | Fights | Why |
 |---|---|---|
 | Path A gates pasted onto animal-first buy/build/sell | whole table | Crop-first and animal-first cannot share the same gates (Path C mode). Path A **is** shipped `main.py`. |
+| First-buy land reserve waive (fact 33 one-bind) | 15, bank | Same 28,751 / 36,766 / herd 18 as the land-reserve bundle. Land [7, 11]; d7 us $0; d11 dump. STRAW `$` narrowed and still failed the bank bar. |
 | SE / 3rd `BUY_LAND` ($4k) | 33, cash after carpet | v20 scale runs on 3 quads; with-SE contested seed 0 bank ~6k, no-SE ~45k. Re-add only with a new fact card + contested proof. |
 | MELON walk-to-shed **before/during feed** or uncapped multi-day DROP | 7, 18–20, 34 | Pre-feed / uncapped DROP starved herd or flooded shed. Fact 34 keeps **d10 hour≥16 room-capped** DROP only. |
 | STRAW held→DROP→SELL drip (fact 40) | STRAW `$` | When DROP fired, season STRAW `$` worsened (harvest diversion). The acreage it was compensating for is now fact 27 as rewritten. |
-| Post-d10 animal buying of any kind (the old d11+ shop-mix ramp) | 15, 17, 7 | Bought 21 head against an 18 cap contested and still lost placed animals late (18 → 16, d25–27): the late herd arrives with no wheat behind it. The tape's last buy is d10. |
+| Hold the d11 cap-12 burst until yarn is known | 44, 7 | Different d11 empty-tile count changes `_spawn_weeds` RNG calls before the shop draw; yarn vanished; both seeds dumped to 18 (25,417 / 34,074). |
+| Open two slots on d12h0 once yarn is visible | 7, 44 | Sheep land d12 and seed 8 is a no-op, but seed 0 escapes (owned 14→13 twice) and bank 36,885. |
+| Post-d10 animal buying of any kind (the old d11+ shop-mix ramp) | 15, 17, 7 | Bought 21 head against an 18 cap contested and still lost placed animals late (18 → 16, d25–27): the late herd arrives with no wheat behind it. Policy ceiling is 14 / no d11+ *ramp* — not a tape claim. 5/10 tapes buy after engine d10 (usually +1 sheep on d11); live v20 on seeds 0/8 buys +2 on d11 to reach 14. |
 | Pause buys until STRAW threshold / day 12–15 | 1–3, 15 | Straw-first pause: −20,707, 2/12; STRAW plantings went *down*. |
 | Scale only after `straw_tiles ≥ 50` | 15 | Calendar is day 3/5/7, not carpet-done. |
 | Apply fert to STRAW; gate `SELL FERT` while STRAW wants it | 8–11 | Day-3 cow is sized to selling ~4 fert. |
@@ -573,7 +713,7 @@ Minimum checks that caught the last two throwaways:
 - [ ] Fact 5 / 18: wheat sell reserve counts **owned**
 - [ ] Fact 15: herd ladder 4/5/6/8/10/12/13/14 on d0/d2/d3/d6/d7/d8/d9/d10, flat after; no post-d10 buying; prefix still not all-or-nothing
 - [ ] Facts 9–13: the turn `BUY_ANIMAL` emits is sell fert → buy animal → (hire/seeds after), including catch-up hours; on every other day fert still sells the day it is collected (fact 9 — no existence-hold)
-- [ ] Fact 27: STRAW lands on NW/NE d5–8 **and** as the d11 SW carpet; `PLANT MELON` after d0 = 0
+- [ ] Fact 27: STRAW lands on NW/NE d6–8 at ≥ half-tape **and** as the d11 SW carpet (d5=1 structural); `PLANT MELON` after d0 = 0
 - [ ] Fact 28: leftover is planted underfoot — window occupant, else WHEAT (fact 22); no tile waits empty between windows; no crew-wide walk to a far quadrant
 - [ ] Fact 29: at most K=2 units walk/plant later-extra **pre-unlock**; unlock day bypasses K (fact 32); local WATER ignores claimed; no SW `PLANT` at hour ≥ 22
 - [ ] Fact 30: held STRAW > 0 before SW unlock; SW empty → STRAW restock (not post-MELON home refill)

@@ -1,4 +1,867 @@
-# Current session: 2026-09-05 — the judge was wrong; timing card T1 opened
+# Current session: 2026-09-06 — fact 33 first-buy reserve dropped
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Tried the named card: waive `$500` on the first `BUY_LAND` only
+(`n_extra == 0` in `decide_land_orders`). Second buy kept 500. No
+walk, no seed-before-cow, no calendar open, no d6 wool DROP.
+Throwaway is back on hold-6 + `MAX_ANIMALS=18` (40,236 / 55,411).
+
+d6 wool/fert post-sell cannot fund land: shed has fert only; wool
+is harvested during d6 and sold d7h00. The measured miss is d7
+post-sell $1,374 vs the $1,500 floor.
+
+## Counters
+
+| arm | seed 0 | seed 8 | land | STRAW d5–8 | end herd |
+|---|---|---|---|---|---|
+| live (fact 44) | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 14 / **18** |
+| first-buy reserve 0 | **28,751** | **36,766** | **[7, 11]** | 1/5/2/0 | **18 / 18** |
+| restored | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 14 / 18 |
+
+Wheat d0=7 and MELON after d0=0 held. d11 carpet 15. 0 escapes.
+STRAW `$` −35.2k / −33.9k (was −43.5k / −38.7k). d7 us **$0**.
+
+## Why the bind failed
+
+Land moved into the preferred window and STRAW d7 went 0→2. The
+$500 waive emptied the drawer (d7 $0) and funded the existing d11
+ramp: herd 6 through d10, then 12 / 18. Banks match the dropped
+land-reserve bundle exactly. The extra binds in that bundle were
+not load-bearing — the waive is the dump.
+
+## Verdict
+
+**Dropped.** Kind: supplement (fact 33). Do not retry first-buy
+waive, the bundle, or d6 wool DROP. Still no tape ladder, cap 14,
+seed-before-cow, leftover walk, d8 land-hour seed, 40–42, fert-only,
+STRAW pin, holdout, or list reorder. No `main.py` port.
+
+## How we continue
+
+```text
+Kind: — (land-via-reserve is closed)
+Was: first-buy reserve 0 → 28,751 / 36,766, herd 18
+Now: throwaway hold-6 + cap 18; land [8, 11]; $500 on both buys
+Fights: early land vs the d11 dump (15) — do not average them
+Throwaway: experiments/_facts_v20.py
+Counters: land [8, 11]; wheat d0=7; MELON after d0=0; STRAW d6
+     half-tape; bank 40,236 / 55,411
+```
+
+## Open
+
+- Next ≠ first-buy waive, ≠ bundle, ≠ d6 wool DROP, ≠ calendar.
+  Early land still wants a mechanism that does not dump d11.
+- Live throwaway 40,236 / 55,411; land [8, 11]; T1 vs v20 ~75k.
+- Written 15/17 stay; throwaway still hold-6 / cap 18.
+- Fact 44 −570 parked. Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-06 — 15/17 align dropped (ladder and cap-14)
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Verified written 15/17 against the 10 tapes and live `route_v20` on
+seeds 0 and 8, then tried the named card: tape ladder + cap 14. Both
+the full ladder and the cap-only fallback failed a seed. Throwaway is
+back on hold-6 + `MAX_ANIMALS=18` (40,236 / 55,411).
+
+**Tape mean herd** (exact): 4 / 4 / 5 / 6 / 6 / 6 / 8.2 / 9.7 / 12.0 /
+13.2 / 14.0 / 14.4. Every tape lands **[6, 11]**. End herd 12–17.
+**5/10 tapes buy after engine d10.** “Tape last buy is d10” is a
+policy ceiling, not a tape fact. Live v20 on 0/8: 6 on land-d6, 10 on
+d7, 14 on d11. We: 6 through d10, land [8, 11], seed 8 → 18.
+
+**Tried (1):** `calendar_owned_target` = tape ladder; `MAX_ANIMALS=14`.
+NE-pending and land windows left alone.
+
+**Tried (2):** kill-switch fallback — revert the ladder, keep cap 14.
+
+## Counters
+
+| arm | seed 0 | seed 8 | land | STRAW d5–8 | end herd |
+|---|---|---|---|---|---|
+| live (fact 44) | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 14 / **18** |
+| ladder + cap 14 | **27,204** | 65,431 | **[7, 11]** | **0/0/0/0** and **0/0/1/0** | 14 / 14 |
+| cap 14 only | 43,361 | **46,746** | [8, 11] | 1/5/0/1 | 14 / 14 |
+| restored | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 14 / 18 |
+
+Wheat d0=7 and MELON after d0=0 held on every arm. d11 carpet ≥15.
+
+## Why both binds failed
+
+The ladder cannot fire on d6–d7 while NE-pending zeroes slots and land
+is d8. Opening it anyway bought the catch-up into the STRAW drawer:
+land slipped to [7, 11], d5–8 plants went to 0, seed 0 −13k.
+
+Cap 14 matches live v20's end and stops seed 8's 18. Yarn seed 8's
+d13 +4 is load-bearing vs 55,411 (−8.7k). Seed 0 already ended at 14.
+
+Written 15/17 stay the spec. The throwaway cannot afford them until
+land is d6–7 (fact 33) without the dropped land-reserve bundle.
+
+Supplement 27: d5=1 is structural (2 empties + BUILD). Stop judging
+d5 against half-tape. Docs updated (FACTS status / T1 order / open
+hole / fact 44 counter / Dropped-table tape-claim / CLAUDE.md /
+agent-facts.mdc). No `main.py` port.
+
+## Verdict
+
+**Dropped.** Kind: remove (throwaway hold-6 + d11 ramp). Do not retry
+the tape-ladder calendar or cap 14 alone. Still no land-reserve
+bundle, seed-before-cow, leftover walk, d8 land-hour seed, 40–42,
+fert-only, STRAW pin, holdout, or list reorder.
+
+## How we continue
+
+```text
+Kind: supplement (fact 33) — first BUY_LAND onto d6 or d7
+Was: land [8, 11]; d7 post-sell $1,374 vs $1,500 floor
+Now: one bind, land-only (post-sell wool/fert on d6, or waive $500
+     on the first buy only). Not the dropped bundle.
+Fights: none if land stays in d6–10 / d11–12 and the herd does not dump
+Throwaway: experiments/_facts_v20.py
+Counters: 1st land d6–7; 2nd d11–12; wheat d0=7; MELON after d0=0;
+     yarn lock; 0 escapes; STRAW d7–8 and STRAW $ re-judged;
+     bank not down vs 40,236 / 55,411 on seeds 0 and 8
+```
+
+## Open
+
+- Next card: **fact 33, one bind** — NE on d6 or d7 without the
+  land-reserve bundle. Then re-judge STRAW d7–8 / STRAW `$`.
+- Live throwaway 40,236 / 55,411; land [8, 11]; T1 vs v20 ~75k.
+- Written 15/17 stay; throwaway still hold-6 / cap 18.
+- Fact 44 −570 parked. Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-06 — d8 land-hour seed dropped; calendar fight named
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Tried the leftover-walk session's untried bind: **d8 land-hour seed +
+hold-6 pin** (fact 30; not a list reorder). Reverted. Then evaluated why
+all four STRAW supplements failed. Protocol step 2: two facts fight —
+drop one. Throwaway is back on fact 44 (40,236 / 55,411).
+
+Live d8 confirmed on current throwaway (both seeds): d8h00 `SELL FERT |
+BUY_LAND`; d8h01 `BUY_ANIMAL COW` + `BUY_SEED STRAW ×6`; cow takes
+~$703; pltS=1. d5 cow never lands (`buyA=0`); NE-pending deferral holds
+slots=0 through d7; land unlocks the catch-up.
+
+**Tried:** on first `BUY_LAND` emit, size `BUY_SEED STRAW` to post-land
+cash and pending LOCKED NE (×7); list after land, before hires. Pin
+`calendar_owned_target` at 6 until `owned>=6`.
+
+d8 plants **1→3** both seeds (half-tape). Land [8, 11]; wheat d0=7;
+MELON after d0=0; d11 carpet 15. Seed 0 bank **40,646 (+410)**; STRAW
+gap −35.0k (was −43.5k). Seed 8 bank **34,287 (−21,124)**. The 6th
+still lands **d10**, so the pin releases and d11 opens: herd 6 through
+d10 then **12 / 14** (seed 0) and **12 / 18** (seed 8). Same dump class
+as seed-before-cow.
+
+## Counters
+
+| arm | seed 0 | seed 8 | land | STRAW d5–8 | herd after d10 |
+|---|---|---|---|---|---|
+| live (fact 44) | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 6 through d10 |
+| land-hour + pin | 40,646 | **34,287** | [8, 11] | 1/5/0/**3** | 12/14 and **12/18** |
+
+## Why the four supplements failed
+
+Not four bugs. One drawer. v20 has 4 NE STRAW by d7 / 15 by d10; we
+have 1 from d8. First yield +10 days → they sell d16, we do not. That
+is the −43.5k / −38.7k.
+
+d5=1 is structural (2 empties, 1 pen — fights fact 16). d6=5 holds.
+d7=0 is the $500 reserve (`$1,374` vs `$1,500`). d8=1 is cow-vs-seed
+after land. One bind can move one day. The `$` needs NE planted by d7.
+
+Walk-after-feed cannot plant-and-water the sitting NW the same day
+(fact 20). Raising it reopens 40/42. Closed.
+
+The other three spent the land/cow drawer. Live “herd 6 through d10” is
+not a hold — it is a cash accident (d8 cow leaves $4–$17). Written fact
+15 already wants the tape ladder and **no buy after d10**. The
+throwaway still holds 6, then d11→12, d13→18 (`MAX_ANIMALS=18`). Any
+successful d8 seed buy removes the accident; the calendar does what it
+says. Seed 0 and seed 8 disagree (no-yarn →14 vs yarn →18).
+
+Order-of-work “27/30 first, then 15” asked STRAW to hold the bank while
+15 stayed false. That is the Path C pattern.
+
+## Verdict
+
+**Dropped.** Kind: supplement (fact 30). Do not retry land-hour seed,
+the hold-6-until-owned pin, seed-before-cow, the land-reserve bundle,
+or leftover walk. No `main.py` port.
+
+**Next is not another STRAW bind.** Facts fight: written 15/17 vs the
+throwaway hold-6 + d11 ramp + “do not land herd” slogan. Protocol:
+drop one. Keep 15/17 **as written** (tape ladder, cap 14, nothing after
+d10 — not the old 21-head shop-mix ramp). Drop hold-6, `MAX_ANIMALS=18`,
+and the slogan. Supplement 27: stop judging d5 against half-tape.
+
+## How we continue
+
+```text
+Kind: remove (throwaway hold-6 + d11 ramp) / rewrite 15+17 to match the rows
+Was: calendar_owned_target holds 6 through d10, then 12 / MAX_ANIMALS=18;
+     “do not land herd” until 27/30 move
+Now: calendar_owned_target = tape ladder, cap 14, no buy after d10;
+     order of work no longer sequences 27 before 15
+Fights: the slogan; the accidental d8-cow brake; d11+ shop-mix ramp
+Throwaway: experiments/_facts_v20.py
+Counters: tape_profile herd ±1 every day d0–d10; owned ≤ 14 after;
+     BUY_ANIMAL total ≤ 14; 0 escapes contested; bank not down vs
+     40,236 / 55,411 on seeds 0 and 8
+```
+
+Still no 40–42, no fert-only, no STRAW pin, no holdout, no list reorder.
+
+## Open
+
+- Next card: **rewrite throwaway 15/17 to the written rows.** Then
+  re-judge STRAW `$` — 27/30 may move without a seed reorder.
+- Live throwaway still 40,236 / 55,411; land [8, 11]; T1 vs v20 ~75k.
+- Fact 44 −570 parked. Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-06 — home leftover walk dropped
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Tried the untried bind from last session: **home leftover walk only**
+(plant the d7 empty NW; no land reserve, no list reorder). Two shapes.
+Both reverted. Throwaway is back on fact 44 (40,236 / 55,411).
+
+**Ungated walk:** unit reaches the sitting NW at **h23**, plants, dies
+overnight (fresh plant `consecutive_unwatered=1`). d8 pltS **1→0**.
+Banks **32,928 / 63,418**.
+
+**Hour-21 arrive/water gate** (same bind, not a bundle): d7 plant stays
+**0** — leftover walk sits behind `any_unfed_animal`. pltS back to
+1/5/0/1. Banks **23,735 / 44,211**.
+
+Land stayed [8, 11]. Herd stayed 6 through d8. Wheat d0 = 7. d11 carpet
+untouched. Raising the walk above FEED would reopen 40/42.
+
+## Counters
+
+| arm | seed 0 | seed 8 | land | STRAW d5–8 | herd |
+|---|---|---|---|---|---|
+| live (fact 44) | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 6 through d10 |
+| home walk, no hour gate | **32,928** | 63,418 | [8, 11] | 1/5/**1***/0 | 6 |
+| home walk + hour-21 | **23,735** | **44,211** | [8, 11] | 1/5/0/1 | 6 |
+
+\* issued at h23; night death; tape_profile counted 0 landed / 1 shifted.
+
+## Verdict
+
+**Dropped.** Kind: supplement (fact 27). Walk-after-feed cannot
+plant-and-water the sitting NW the same day. Do not retry. Do not raise
+it above FEED. Do not retry the land-reserve bundle or seed-before-cow.
+Do not land herd. No `main.py` port.
+
+## How we continue
+
+**One bind only.** Live card still STRAW d5–8 / STRAW `$`. Untried: a
+**d8 seed buy that does not open the late herd** (new mechanism, not a
+list-reorder retry). d5=1 is still structural. Still no 40–42, no
+fert-only, no STRAW pin, no holdout.
+
+## Open
+
+- Live card: **STRAW d5–8 / STRAW `$` (27/30).** T1 vs v20 ~75k.
+- Land [8, 11]; $500 first-buy reserve still blocks d7.
+- Fact 44 −570 parked. Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-06 — STRAW d5–8; two supplements dropped
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Diagnosed the STRAW `$` widen, then tried two supplements. Both
+reverted. Throwaway is back on fact 44 (40,236 / 55,411).
+
+Shop-aware leftover is **not** the miss (STRAW shop from d3 both seeds).
+Hour trace (`experiments/_trace_d5_straw.py`): early board identical
+through d8. NE acreage is the `$` hole (v20 4 NE by d7 / 15 by d10; we
+have 1 from d8).
+
+**Bundle first (wrong):** waive first-land $500 + no LOCKED walk +
+seed-before-cow (facts 27/30/33 together). Land [7, 11], d7 2/4, bank
+28,751 / 36,766, herd 18.
+
+**Then one bind:** d5–8 `BUY_SEED STRAW` before `BUY_ANIMAL` only. Land
+stayed [8, 11]. d8 plants **7/4** (was 1). Seed 0 bank **33,303
+(−6,933)**; seed 8 **73,063 (+17,652)**. Herd 6 through d8 then **19**.
+Acceptance is both banks; seed 0 fails.
+
+Confirmed in chat: we stay on **one bind**, not a bundle.
+
+## Diagnosis (live throwaway, both seeds same through d8)
+
+| day | cash bind | what happens | pltS |
+|---|---|---|---|
+| d5 | $15 → $399 after fert | 2 empty NW; BUILD takes 1 (d5 cow); plant 1 | **1/4** |
+| d6 | wheat harvests underfoot | buy-as-freed, plant 5 | **5/8** hold |
+| d7 | post-sell **$1,374**; land needs $1,500 | 1 empty NW sits all day (heldS=1); K-walk onto LOCKED NE; 1 NW STRAW dies overnight | **0/4** |
+| d8 | land emits; $703 then cow + order ×6 STRAW | NE 25 empty; cow eats drawer; plant 1 | **1/4** |
+
+STRAW `$` widen is missing **NE acreage**. v20 has 4 NE by d7 and 15 by d10;
+we have 1 from d8. First yield is +10 days, so v20 sells the early wave on
+d16/d21/d23 and we do not (d16 us $0 / v20 $1,751; peak field 21 vs 42).
+
+## Counters (both reverted)
+
+| arm | seed 0 | seed 8 | land | STRAW d5–8 | herd |
+|---|---|---|---|---|---|
+| live (fact 44) | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 6 through d10 |
+| land-reserve bundle | **28,751** | **36,766** | [7, 11] | 1/5/2/0 | 18 |
+| seed-before-cow (one bind) | **33,303** | 73,063 | [8, 11] | 1/5/0/**7** | **19** |
+
+Wheat d0 and MELON after d0 held both arms. d11 carpet ≥15 both arms.
+
+## Verdict
+
+**Neither supplement holds.** Kind: supplement — both dropped. The
+bundle was the wrong procedure. The one-bind retry moved d8 (1→7) and
+still failed seed 0 bank; it also opened the d11+ herd dump (19). Do
+not retry either arm. Do not land herd. Do not reopen 40–42. Fact 44
+yarn lock stays. No `main.py` port.
+
+## How we continue
+
+**One bind only.** Live card still STRAW d5–8 / STRAW `$`. Untried:
+**home leftover walk only** (plant the d7 empty NW; no land reserve, no
+list reorder). d5=1 is structural (2 empties, 1 pen). A d8 seed buy that
+does not open the late herd is a new mechanism, not a retry of the list
+reorder. Still no 40–42, no fert-only, no STRAW pin, no holdout.
+
+## Open
+
+- Live card: **STRAW d5–8 / STRAW `$`** (27/30). T1 vs v20 ~75k.
+- Land [8, 11]; $500 first-buy reserve still blocks d7 ($1,374 vs $1,500).
+- Fact 44 −570 parked. Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-06 — plan: remaining v20 gaps (not the −570)
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Answered whether the v20 gaps are closed except fact 44's −570.
+They are not. The −570 is versus our prior throwaway (40,806 →
+40,236), not versus `route_v20`. Re-traced current throwaway
+(`_trace_cashflow_v20.py`) on seeds 0 and 8. Wrote the remaining-gap
+plan into this file, `FACTS.md` (live card / order of work / open
+hole), `.cursor/rules/agent-facts.mdc`, and `CLAUDE.md`.
+
+## Counters (executed `$` vs v20, fact 44 throwaway)
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank us | 40,236 | 55,411 |
+| bank v20 | **114,305** | **133,123** |
+| bank gap | **−74,069** | **−77,712** |
+| STRAWBERRY | 18.3k / 61.8k **−43.5k** | 20.3k / 59.0k **−38.7k** |
+| WOOL | 19.5k / 26.1k −6.5k | 4.1k / 7.1k −3.0k |
+| MILK | 6.0k / 11.6k −5.6k | 40.2k / 51.5k **−11.4k** |
+| WHEAT net | −8.5k / +3.7k −12.2k | −12.7k / +3.9k −16.6k |
+| MELON | 12.3k / 15.5k −3.2k | 12.3k / 15.5k −3.2k |
+| FERTILIZER | 12.3k / 13.7k −1.4k | 12.2k / 13.6k −1.4k |
+
+Vs the pre-T1 table: WOOL / WHEAT / MELON / FERT shrank; **STRAW
+widened** (−29.6k → −43.5k). Vs the funding stack's seed-0 streams
+(STRAW −19.8k, WOOL −3.5k, WHEAT −9.7k, FERT −3.0k): STRAW is worse
+again after the d5–d6 supplement. Timing still: wheat d0 = 7 (holds);
+STRAW d5/d7/d8 miss half-tape (1/4, 0/4, 1/4); herd 6 through d10;
+land [8, 11]; MELON after d0 = 0.
+
+## Verdict
+
+**The live hole is T1 versus v20 (~75k), led by STRAW.** Fact 44's
+−570 is a self-nick; park it. Do not retry hold-the-burst or d12h0
+slack. Do not revert the no-yarn lock. Do not land herd on a stack
+that still misses the early STRAW wave. No `main.py` port.
+
+## Plan (order of work)
+
+1. **STRAW wave (27/30) — live card.** Named days still fail
+   (d5/d7/d8). Dollar gap is the largest and it *widened*. Diagnose
+   why the d5–d6 supplement bought bank on seed 0 and lost STRAW `$`
+   (late widen d16/d21/d23 on the funding stack). Then one
+   supplement: more of the d5–8 NW/NE wave, without a crew-wide walk
+   (40/42), without reopening fert-only (9/21), without a STRAW pin.
+   Re-judge both seeds: `tape_profile.py` then cashflow then bank.
+   Bank must not fall vs 40,236 / 55,411.
+2. **Re-judge the stack** against v20 streams, not only half-tape.
+   STRAW `$` must move toward the funding stack's −19.8k (or better),
+   not stay at −43k.
+3. **WHEAT net (−12k / −17k)** after STRAW `$` is no longer the
+   widest. d0 wheat already holds. No force-wheat (22 / Path C F7).
+4. **Herd (15 + 17), then crew (43).** Only after d5–8 STRAW is at
+   least half-tape *and* STRAW `$` is not still widening. Wool −6.5k
+   is no longer the 25k hole; milk −11k on seed 8 is the no-yarn cow
+   path versus v20's mix. Landing 15 first is the old d11+ ramp.
+5. **Parked, not next:** fact 44 −570; MELON −3.2k; FERT −1.4k;
+   d12-late slack (untried, not assigned); stage 2 (CARROT window,
+   STRAW harvest slices, order-book).
+
+Banned: hold-d11-burst, d12h0 slack, hold-sheep-at-2 after yarn,
+revert the yarn lock, 40–42, third fert-only bind, Path C, Path A
+merge, `bptk.py` for cadence, holdout, `main.py` port.
+
+## Open
+
+- Live card: **STRAW d5–8 / STRAW `$`** (27/30). T1 vs v20 ~75k.
+- Fact 44 −570 parked (self-nick). Two WHEN binds stay dropped.
+- Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-06 — two WHEN binds on the d11 burst failed
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Tried two supplements of fact 44's d11 cap-12 spend. Both reverted.
+Throwaway is back on fact 44 (40,236 / 55,411).
+
+**Hold the burst (calendar stays 6 on d11, spend on d12).** Seed 0
+25,417 / seed 8 34,074. Yarn vanished (shops d12 = BRUNCH×2, not
+YARN). End 16C/2S, both seeds dumped to 18 on d13. Engine: `_end_of_day`
+shares one RNG for `_spawn_weeds` (one `random()` per `None` tile,
+both farms) then the shop draw. A different d11 empty-tile count
+rerolls d12's shop.
+
+**d12h0 yarn slack (burst still spends; calendar 14 once yarn visible).**
+Yarn held. Sheep landed d12h0. Seed 8 no-op **55,411**. Seed 0 end
+10C/4S but owned 14→13 twice (escapes) and bank **36,885 (−3,351)**.
+
+## Counters
+
+| arm | seed 0 | seed 8 | yarn | extra sheep | notes |
+|---|---|---|---|---|---|
+| fact 44 (live) | 40,236 | 55,411 | d12h0 | d13h0 | −570 vs 40,806 |
+| hold d11 burst | 25,417 | 34,074 | **none** | 0 | dump to 18 |
+| d12h0 slack | 36,885 | 55,411 | d12h0 | d12h0 | seed 0 escapes |
+
+Species rule was not changed. d0 2C2S. STRAW d5–8 untouched.
+
+## Verdict
+
+**Neither supplement holds.** Kind: supplement (fact 44) — both arms
+dropped. Do not retry hold-the-burst or d12h0 slack. Do not revert the
+no-yarn lock. Do not hold sheep at 2 after yarn. Do not land herd.
+Throwaway `experiments/_facts_v20.py` (reverted). Judge script
+`experiments/_judge_d11_burst.py`.
+
+## How we continue
+
+The −570 is still the hole. A later bind cannot change the d11
+empty-tile count (shop draw) and cannot add animals on d12h0 (escapes).
+Still no 40–42, no `bptk.py`, no Path C, no holdout, no d11+ count
+ramp, no third fert-only bind, no `main.py` port.
+
+## Open
+
+- Fact 44 — species counters green; **red on seed 0 bank (−570)**.
+- Next: a different spend bind, not the two that failed. Not herd.
+- Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-06 — yarn-seed −570 is the d11 cow burst
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Diagnosed why fact 44 nicks seed 0 by $570. Split leftover vs mix,
+reproduced live, then traced the yarn-seed buy hours. Leftover crop is
+a no-op on both seeds. The −570 is the no-yarn lock spending the d11
+cap-12 burst on cows; yarn is visible d12h0 with slots already 0; the
+two extra sheep wait until d13. Same end mix as live (10C/4S). Live’s
+third sheep is d11h13.
+
+## Counters
+
+| arm | seed 0 | seed 8 |
+|---|---|---|
+| fact 44 (current) | 40,236 | 55,411 |
+| leftover only | 20,306 | 34,567 |
+| hold sheep at 2 after yarn | 33,894 | 55,411 |
+| lock + mix uncapped | 40,236 | 55,411 |
+| no lock, mix uncapped | **40,806** | **34,567** |
+| live supplement (prior) | 40,806 | 34,567 |
+
+Seed 0 shops: BRUNCH@3 PET_CAFE@6 SMOOTHIE@9 **YARN@12**. Seed 8: ICE_CREAM@3
+PET_CAFE@6, no yarn. Yarn first visible d12h0. Fact 44 d11h13 buys 6 cows;
+d12h0 buys nothing; d13h0 buys 2 sheep. Live: sheep d11h13 + d13h0.
+
+Species counters still hold (yarn end sheep 4; no-yarn end sheep 2).
+d0 2C2S. 0 escapes. STRAW d5–8 unchanged 1/5/0/1.
+
+`neither` (flags off, `cap=target` still on) is **20,306** on seed 0, not
+live. Live called `shop_mix_target` without a calendar cap, so d3/d5
+stayed cows. Passing `cap=target` without the lock scales the pre-yarn
+table to 3C3S and buys a d5 sheep into no-yarn wool.
+
+## Verdict
+
+**The −570 is diagnosed.** Not leftover, not dump-at-floor, not “too
+many sheep.” The extra sheep after yarn are a **+$6.3k** win vs holding
+at 2. The lock is the seed-8 **+20,844**. Do not revert it. Do not hold
+sheep at 2 after yarn. There is no shop-visible way on d11 to know yarn
+lands tomorrow (seed 8’s first shops also include a milk shop).
+
+Acceptance still **fails seed 0 by $570**. Kind: diagnosis (no add /
+remove / supplement landed). Throwaway `experiments/_facts_v20.py`
+(isolate flags `SHOP_AWARE_MIX` / `SHOP_AWARE_CROP` / `HOLD_SHEEP_AT_2`
+/ `USE_MIX_CAP`; defaults keep fact 44). Scripts:
+`experiments/_isolate_yarn570.py`, `_isolate_hold2.py`,
+`_isolate_mixcap.py`, `_trace_yarn_hour.py`.
+
+## How we continue
+
+A later supplement has to change **when** the no-yarn path spends the
+cap-12 burst, not the species rule. Keep the species counters. Re-judge
+both seeds. Still no 40–42, no `bptk.py`, no Path C, no holdout, no
+d11+ count ramp, no third fert-only bind, no `main.py` port.
+
+## Open
+
+- Fact 44 — species counters green; **red on seed 0 bank (−570)**;
+  mechanism: d11 cow burst, sheep slip d11h13 → d13h0.
+- Next: supplement the no-yarn cap-12 spend, then re-judge. Not herd.
+- Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-06 — fact 44 town-demand; yarn-seed −570
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Isolated the seed-8 drop (wheat-d0 vs NE walk): early board is identical
+through d6; the split is the **town**. Seed 0 unlocks `YARN_STORE` (d12);
+seed 8 never does, and wool hits $1 on d17 while we still produce it.
+Wrote fact 44 as: produce what `unlocked_shops` eat; do not produce what
+they do not. Count stays the calendar (15). No yarn → sheep stay at the
+d0 beach-head (2); later slots are cows. Leftover STRAW/CARROT only with
+a shop sink. Dump-at-floor was tried first and moved nothing (+0 / +331);
+reverted. Measured contested vs `route_v20` on seeds 0 and 8.
+
+## Counters
+
+| | seed 0 (yarn d12) | seed 8 (no yarn) |
+|---|---|---|
+| bank (fact 44) | 40,236 | **55,411** |
+| bank (live supplement) | 40,806 | 34,567 |
+| Δ vs live | **−570** | **+20,844** |
+| d0 2C2S | 2/2 | 2/2 |
+| herd count d10 | 6 | 6 |
+| `BUY_ANIMAL SHEEP` after d0 | 2 | **0** |
+| end sheep | 4 | **2** |
+| STRAW d5–8 | 1/5/0/1 | 1/5/0/1 |
+
+Species counters hold. Seed 8 carrot = 0 (SW already carpeted). Tomato 0;
+MELON after d0 = 0.
+
+## Verdict
+
+**Fact 44 has a counter and it moved.** No yarn → no extra sheep; yarn →
+sheep > 2. Seed 8 closed most of the 65k → 34k hole (now 55k). Acceptance
+(bank not down on both) **fails seed 0 by $570**. Do not land the d11+
+count ramp. Do not bring back dump-at-floor. Do not hunt a third
+fert-only bind. No `main.py` port.
+
+Kind: add (fact 44). Throwaway `experiments/_facts_v20.py`.
+
+## How we continue
+
+Find **why yarn-seed (seed 0) lost $570** under fact 44. Keep the species
+counters. Then re-judge both seeds. Still no 40–42, no `bptk.py`, no Path
+C, no holdout.
+
+## Open
+
+- Fact 44 — species counters green; **red on seed 0 bank (−570)**.
+- Next: diagnose the yarn-seed loss, then re-judge. Not herd count.
+- Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-05 — d5–d6 STRAW supplement; seed 8 bank fail
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Diagnosed the funding stack's d5–d6 STRAW miss (and wheat d0 = 0) in
+`experiments/_facts_v20.py`. Confirmed on seed 0: d5 had **5 empty NW
+tiles** and **$527**, `buyS=0` (450 floor needs $550 for one $100 seed);
+d6 bought/planted the stockpile of 3; d0 leftover after 12 MELON sat
+empty because melon opening `elif`-blocked wheat restock. Supplemented
+facts 22 + 30 (wheat beside melon opening; STRAW restock sized to empty
+tiles, no 450 floor, same-turn credit) and a **K-bounded** NE walk on
+pending unlock (not crew-wide). Re-judged the same stack.
+
+## Counters
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank (this supplement) | 40,806 | 34,567 |
+| bank (funding stack) | 16,628 | 65,296 |
+| Δ vs stack | **+24,178** | **−30,729** |
+| bank (pre-T1) | 26,429 | 8,269 |
+| Δ vs pre-T1 | +14,377 | +26,298 |
+
+Timing (both seeds, same shape): wheat **d0 = 7** (tape 7); STRAW d5
+**1/4**, d6 **5/8**, d7 **0/4**, d8 **1/4**; d11 carpet **15**; MELON after
+d0 = 0; land **[8, 11]** (was [7, 11]). Seed 0 STRAW `$` **−43.4k**
+(wider than the stack's −19.8k). Fert still no dry-spell hunt.
+
+## Verdict
+
+**The supplement does not hold.** Acceptance is contested bank on both
+seeds; seed 8 fell off the funding stack's 65k. Wheat d0 is the named-day
+win. Do **not** land herd (15 + 17). Do **not** hunt a third fert-only
+bind. Do **not** reopen 40–42 as a crew-wide NE walk.
+
+Kind: supplement (facts 22, 30, 27 walk). No `main.py` port.
+
+## How we continue
+
+Isolate the **seed-8 drop** (wheat-d0 cash trough vs the NE walk) without
+giving back seed 0's bank. d5/d7/d8 half-tape still fail: d5 is cash
+($15 after wheat d0), d7 is NE still locked, d8 walk plants 1. Still no
+40–42, no `bptk.py`, no Path C, no holdout.
+
+## Open
+
+- Funding stack + this supplement — **red on seed 8 bank**.
+- Next: isolate seed-8 drop, then re-judge. Not herd.
+- Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-05 — funding stack landed; seed 0 bank fail
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Rewrote T1 “Order of work” to the funding stack (five-step + per-step
+bank kill switch withdrawn). Landed facts 9 + 21 + 22 + 28 + 27 + 39 in
+`experiments/_facts_v20.py` in one pass: sell fert flow above apply-gap,
+buy apply-gap only (no same-turn sell+buy; not surplus-above-6); WHEAT
+empty-tile default from d0, underfoot only; STRAW on home/NE d5–8 plus
+SW carpet; MELON d0 only; NW STRAW ban deleted. Source audit 29/29.
+Contested vs `route_v20` seeds 0 and 8 (`tape_profile.py` then
+`_trace_cashflow_v20.py`).
+
+## Counters
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank (this stack) | 16,628 | 65,296 |
+| bank (pre-T1 baseline) | 26,429 | 8,269 |
+| Δ | **−9,801** | +57,027 |
+
+Timing (both seeds, same shape): wheat **0 on d0** (tape 7), starts d1;
+STRAW d5 **0/4**, d6 **3/8** (fail half-tape), d7–d8 and d11 carpet hold;
+MELON after d0 = 0; fert dry-spell **holds** (only isolated d1). Herd
+still 6 through d10 (15/17 not in this stack). Land [7, 11] vs tape
+[6, 11].
+
+Cashflow seed 0 gaps vs v20 all smaller than the pre-T1 table (STRAW
+−19.8k, WOOL −3.5k, WHEAT-net −9.7k, FERT −3.0k). Seed 8 STRAW gap
+**wider** (−32.0k). `BUY_PRODUCT FERTILIZER` $4.0k / $3.5k — mid
+thousands, not $12k churn. Seed 0 worst widen: d21/d16/d23, all STRAW.
+
+## Verdict
+
+**The stack does not hold.** Acceptance bar is contested bank on both
+seeds; seed 0 fell. Do **not** revert (seed 8 unstuck 8k → 65k; seed 0
+streams moved the right way). Do **not** hunt a third fert-only bind.
+Do **not** land herd (15 + 17) on a stack that misses the d5–6 STRAW
+wave — that is still the old d11+ ramp with extra cash.
+
+Kind: supplement (throwaway implements already-rewritten T1 rows).
+No `main.py` port.
+
+## How we continue
+
+Diagnose the **d5–d6 STRAW miss** (and seed 0’s late STRAW `$` widen).
+Wheat d0 = 0 is the other named-day miss; fert cadence is the part that
+held. Then re-judge the same stack. Still no 40–42, no `bptk.py`, no
+Path C, no holdout.
+
+## Open
+
+- Funding stack in the throwaway — **red on seed 0 bank**.
+- Next: d5–d6 STRAW (fact 27/30), not herd, not another fert bind.
+- Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-05 — T1 step 1 is not isolable; land the funding stack
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Retried T1 step 1 with a different bind: delete the live-STRAW hold;
+sell shed fert **above** `MAX_FERTILIZER_STOCK` (6); buy apply-gap only
+when shed is empty and this turn did not sell fert. Source audit 29/29
+(leftover episode harness is missing). Contested vs `route_v20` seeds 0
+and 8. Then named why two fert-only landings are the same half-stack
+error, and **changed how T1 continues** (below).
+
+## Counters
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank (this step) | 11,648 | 15,510 |
+| bank (pre-T1 baseline) | 26,429 | 8,269 |
+| Δ | **−14,781** | +7,241 |
+
+Fact 9 dry-spell **failed** (seed 0 sold fert on 5 days only: d3/4/7/10/16;
+seed 8 similar). `BUY_PRODUCT_FERTILIZER` stayed small ($387 / $1,205) —
+no $12k churn. SELL_FERTILIZER $ was 2.1k vs v20 17.2k on seed 0. Crew
+hit 0 hires for long stretches; seed 0 money sat at $1–15 through mid
+season. WOOL sold $0.
+
+## Verdict
+
+**Revert the fert-only patch.** Throwaway, prerun audit, and the 9/21
+FACTS supplements restored to `95c296b`. T1 spec rows stay. Do not
+re-land “sell above a 6-unit reserve” or “sell-all + buy demand last.”
+
+**The procedure was wrong, not just the bind.** T1 is one failure
+(rows 9 / 15 / 17 / 21 / 22 / 27 / 28 / 39 + 43). Fact 9’s own text is
+that daily fert cash is liquidity **for fact 15’s herd**, and that cash
+only has a tape-shaped place to go if wheat is the empty-tile default
+(22) and STRAW lands on d5–8 (27). Two measurements kept those rows on
+the old escape-defence shape and asked fert cadence alone to hold the
+**full-season contested bank**. That is the BUY_LAND-at-fixed-crew
+error: one named fact moved, the unnamed dependents stayed pinned.
+
+The dollar table already said fert was the small slice (seed 0 vs v20):
+STRAW −29.6k, WOOL −25.3k, WHEAT-net −20k, FERT −4.1k. Judging step 1
+on 26,429 / 8,269 asks 9+21 to carry an $85k gap they do not own.
+Sell-all “fixed” fert `$` and lost the bank to buy-back churn.
+Surplus-above-6 “fixed” the churn and never sold the flow, because
+apply (still STRAW-hold logic in the unit ladder) ate the reserve.
+Both are half-stack artifacts.
+
+The T1 card tried to have it both ways: *one failure*, landed
+*cheapest-to-revert*, **and** “a step that lowers either seed is
+reverted.” After two reverts, that last clause is a hunt for a
+fert-only mechanism that cannot exist.
+
+## How we continue
+
+The next edit is the **method**, not another `decide_market_actions`
+fert patch. Do **not** hunt a third fert-only bind against 26,429 /
+8,269. Do **not** keep steps 2–5 blocked on a green step 1.
+
+1. **Land the funding stack together** — facts 9 + 21 + 22 + 28 + 27 +
+   39 (old T1 steps 1–3) in one throwaway pass. Still not the whole
+   card. Still cheapest-to-revert *after* a stack that can make a fert
+   sale mean something. Banned binds stay banned (sell-all + buy-back;
+   surplus-above-6).
+2. **Then** herd (15 + 17), **then** crew (43). Running 15 first is
+   still the old d11+ ramp.
+3. Contested bank vs `route_v20` seeds 0 and 8 is the judge **of the
+   funding stack**, not of fert in isolation. `tape_profile.py` first,
+   then `_trace_cashflow_v20.py`, then the bank. A fert-only dry-spell
+   / ±4/day / buys-in-tens read is a diagnostic, not a ship bar.
+4. Rewrite the T1 “Order of work” in `mydocs/FACTS.md` to this stack
+   when the throwaway is opened — the five-step + per-step bank kill
+   switch is withdrawn.
+5. No `main.py` port; no 40–42; no `bptk.py`; no Path C; no holdout.
+
+## Open
+
+- Timing card T1 **funding stack** (9 + 21 + 22 + 28 + 27 + 39) — next.
+- Herd (15 + 17) and crew (43) after that stack holds.
+- Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-05 — T1 step 1 (9+21 fert) FAIL, reverted
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Tried T1 step 1 in `experiments/_facts_v20.py`: delete the live-STRAW
+fert hold (fact 9); buy fert sized to the turn's apply gap, last on the
+market list (fact 21). Source audit 29/29. Contested vs `route_v20`
+seeds 0 and 8.
+
+## Counters
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank (this step) | 26,147 | 6,363 |
+| bank (pre-T1 baseline) | 26,429 | 8,269 |
+| Δ | **−282** | **−1,906** |
+
+Fact 9 dry-spell bar held (only d1 dry). Buy-back fired (~$12k
+`BUY_PRODUCT_FERTILIZER`). SELL_FERTILIZER $ flipped from −4.1k to
++8.1k on seed 0. STRAW / WOOL / WHEAT-net gaps stayed large. Late-day
+SELL FERT order qty ballooned (70+/day from d18) — sell-all + buy-back
+churn, not tape cadence.
+
+## Verdict
+
+**Revert.** The acceptance bar is contested bank on 0 and 8; both
+fell. Throwaway + prerun audit restored to `95c296b`. T1 spec rows stay;
+the mechanism does not. Do not re-land “sell all + buy demand last”
+without a different bind (the $12k buy-back + late dump cost more than
+the hold was costing).
+
+## What to do next
+
+1. Re-diagnose fact 9/21: sell the collected *flow* without buying
+   tens of dollars back into a dump. Tape sells 3–17/day, not 70.
+2. Then retry T1 step 1 with that mechanism, same bank bar.
+3. Do not skip to wheat/STRAW/herd while this step is red.
+4. No `main.py` port; no 40–42; no `bptk.py`.
+
+## Open
+
+- Timing card T1, step 1 — **still next**, different mechanism.
+- Steps 2–5 blocked on a passing step 1.
+- Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-05 — the judge was wrong; timing card T1 opened
 
 > **Standing rule:** Report to the user in chat before writing this file.
 > Numbers, win counts, and the add / drop / supplement call go in the
