@@ -1,13 +1,13 @@
 <h1 align="center">Washamba Bots</h1>
 
-<p align="left">
+<p align="center">
   An autonomous decision-making agent for a two-player, turn-based
-  resource-management simulation,<br/>
+  farming and agriculture resource-management simulation,<br/>
   built and evaluated with a strict emphasis on proving a change actually helps
   before trusting it.
 </p>
 
-<p align="left">
+<p align="center">
   <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
   <img alt="pandas" src="https://img.shields.io/badge/pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" />
   <img alt="NumPy" src="https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white" />
@@ -27,6 +27,7 @@
   - [Why deterministic first, not learned](#why-deterministic-first-not-learned)
 - [Tech Stack](#tech-stack)
 - [Features](#features)
+- [Forward-Pricing Research](#forward-pricing-research)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -39,8 +40,6 @@
 - [License](#license)
 - [Contact](#contact)
 - [Acknowledgments](#acknowledgments)
-
-<img width="1430" height="736" alt="washamba_bots" src="https://github.com/user-attachments/assets/550d87af-a8ae-482b-bd0c-81079960065f" />
 
 ## About the Project
 
@@ -77,7 +76,7 @@ Evaluation discipline is the prerequisite for the "real" agent work, and it matt
 
 ## Tech Stack
 
-Python 3.12 throughout. The shipped agent's decision logic depends only on the Python standard library and the competition's simulation engine (named in [CONTRIBUTING.md](CONTRIBUTING.md)), so the agent is a single self-contained file with no heavy runtime dependencies and nothing to look up mid-match. The analysis and evaluation side uses **pandas**, **NumPy**, **SciPy**, **Matplotlib** and **Seaborn** inside **Jupyter** notebooks for exploring and visualizing match results, and Python's built-in **unittest** for the agent's unit tests.
+Python 3.13 throughout. The shipped agent's decision logic depends only on the Python standard library and the competition's simulation engine (named in [CONTRIBUTING.md](CONTRIBUTING.md)), so the agent is a single self-contained file with no heavy runtime dependencies and nothing to look up mid-match. The analysis and evaluation side uses **pandas**, **NumPy**, **SciPy**, **Matplotlib** and **Seaborn** inside **Jupyter** notebooks for exploring and visualizing match results, and Python's built-in **unittest** for the agent's unit tests.
 
 ## Features
 
@@ -86,16 +85,30 @@ Since this is a single autonomous agent rather than a service with a frontend an
 - **A four-stage decision pipeline** — state manager → strategy → planner → executor — that turns each raw observation into exactly one legal action every turn. See [Project Structure](#project-structure) for the diagram.
 - **A layered evaluation harness**, purpose-built because single-run scores are not trustworthy here: paired comparison (same conditions, two versions, compare the difference), self-play (the agent against itself, the number that best predicts a live match), and seeded batch runs against a set of reference opponents.
 - **A round-robin ranking harness** that plays any set of candidate agents against each other, both seats, over many seeds, and ranks them by a match-accurate score (win, loss, or tie, margin ignored) so a candidate is judged locally before it ever costs a live submission.
+- **A forward-pricing research track** that models how a good's market price moves over its harvest horizon; see [Forward-Pricing Research](#forward-pricing-research).
 - **A frozen-checkpoint system**, so a new idea is always measured against a fixed, known-good baseline rather than against whatever is currently on the main branch.
 - **A documented negative-results log** — strategies that were tried, measured, and rejected are written down alongside *why*, so the same dead end isn't re-explored by intuition months later.
 - **A unit test suite** covering the agent's decision logic in isolation, independent of running a full match.
 - **A single-file, deployable agent** — the entire decision logic ships as one self-contained file with no external service dependencies at run time.
 
+## Forward-Pricing Research
+
+A crop is not sold the instant it is planted; a melon planted today can sell up to twelve days later, by which point its price may have collapsed under town demand or the agent's own later harvests. This track models how the market price of a good moves over time under the agent's own sales, an assumed opponent's sales, and town demand, so crop choice and sell-sizing can be scored against the engine's real mechanics rather than hand-tuned discount constants.
+
+In a controlled self-play experiment, replacing the two hand-tuned discount terms in crop selection with a forward price estimate at each crop's actual harvest horizon, and sizing sell orders by the real per-unit price path, raised mean self-play reward from **27,246 to 34,286, a +25.8% gain (+7,040)**, with **every one of the six seeds improving and zero regressions**, and a 12/12 win rate against all three built-in opponents. It is deliberately framed as a promising research result rather than a shipped change: it is not yet merged or submitted, the sample is small (six self-play seeds) by the project's own evidence standard, and a single-file bundling step remains before it could be submitted. The full method, per-seed deltas, and the accept/reject reasoning are in the report.
+
+The pricing work lives in four places, so it can be read end to end:
+
+- **Analysis notebook** — [`notebooks/pricing_analysis_v0.ipynb`](notebooks/pricing_analysis_v0.ipynb): the engine's price mechanics, derived and visualized.
+- **Experiment report** — [`experiments/forward_pricing_experiment_report.md`](experiments/forward_pricing_experiment_report.md): the self-play A/B, per-seed deltas, and the honest accept/reject call; the experiment itself is [`experiments/forward_pricing_experiment.py`](experiments/forward_pricing_experiment.py).
+- **Research module** — [`pricing.py`](pricing.py): `estimate_future_price()` and `recommend_sell_quantity()`, read directly off the engine's own price formulas.
+- **Tests** — [`tests/test_pricing.py`](tests/test_pricing.py) and the `TestForwardPricingIntegration` suite, keeping the module and its inlined copy in agreement.
+
 ## Getting Started
 
 ### Prerequisites
 
-- Python 3.12 (pinned in `.python-version`)
+- Python 3.13 (see `.python-version`)
 - [`uv`](https://docs.astral.sh/uv/) for environment and dependency management — it also provisions the Python interpreter itself, so a separate Python install isn't required
 
 ### Installation
@@ -105,7 +118,7 @@ git clone https://github.com/Kinjuriu/washamba_bots.git
 cd washamba_bots
 
 # Creates an isolated environment and provisions the interpreter
-uv venv --python 3.12 .venv
+uv venv --python 3.13 .venv
 
 # Installs the numerical and analysis dependencies
 uv pip install --python .venv/bin/python \
@@ -150,19 +163,25 @@ There is no `.env` file, and no secrets are stored anywhere in this repository. 
 ```text
 washamba_bots/
 ├── main.py              # The deterministic agent — a single file, deployable as-is
-├── pricing.py           # A standalone pricing model (research; not wired into the agent)
+├── pricing.py           # Forward-pricing research module (see Forward-Pricing Research)
 ├── agents/              # Reference and candidate agents used as sparring opponents
 ├── tests/               # Unit tests for the agent's decision logic, run in isolation
 ├── experiments/         # Evaluation tooling: paired comparison, self-play,
 │                        #   round-robin ranking (rank_bases.py), reference-agent
-│                        #   reconstruction (decode_route.py), seeded batches, diagnostics
-├── notebooks/           # Exploratory analysis and result visualization
+│                        #   reconstruction (decode_route.py), the forward-pricing
+│                        #   experiment + report, seeded batches, diagnostics
+├── notebooks/           # Exploratory analysis (see below)
 ├── docs/                # Architecture notes, frozen checkpoints, and internal reference material
 ├── CLAUDE.md            # Internal engineering notes: gotchas, decisions, and documented dead ends
 ├── CONTRIBUTING.md      # How the team works, and the evaluation standard every change is held to
 ├── ROADMAP.md           # Where the project has been and where it's headed
 └── LICENSE
 ```
+
+**Notebooks**
+
+- [`notebooks/pricing_analysis_v0.ipynb`](notebooks/pricing_analysis_v0.ipynb) — current: the price-mechanics analysis behind [Forward-Pricing Research](#forward-pricing-research).
+- [`notebooks/washamba_bots_experiments_v0.ipynb`](notebooks/washamba_bots_experiments_v0.ipynb) — historical: earlier exploratory results that predate the current agent, kept for reference.
 
 ### Decision pipeline
 
@@ -179,7 +198,7 @@ flowchart TD
 ## Roadmap
 
 - [x] **Deterministic agent** — a fully rule-based agent, plus the evaluation harness (paired comparison, self-play, round-robin ranking, frozen checkpoints, a documented negative-results log) needed to trust any claim made about it.
-- [ ] **Forward-pricing model** — a more accurate model of how trading a given quantity moves the market price, developed and validated as a standalone module before it's wired into the agent's live decisions.
+- [~] **Forward-pricing model** — a forward price estimate at each crop's harvest horizon; measured at **+25.8% mean self-play reward across six seeds, zero regressions**, and documented in the [experiment report](experiments/forward_pricing_experiment_report.md). Promising, not yet promoted: needs a larger seed set and the single-file bundling step resolved before it can be submitted.
 - [ ] **Learned agent** — a model trained on experience rather than hand-written rules, once the measurement process built above can be trusted to evaluate it fairly.
 
 See open items and known gaps in [GitHub Issues](https://github.com/Kinjuriu/washamba_bots/issues).
@@ -190,9 +209,10 @@ This is currently a closed, private team project and isn't open to outside contr
 
 ## Team
 
-<a href="https://github.com/Kinjuriu/washamba_bots/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Kinjuriu/washamba_bots" alt="Contributors" />
-</a>
+- **Stephane Njoki** ([@Kinjuriu](https://github.com/Kinjuriu)) — project lead. Built the repository's backbone and the evaluation harness the whole team measures against (paired comparison, self-play, frozen checkpoints, the negative-results log), led the [forward-pricing research](#forward-pricing-research), and built the base-vetting pipeline (round-robin ranking and reference-agent reconstruction).
+- **Peter Kibet** — reference-route adoption and tuning.
+- **Billy Mwangi** — crop-pipeline and selling-gate work.
+- **Kevin Munene** — agent development.
 
 ## License
 
