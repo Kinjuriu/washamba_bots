@@ -462,17 +462,42 @@ PLANTABLE_CROPS = ["WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON"]
 # not reopen them; what this branch changes is what fills the tile-time
 # the windows free up, not the windows.
 CROP_PLANTING_WINDOWS = {
-    "MELON": (0, 11),
+    "MELON": (0, 0),       # fact 27/36: d0 opening only, never replanted
     "STRAWBERRY": (5, 12),
     "CARROT": (21, 25),
     "WHEAT": (0, 27),      # effectively continuous / no-op
     "TOMATO": None,        # excluded entirely: never plant
 }
 
+# Isolation flags for the seed-8 drop (HANDOFF 2026-09-05). Defaults are
+# the live supplement. experiments/_isolate_seed8.py flips these on copies.
+ISOLATE_WHEAT_D0 = True
+ISOLATE_NE_WALK = True
+
+# Fact 44: shop sink gates leftover plant + premium sell hold.
+# Mix vs leftover are separate so a yarn-seed bank miss can be isolated.
+SHOP_AWARE = True
+SHOP_AWARE_MIX = True
+SHOP_AWARE_CROP = True
+# Isolate: keep beach-head sheep even after YARN_STORE appears.
+HOLD_SHEEP_AT_2 = False
+# Isolate: live called shop_mix_target without cap=target (default 18).
+USE_MIX_CAP = True
+SHOP_AWARE_EXEMPT = ("MELON", "FERTILIZER")
+STRAW_SHOPS = ("BRUNCH_SPOT", "ICE_CREAM_SHOP", "SMOOTHIE_SHOP", "FARMERS_MARKET")
+CARROT_SHOPS = ("PET_CAFE", "FARMERS_MARKET")
+
+# Fact 27: STRAW d5–8 on home/NE (first wave); SW carpet uses the new-land
+# window below. Not a pin of 50.
+STRAW_HOME_NE_DAY_START = 5
+STRAW_HOME_NE_DAY_END = 8
+# Fact 30: d5–8 wave restock is sized to empty STRAW tiles, not stockpile 3.
+# Tape d6 ≈8; half-tape bar is ≥4.
+STRAW_WAVE_RESTOCK_CAP = 8
+
 # Fact 27: empty leftover on extras after the first (unlocked[2:], SW)
-# during this inclusive window is STRAW. Not a pin of 50; NE and home
-# leftover are not forced. Fact 28: CARROT occupies that leftover in
-# CARROT's existing window; do not reopen STRAW after d12.
+# during this inclusive window is STRAW. Fact 28: CARROT occupies that
+# leftover in CARROT's existing window; do not reopen STRAW after d12.
 STRAW_NEW_LAND_DAY_START = 7
 STRAW_NEW_LAND_DAY_END = 12
 
@@ -825,9 +850,11 @@ ANIMAL_STRUCTURE_KINDS = {ANIMALS[a]["structure"] for a in ACTIVE_ANIMALS if a i
 # the extra structure - see MAX_ANIMALS_ON_HOME_LAND and the home-quadrant
 # gate in choose_animal_to_build.
 MAX_ANIMALS_ON_HOME_LAND = 3
-# Throwaway (FACTS.md facts 15/17 scale card B): season ceiling is the
-# shop-mix total (yarn-first raw 18; milk/yarn-in-3 raw 14). Day-0 beach-
-# head is still 4 via calendar_owned_target — not this number.
+# Throwaway (FACTS.md facts 15/17): season ceiling is still 18. A
+# 2026-09-06 card that set 14 (and one that opened the tape ladder)
+# failed the bank bar — ladder: seed 0 27,204 / land [7, 11] / STRAW
+# 0; cap-only: seed 8 46,746 (−8,665 vs 55,411). Day-0 beach-head is
+# still 4 via calendar_owned_target — not this number.
 MAX_ANIMALS = 18
 
 # Never buy an animal that eats more than this fraction of current cash in
@@ -867,10 +894,9 @@ FACTS_MILK_SHOPS = {"PIZZA_SHOP", "ICE_CREAM_SHOP", "SMOOTHIE_SHOP"}
 def calendar_owned_target(day):
     """How many animals we are allowed to own by the end of `day`.
 
-    Fact 15 (scale card B, repaired): beach-head 4; +1 cow day 3; +1 cow
-    day 5 (4C2S = 6) held through day 10 so SW land + MELON wave keep the
-    cash drawer (d7 dump toward 10 starved SW/feed on both seeds). Day 11+
-    opens toward shop-mix (12 then season ceiling). Not "buy whenever cash
+    Fact 15 tape ladder and fact 17 cap-14 both failed the 2026-09-06
+    bank bar (see FACTS.md card). Hold 6 through day 10; day 11+
+    opens toward 12 then season ceiling. Not "buy whenever cash
     allows." Not "d7 dumps the season cap."
     """
     if day < 3:
@@ -885,15 +911,18 @@ def calendar_owned_target(day):
 
 
 def shop_mix_target(unlocked_shops, cap=None):
-    """v20 first-three-shops table, capped at our season ceiling (fact 15/17).
+    """Fact 44: which species, at the current count cap (fact 15).
 
-    When the season cap is at or above the meta total, use the raw counts
-    (10C4S / 6C8S / 6C12S). Only scale *down* when the cap is below meta
-    (legacy half-stack at 8).
+    No YARN_STORE → do not add sheep past the day-0 beach-head (2).
+    Yarn present → v20 first-three-shops table. Scale *down* only when
+    the calendar cap is below the raw total. Never a licence to buy
+    past calendar_owned_target.
     """
     cap = MAX_ANIMALS if cap is None else cap
     shops = list(unlocked_shops or [])
-    if shops[:1] == ["YARN_STORE"] or "YARN_STORE" in shops[:2]:
+    if SHOP_AWARE_MIX and ("YARN_STORE" not in shops or HOLD_SHEEP_AT_2):
+        raw = {"COW": max(0, cap - 2), "SHEEP": min(2, cap)}
+    elif shops[:1] == ["YARN_STORE"] or "YARN_STORE" in shops[:2]:
         raw = {"COW": 6, "SHEEP": 12}
     elif "YARN_STORE" in shops[:3]:
         raw = {"COW": 6, "SHEEP": 8}
@@ -1666,37 +1695,32 @@ def decide_animal_market_actions(
                 held[species] = held.get(species, 0) + add
                 slots = max(0, target - owned)
     elif slots > 0 and day > 0:
-        if 3 <= day < 11:
-            # Prefix cows only (target still 6). No d7 cap-fill.
-            qty = _largest_affordable_qty("COW", min(slots, 1), money, remaining_days)
-            if qty:
-                actions.append(["BUY_ANIMAL", "COW", qty])
-                money -= ANIMALS["COW"]["cost"] * qty
-                owned += qty
-                held["COW"] = held.get("COW", 0) + qty
-                slots = max(0, target - owned)
-        elif day >= 11:
-            # Fact 15/17: after SW window opens, shop mix toward ceiling.
-            mix = shop_mix_target(unlocked_shops)
-            while slots > 0:
-                deficits = {
-                    a: mix.get(a, 0) - held.get(a, 0)
-                    for a in ACTIVE_ANIMALS
-                    if a in mix
-                }
-                species = max(
-                    deficits,
-                    key=lambda a: (deficits[a], -ACTIVE_ANIMALS.index(a)),
-                )
-                if deficits[species] <= 0:
-                    break
-                if not _animal_can_pay(species, 1, money, remaining_days):
-                    break
-                actions.append(["BUY_ANIMAL", species, 1])
-                money -= ANIMALS[species]["cost"]
-                owned += 1
-                held[species] = held.get(species, 0) + 1
-                slots -= 1
+        # Fact 15: count is calendar_owned_target (holds 6 through day 10;
+        # day >= 11 opens toward 12 then cap). Fact 44: species is the town.
+        mix = shop_mix_target(
+            unlocked_shops, cap=target if USE_MIX_CAP else None,
+        )
+        while slots > 0:
+            deficits = {
+                a: mix.get(a, 0) - held.get(a, 0)
+                for a in ACTIVE_ANIMALS
+                if a in mix
+            }
+            if not deficits:
+                break
+            species = max(
+                deficits,
+                key=lambda a: (deficits[a], -ACTIVE_ANIMALS.index(a)),
+            )
+            if deficits[species] <= 0:
+                break
+            if not _animal_can_pay(species, 1, money, remaining_days):
+                break
+            actions.append(["BUY_ANIMAL", species, 1])
+            money -= ANIMALS[species]["cost"]
+            owned += 1
+            held[species] = held.get(species, 0) + 1
+            slots -= 1
 
     # Facts 5, 18, 19: wheat for owned mouths, not a flat 2, not keyed on
     # filled-only, not behind the seed-cash floor.
@@ -1751,12 +1775,12 @@ def tile_quadrant(x, y, board_size):
     return ("N" if y < half else "S") + ("W" if x < half else "E")
 
 
-def live_strawberry_count(farm):
-    """How many tiles currently hold a live STRAWBERRY plant (fact 9 hold)."""
+def count_fertilize_demand(farm, day):
+    """How many tiles want FERTILIZE this turn (fact 21 apply-gap)."""
     n = 0
     for row in farm.get("tiles") or []:
         for t in row:
-            if isinstance(t, dict) and t.get("kind") == "PLANT" and t.get("crop") == "STRAWBERRY":
+            if wants_fertilizer(t, day):
                 n += 1
     return n
 
@@ -1841,16 +1865,42 @@ def first_extra_quadrant(farm):
     return None
 
 
-def leftover_occupant(farm, day, x, y, board_size):
-    """Crop this empty leftover tile should plant, or None.
+def pending_ne_unlock_day(farm, day):
+    """Fact 27/33: 1st BUY_LAND window day with NE still outstanding."""
+    lo, hi = LAND_PURCHASE_DAY_WINDOWS[0]
+    n_extra = len((farm.get("unlocked_quadrants") or ["NW"])) - 1
+    return n_extra == 0 and lo <= day <= hi
 
-    First extra (NE) during MELON's window: MELON, not choose_crop STRAW
-    (fact 27). Later extras (SW): STRAW d7–12, CARROT d21–25 (fact 28).
-    Between later-extra windows the tile waits empty — not wheat.
-    Home NW is not forced here; fact 39 claims post-MELON home leftover
-    for product WHEAT (fact 38 d13+) or wait-empty — not STRAW refill.
-    Fact 42 (NE STRAW d11–12 after wave) tried and parked — walk stole
-    feeders (seed 0 escape) and d11–12 landings stayed 0/1.
+
+def first_extra_quadrant_effective(farm, day):
+    """First extra (NE), including the pending-unlock turn (market first)."""
+    first = first_extra_quadrant(farm)
+    if first:
+        return first
+    if pending_ne_unlock_day(farm, day):
+        return LAND_ORDER[0]
+    return None
+
+
+def has_shop_sink(product, unlocked_shops):
+    """Fact 44: True if an unlocked shop consumes this product."""
+    if not product:
+        return False
+    for name in unlocked_shops or []:
+        if product in SHOPS.get(name, []):
+            return True
+    return False
+
+
+def leftover_occupant(farm, day, x, y, board_size, unlocked_shops=None):
+    """Crop this empty leftover tile should plant.
+
+    Fact 27: STRAW d5–8 on home/NE; SW carpet in STRAW_NEW_LAND window;
+    MELON is d0 home only, never replanted on NE.
+    Fact 22/28/39: otherwise WHEAT — tiles do not wait empty.
+    Walks to later-extra still use leftover_occupant_on_later_extra
+    (window occupants only) so the WHEAT default does not walk the crew.
+    Fact 44: STRAW/CARROT only while a shop consumes them.
     """
     q = tile_quadrant(x, y, board_size)
     if q in later_extra_quadrants_effective(farm, day):
@@ -1859,21 +1909,35 @@ def leftover_occupant(farm, day, x, y, board_size):
             if window and window != "__no_gate__":
                 window_start, window_end = window
                 if window_start <= day <= window_end:
-                    return "STRAWBERRY"
-        carrot_window = CROP_PLANTING_WINDOWS.get("CARROT")
-        if carrot_window and carrot_window != "__no_gate__":
-            window_start, window_end = carrot_window
-            if window_start <= day <= window_end:
-                return "CARROT"
-        return None
-    first = first_extra_quadrant(farm)
-    if first and q == first:
-        melon_window = CROP_PLANTING_WINDOWS.get("MELON")
-        if melon_window and melon_window != "__no_gate__":
-            window_start, window_end = melon_window
-            if window_start <= day <= window_end:
-                return "MELON"
-    return None
+                    occ = "STRAWBERRY"
+                else:
+                    occ = None
+            else:
+                occ = None
+        else:
+            occ = None
+        if occ is None:
+            carrot_window = CROP_PLANTING_WINDOWS.get("CARROT")
+            if carrot_window and carrot_window != "__no_gate__":
+                window_start, window_end = carrot_window
+                if window_start <= day <= window_end:
+                    occ = "CARROT"
+        if occ is None:
+            occ = "WHEAT"
+    elif day == 0 and q == home_quadrant(farm):
+        occ = "MELON"
+    elif STRAW_HOME_NE_DAY_START <= day <= STRAW_HOME_NE_DAY_END:
+        occ = "STRAWBERRY"
+    else:
+        occ = "WHEAT"
+    if (
+        SHOP_AWARE_CROP
+        and unlocked_shops is not None
+        and occ in ("STRAWBERRY", "CARROT")
+        and not has_shop_sink(occ, unlocked_shops)
+    ):
+        return "WHEAT"
+    return occ
 
 
 def _melon_window_open(day):
@@ -1885,7 +1949,7 @@ def _melon_window_open(day):
 
 
 def melon_claims_home_leftover(private, day, plant_budget=None):
-    """Fact 36/38: MELON claims home leftover when window open and seed held."""
+    """Fact 36/27: MELON claims home leftover on d0 only, when seed is held."""
     if not _melon_window_open(day):
         return False
     melon_seed = (private.get("seeds") or {}).get("MELON", 0)
@@ -1924,36 +1988,50 @@ def count_empty_home_leftover(farm, board_size):
     return n
 
 
-def fact38_wants_wheat_seed(farm, private, day, board_size):
-    """Fact 38: restock WHEAT when home leftover is empty and MELON does not claim.
+def count_empty_wheat_leftover(farm, day, board_size, private=None):
+    """How many empty tiles have WHEAT as leftover_occupant (fact 22).
 
-    Opens d13+ (after MELON window and unlock carpet). Opening at d12 cleared
-    more NW wheat but seed 0 escaped / d18 herd 11. Home-only plant refuse
-    kept; fact 30 STRAW dribble not overridden.
+    Day 0: leftover_occupant still names MELON on home until the opening
+    is filled, so count home empties minus the remaining melon opening
+    (field + held). That is the leftover wheat should buy/plant.
     """
-    if day < 13:
-        return False
-    if _melon_window_open(day):
-        return False
-    if not has_empty_home_leftover(farm, day, board_size):
-        return False
-    if melon_claims_home_leftover(private, day):
-        return False
-    return True
+    n = 0
+    for y, row in enumerate(farm.get("tiles") or []):
+        for x, t in enumerate(row):
+            if t is not None:
+                continue
+            if leftover_occupant(farm, day, x, y, board_size) == "WHEAT":
+                n += 1
+    if day == 0 and ISOLATE_WHEAT_D0:
+        empty_home = count_empty_home_leftover(farm, board_size)
+        melon_have = count_field_crop(farm, "MELON")
+        if private is not None:
+            melon_have += (private.get("seeds") or {}).get("MELON", 0)
+        melon_left = max(0, MELON_OPENING_SEED - melon_have)
+        n += max(0, empty_home - melon_left)
+    return n
+
+
+def fact22_wants_wheat_seed(farm, private, day, board_size):
+    """Fact 22: restock WHEAT when an empty tile's occupant is WHEAT.
+
+    Keyed on the tile, not shed stock. Not a force-plant wrapper (F7).
+    Melon opening and wheat leftover are not exclusive: d0 buys both.
+    """
+    return count_empty_wheat_leftover(farm, day, board_size, private) > 0
 
 
 def wheat_product_restock_quantity(farm, private, day, board_size):
-    """Fact 38: size BUY_SEED WHEAT to home empties (not MAX_SEED_STOCKPILE=3).
+    """Fact 22: size BUY_SEED WHEAT to wheat-occupant empties.
 
-    Honest product path — not stock-triggered force-plant. Cash floors match
-    seed_restock_quantity so the wheat safety net and land reserve still hold.
+    Honest product path — not stock-triggered force-plant. Wheat seed is
+    cheap; do not apply the MELON 450 floor (that floor kept wheat as a
+    d13+ luxury and is why fact 38 never reached the tape).
     """
-    if not fact38_wants_wheat_seed(farm, private, day, board_size):
+    if not fact22_wants_wheat_seed(farm, private, day, board_size):
         return 0
     held = (private.get("seeds") or {}).get("WHEAT", 0)
-    empty = count_empty_home_leftover(farm, board_size)
-    # Cap one order so we do not dump the whole season's seed in one turn;
-    # empties refill as harvests clear tiles.
+    empty = count_empty_wheat_leftover(farm, day, board_size, private)
     wanted = max(0, min(empty, 12) - held)
     if wanted <= 0:
         return 0
@@ -1972,20 +2050,25 @@ def wheat_product_restock_quantity(farm, private, day, board_size):
             break
         if seed_cost > money * SEED_SPEND_CAP_FRACTION:
             break
-        remaining_after = money - seed_cost
-        if remaining_after < MIN_CASH_RESERVE_FOR_SEED_BUYING:
-            break
-        money = remaining_after
+        money = money - seed_cost
         quantity += 1
     return quantity
 
 
-def leftover_occupant_on_later_extra(farm, day, x, y, board_size):
-    """Fact 27/28 later-extra half: STRAW/CARROT or None (not NE MELON)."""
+def leftover_occupant_on_later_extra(farm, day, x, y, board_size, unlocked_shops=None):
+    """Later-extra window occupant only: STRAW/CARROT, never WHEAT.
+
+    Fact 28: WHEAT default is underfoot-only. Returning WHEAT here would
+    walk the crew onto SW between windows (fact 40/42 escape mode).
+    Fact 44: no shop sink → WHEAT, so this returns None (no walk).
+    """
     q = tile_quadrant(x, y, board_size)
     if q not in later_extra_quadrants_effective(farm, day):
         return None
-    return leftover_occupant(farm, day, x, y, board_size)
+    occ = leftover_occupant(farm, day, x, y, board_size, unlocked_shops=unlocked_shops)
+    if occ in ("STRAWBERRY", "CARROT"):
+        return occ
+    return None
 
 
 def straw_on_new_land(farm, day, x, y, board_size):
@@ -2041,26 +2124,64 @@ def _straw_window_open(day):
     return window_start <= day <= window_end
 
 
-def fact30_wants_straw_seed(farm, private, day, board_size):
-    """Fact 30: unlock halves only — pre-unlock dribble + SW-empty restock.
+def count_empty_straw_leftover(farm, day, board_size):
+    """Empty tiles whose leftover occupant is STRAW (fact 27/30)."""
+    n = 0
+    for y, row in enumerate(farm.get("tiles") or []):
+        for x, t in enumerate(row):
+            if t is not None:
+                continue
+            if leftover_occupant(farm, day, x, y, board_size) == "STRAWBERRY":
+                n += 1
+    return n
 
-    Not ``straw_seed_supplement`` — only fires when held STRAW is 0 and the
-    window is open, so NE MELON tiles are not poisoned by a blunt always-buy.
-    Fact 39: do not restock solely so home can STRAW-refill after MELON frees.
+
+def straw_wave_restock_quantity(farm, private, day, board_size):
+    """Fact 30: size STRAW buy to empty STRAW-occupant tiles.
+
+    No MIN_CASH_RESERVE_FOR_SEED_BUYING — that 450 floor is the MELON
+    trough control and is why d5 buyS=0 at $527 with empty NW leftover.
+    Not a blunt always-buy; keyed on empty tiles. Spend-cap still binds.
+    """
+    if not _straw_window_open(day):
+        return 0
+    held = (private.get("seeds") or {}).get("STRAWBERRY", 0)
+    empty = count_empty_straw_leftover(farm, day, board_size)
+    wanted = max(0, min(empty, STRAW_WAVE_RESTOCK_CAP) - held)
+    if wanted <= 0:
+        return 0
+    crop_info = CROPS.get("STRAWBERRY")
+    if not crop_info:
+        return 0
+    seed_cost = crop_info.get("seed")
+    if not seed_cost:
+        return 0
+    money = farm.get("money", 0)
+    quantity = 0
+    while quantity < wanted:
+        if seed_cost > money:
+            break
+        if seed_cost > money * SEED_SPEND_CAP_FRACTION:
+            break
+        money = money - seed_cost
+        quantity += 1
+    return quantity
+
+
+def fact30_wants_straw_seed(farm, private, day, board_size):
+    """Fact 30: STRAW seed for the d5–8 home/NE wave and the SW carpet.
+
+    Fires when held STRAW is below empty STRAW-occupant demand, or as the
+    pre-unlock habit when dry. Not ``straw_seed_supplement``.
     """
     if not _straw_window_open(day):
         return False
     held = (private.get("seeds") or {}).get("STRAWBERRY", 0)
-    if held > 0:
-        return False
-    # SW unlocked (or unlocking) with empty later-extra STRAW occupant.
-    if later_extra_quadrants_effective(farm, day) and has_empty_later_extra_for_occupant(
-        farm, day, board_size, "STRAWBERRY"
-    ):
+    empty = count_empty_straw_leftover(farm, day, board_size)
+    if empty > held:
         return True
     # Pre-unlock seed habit so unlock morning / carpet has seed (facts 30/32).
-    # Once SW exists and is not empty-for-STRAW, stop — home refill is fact 39.
-    if pending_second_land(farm) and day >= CROP_PLANTING_WINDOWS["STRAWBERRY"][0]:
+    if held == 0 and pending_second_land(farm) and day >= CROP_PLANTING_WINDOWS["STRAWBERRY"][0]:
         return True
     return False
 
@@ -2183,6 +2304,7 @@ def expected_unlock_bulk_straw(farm, private, market_state):
 
 def find_empty_later_extra_occupant(
     farm, board_size, fx, fy, day, exclude=None, seeds=None, plant_budget=None,
+    unlocked_shops=None,
 ):
     """Nearest empty later-extra tile whose occupant we can plant this turn."""
     later = later_extra_quadrants_effective(farm, day)
@@ -2200,7 +2322,9 @@ def find_empty_later_extra_occupant(
                 continue
             if tile_quadrant(x, y, board_size) not in later:
                 continue
-            occ = leftover_occupant_on_later_extra(farm, day, x, y, board_size)
+            occ = leftover_occupant_on_later_extra(
+                farm, day, x, y, board_size, unlocked_shops=unlocked_shops,
+            )
             if not occ:
                 continue
             # plant_budget credits same-turn BUY_SEED (unlock bulk); obs
@@ -2219,29 +2343,39 @@ def find_empty_later_extra_occupant(
 
 def find_empty_first_extra_occupant(
     farm, board_size, fx, fy, day, exclude=None, seeds=None, plant_budget=None,
+    unlocked_shops=None,
 ):
-    """Nearest empty first-extra tile (NE) whose occupant we can plant this turn."""
-    first = first_extra_quadrant(farm)
+    """Nearest empty first-extra tile (NE) whose occupant we can plant this turn.
+
+    Fact 27: on the NE unlock turn the obs still shows LOCKED (market
+    applies before units), same shape as SW carpet's pending-unlock tiles.
+    """
+    first = first_extra_quadrant_effective(farm, day)
     if not first:
         return None
     exclude = exclude or set()
     seeds = seeds or {}
+    pending_ne = pending_ne_unlock_day(farm, day)
     best_target = None
     best_distance = None
     for y, row in enumerate(farm.get("tiles") or []):
         for x, t in enumerate(row):
             if (x, y) in exclude:
                 continue
-            if t is not None:
-                continue
             if tile_quadrant(x, y, board_size) != first:
                 continue
-            occ = leftover_occupant(farm, day, x, y, board_size)
-            if not occ:
+            plantable = t is None or (pending_ne and _is_locked_tile(t))
+            if not plantable:
                 continue
-            if seeds.get(occ, 0) <= 0:
+            occ = leftover_occupant(
+                farm, day, x, y, board_size, unlocked_shops=unlocked_shops,
+            )
+            if occ not in ("MELON", "STRAWBERRY"):
                 continue
-            if plant_budget is not None and plant_budget.get(occ, 0) <= 0:
+            have = seeds.get(occ, 0)
+            if plant_budget is not None:
+                have = max(have, plant_budget.get(occ, 0))
+            if have <= 0:
                 continue
             distance = abs(x - fx) + abs(y - fy)
             if best_distance is None or distance < best_distance:
@@ -2790,7 +2924,7 @@ def count_ripe_melon(farm, day):
     return n
 
 
-def should_sell(product, quantity, market_state):
+def should_sell(product, quantity, market_state, unlocked_shops=None):
     """
     True if we should sell `quantity` units of `product` right now.
 
@@ -2798,6 +2932,9 @@ def should_sell(product, quantity, market_state):
     current price clears a fixed per-product threshold. We do NOT sell
     everything blindly just because we have it - a poor price means we
     hold and wait.
+
+    Fact 44's "if no shop" is do-not-produce, not sell-into-the-floor.
+    `unlocked_shops` is accepted for callers; it does not change the hold.
     """
     if quantity <= 0:
         return False
@@ -2939,19 +3076,19 @@ def decide_market_actions(
     if sw_unlock_morning is False and hour is not None:
         sw_unlock_morning = is_sw_unlock_morning(farm, day, hour)
 
-    # Fact 9: sell fert on BUY_ANIMAL emit turns (facts 10–11). Other turns
-    # keep it for STRAW while live STRAW exists and it can still pay.
-    # (Fact 37 surplus valve not shipped — see FACTS.md card: escapes /
-    # land breakage; contested 2k FERT is order-qty inflation.)
+    # Fact 9: sell the collected fert *flow* from d1. Keep this turn's
+    # apply-gap (fact 21); sell the rest. Not sell-all + buy-back (banned
+    # churn) and not surplus-above-MAX_FERTILIZER_STOCK (banned reserve
+    # that apply ate). Buy-emit / unlock-morning still sell the lot so
+    # facts 10/31 can fund the animal / carpet.
     fert_qty = shed.get("FERTILIZER", 0)
-    shed_total = sum(shed.values())
-    hold_for_straw = (
-        not sell_fert_for_buy
-        and not sw_unlock_morning
-        and live_strawberry_count(farm) > 0
-        and day <= FERTILIZER_LAST_USEFUL_DAY
-        and shed_total < SHED_FORCE_SELL_THRESHOLD
+    apply_gap = (
+        count_fertilize_demand(farm, day)
+        if day <= FERTILIZER_LAST_USEFUL_DAY
+        else 0
     )
+    fert_keep = 0 if (sell_fert_for_buy or sw_unlock_morning) else min(fert_qty, apply_gap)
+    fert_sell = fert_qty - fert_keep
 
     # Fact 31: unlock morning sells MELON + FERT to fund bulk STRAW + land.
     if sw_unlock_morning:
@@ -2971,8 +3108,8 @@ def decide_market_actions(
         if fert_qty > 0 and "FERTILIZER" not in already_selling:
             actions.append(["SELL", "FERTILIZER", fert_qty])
             already_selling.add("FERTILIZER")
-    elif fert_qty > 0 and not hold_for_straw:
-        actions.append(["SELL", "FERTILIZER", fert_qty])
+    elif fert_sell > 0:
+        actions.append(["SELL", "FERTILIZER", fert_sell])
         already_selling.add("FERTILIZER")
 
     for product, quantity in shed.items():
@@ -2992,8 +3129,8 @@ def decide_market_actions(
         if product not in MARKET_PARAMS:
             continue
 
-        # Fact 9: sold at the top on buy-emit / surplus-valve turns; held
-        # for STRAW otherwise — skip so the loop cannot double-sell it.
+        # Fact 9: sold at the top (flow above apply-gap, or the lot on
+        # buy-emit / unlock morning) — skip so the loop cannot double-sell.
         if product == "FERTILIZER":
             continue
 
@@ -3023,7 +3160,7 @@ def decide_market_actions(
         if sell_quantity > 0 and (
             liquidating
             or force_melon_wave
-            or should_sell(product, sell_quantity, market_state)
+            or should_sell(product, sell_quantity, market_state, unlocked_shops)
         ):
             # FORWARD-PRICING EXPERIMENT: the *quantity* sold this turn now
             # comes from recommend_sell_quantity() (pricing.py) instead of a
@@ -3093,13 +3230,14 @@ def decide_market_actions(
             if amount > 0:
                 actions.append(["SELL", product, amount])
 
-    # Fact 36: day-0 MELON opening bulk before generic restock (one order
-    # slot; must not sit ahead of animals on the assembled market list).
+    # Fact 36: day-0 MELON opening bulk. Fact 22 wheat is not elif-blocked
+    # by this — leftover after the opening is WHEAT (measured: elif left
+    # 9 NW empty on d0).
     melon_opening = melon_opening_restock_quantity(farm, private, day)
     if melon_opening > 0:
         actions.append(["BUY_SEED", "MELON", melon_opening])
-    # Fact 31 / 30: seed restock — bulk on unlock morning, else dribble cadence.
-    elif sw_unlock_morning:
+    # Fact 31 / 30: seed restock — bulk on unlock morning, else wave cadence.
+    if sw_unlock_morning:
         unlock_cash = farm.get("money", 0)
         for order in actions:
             if order and order[0] == "SELL":
@@ -3113,36 +3251,30 @@ def decide_market_actions(
         if bulk > 0:
             actions.append(["BUY_SEED", "STRAWBERRY", bulk])
     elif fact30_wants_straw_seed(farm, private, day, board_size):
-        seed_quantity = seed_restock_quantity("STRAWBERRY", farm, private)
+        seed_quantity = straw_wave_restock_quantity(
+            farm, private, day, board_size
+        )
+        if seed_quantity <= 0:
+            seed_quantity = seed_restock_quantity("STRAWBERRY", farm, private)
         if seed_quantity > 0:
             actions.append(["BUY_SEED", "STRAWBERRY", seed_quantity])
     else:
         # Facts 27/28: restock STRAW then CARROT when later-extra leftover
-        # would take that occupant. Fact 38: WHEAT on home leftover when
-        # MELON does not claim (after fact 30 STRAW dribble / fact 31 bulk).
+        # would take that occupant.
         leftover_seed = None
+        home = home_quadrant(farm)
         first = first_extra_quadrant(farm)
-        if first and has_empty_quadrant_for_occupant(
-            farm, day, board_size, "MELON", [first]
-        ):
-            leftover_seed = "MELON"
-        elif fact38_wants_wheat_seed(farm, private, day, board_size):
-            # After MELON window: home product wheat outranks late SW STRAW
-            # dribble (carpet already landed on unlock morning, fact 32).
-            leftover_seed = "WHEAT"
-        elif has_empty_later_extra_for_occupant(
-            farm, day, board_size, "STRAWBERRY"
+        straw_quads = {home}
+        if first:
+            straw_quads.add(first)
+        straw_quads |= later_extra_quadrants_effective(farm, day)
+        if has_empty_quadrant_for_occupant(
+            farm, day, board_size, "STRAWBERRY", straw_quads
         ):
             leftover_seed = "STRAWBERRY"
         elif has_empty_later_extra_for_occupant(farm, day, board_size, "CARROT"):
             leftover_seed = "CARROT"
-        if leftover_seed == "WHEAT":
-            seed_quantity = wheat_product_restock_quantity(
-                farm, private, day, board_size
-            )
-            if seed_quantity > 0:
-                actions.append(["BUY_SEED", "WHEAT", seed_quantity])
-        else:
+        if leftover_seed:
             preferred_crop = choose_crop(
                 farm, market_state, private, day, unlocked_shops=unlocked_shops,
                 start_step=start_step, opponent_pipeline=opponent_pipeline,
@@ -3153,7 +3285,32 @@ def decide_market_actions(
                 if seed_quantity > 0:
                     actions.append(["BUY_SEED", preferred_crop, seed_quantity])
 
-    # Facts 9 / 21: never BUY_PRODUCT FERTILIZER. Collect from placed animals.
+    # Fact 22: WHEAT leftover restock is not exclusive with melon opening
+    # or the STRAW wave. Unlock morning keeps the seed slot for bulk STRAW.
+    if not sw_unlock_morning:
+        already_wheat = any(
+            o and o[0] == "BUY_SEED" and o[1] == "WHEAT" for o in actions
+        )
+        if not already_wheat:
+            wheat_qty = wheat_product_restock_quantity(
+                farm, private, day, board_size
+            )
+            if wheat_qty > 0:
+                actions.append(["BUY_SEED", "WHEAT", wheat_qty])
+
+    # Fact 21: buy the apply-gap only, never a stock target. Same-turn
+    # sell+buy is the banned churn; skip the buy if this turn sold fert
+    # or is funding an animal / carpet.
+    if (
+        day <= FERTILIZER_LAST_USEFUL_DAY
+        and apply_gap > fert_qty
+        and "FERTILIZER" not in already_selling
+        and not sell_fert_for_buy
+        and not sw_unlock_morning
+    ):
+        buy = min(apply_gap - fert_qty, FERTILIZER_CARRY_BATCH)
+        if buy > 0:
+            actions.append(["BUY_PRODUCT", "FERTILIZER", buy])
     return actions
 
 
@@ -3472,6 +3629,29 @@ def choose_unit_action(
     if inv.get("FERTILIZER", 0) > 0 and wants_fertilizer(tile, day):
         return act_here(["FERTILIZE"])
 
+    # 5a. K-bounded walk to first-extra STRAW leftover (d5–8 / pending NE
+    #     unlock). Above generic harvest walk — home melon/STRAW upkeep
+    #     otherwise never releases a unit (d8 buyS=6 pltS=0). Below FEED
+    #     and local animal care (facts 20, 42). Not a crew-wide walk.
+    if (
+        ISOLATE_NE_WALK
+        and not state.get("sw_carpet_day")
+        and hour <= LATER_EXTRA_PLANT_LAST_HOUR
+        and sw_slots[0] > 0
+        and not any_unfed_animal(farm)
+        and plant_budget.get("STRAWBERRY", 0) > 0
+    ):
+        extra_target = find_empty_first_extra_occupant(
+            farm, board_size, ux, uy, day,
+            exclude=claimed, seeds=seeds, plant_budget=plant_budget,
+            unlocked_shops=state.get("unlocked_shops"),
+        )
+        if extra_target:
+            sw_slots[0] -= 1
+            moved = walk_to(extra_target)
+            if moved:
+                return moved
+
     # 6. Something urgent elsewhere - a ripe crop/animal, a crop about to
     #    weed out. Feed walks already happened above. Crop workers must not
     #    claim an unfed animal tile that a feeder is walking to.
@@ -3502,21 +3682,6 @@ def choose_unit_action(
         if moved:
             return moved
 
-    # 6a. Fact 27: walk to first-extra (NE) empty for MELON during its window.
-    #     Skip on unlock carpet day so fact 32 crew stays on SW.
-    if (
-        not state.get("sw_carpet_day")
-        and hour <= LATER_EXTRA_PLANT_LAST_HOUR
-    ):
-        melon_target = find_empty_first_extra_occupant(
-            farm, board_size, ux, uy, day,
-            exclude=claimed, seeds=seeds, plant_budget=plant_budget,
-        )
-        if melon_target:
-            moved = walk_to(melon_target)
-            if moved:
-                return moved
-
     # 6b. Fact 32: unlock-day SW carpet after urgent upkeep, before fert/weeds.
     if (
         state.get("sw_carpet_day")
@@ -3526,6 +3691,7 @@ def choose_unit_action(
         carpet_target = find_empty_later_extra_occupant(
             farm, board_size, ux, uy, day,
             exclude=claimed, seeds=seeds, plant_budget=plant_budget,
+            unlocked_shops=state.get("unlocked_shops"),
         )
         if carpet_target:
             sw_slots[0] -= 1
@@ -3575,98 +3741,59 @@ def choose_unit_action(
             pending_builds[0] += 1
             structure = ANIMALS[animal_to_build]["structure"]
             return act_here([f"BUILD_{structure}"])
-        occupant = leftover_occupant(farm, day, ux, uy, board_size)
-        later_occ = leftover_occupant_on_later_extra(farm, day, ux, uy, board_size)
-        on_later = tile_quadrant(ux, uy, board_size) in later_extra_quadrants_effective(farm, day)
-        on_home = tile_quadrant(ux, uy, board_size) == home_quadrant(farm)
-        melon_claims = melon_claims_home_leftover(private, day, plant_budget)
-        too_late_to_plant = on_later and hour > LATER_EXTRA_PLANT_LAST_HOUR
-        no_sw_slot = on_later and later_occ is not None and sw_slots[0] <= 0
-        wait_empty = (
-            (later_occ is None and on_later)
-            or too_late_to_plant
-            or no_sw_slot
+        occupant = leftover_occupant(
+            farm, day, ux, uy, board_size,
+            unlocked_shops=state.get("unlocked_shops"),
         )
-        # Fact 36/38/39: home leftover ownership —
-        # MELON while it claims; else WHEAT (d13+) or wait-empty (never STRAW).
-        prefer = occupant
-        if prefer is None and on_home:
-            if melon_claims and plant_budget.get("MELON", 0) > 0:
-                prefer = "MELON"
+        if occupant == "MELON" and plant_budget.get("MELON", 0) <= 0:
+            occupant = "WHEAT" if ISOLATE_WHEAT_D0 else None
+        later_window = leftover_occupant_on_later_extra(
+            farm, day, ux, uy, board_size,
+            unlocked_shops=state.get("unlocked_shops"),
+        )
+        on_later = tile_quadrant(ux, uy, board_size) in later_extra_quadrants_effective(farm, day)
+        too_late_to_plant = on_later and hour > LATER_EXTRA_PLANT_LAST_HOUR
+        no_sw_slot = on_later and later_window is not None and sw_slots[0] <= 0
+        wait_empty = too_late_to_plant or no_sw_slot
+        # Fact 22/27/28/39: occupant is the window crop or WHEAT. STRAW
+        # seed-miss falls through to WHEAT so the tile does not wait empty.
+        # MELON d0 is not wheat-filled while melon seed remains.
+        if not wait_empty and occupant:
+            crop = choose_crop(
+                farm,
+                state["market_state"],
+                private,
+                day,
+                unlocked_shops=state.get("unlocked_shops", ()),
+                start_step=state.get("step"),
+                opponent_pipeline=state.get("opponent_pipeline"),
+                prefer_crop=occupant,
+            )
+            if crop != occupant or plant_budget.get(occupant, 0) <= 0:
+                crop = choose_crop(
+                    farm,
+                    state["market_state"],
+                    private,
+                    day,
+                    unlocked_shops=state.get("unlocked_shops", ()),
+                    start_step=state.get("step"),
+                    opponent_pipeline=state.get("opponent_pipeline"),
+                    require_held_seed=True,
+                    prefer_crop=occupant,
+                )
+            plant_crop = None
+            if crop == occupant and plant_budget.get(occupant, 0) > 0:
+                plant_crop = occupant
             elif (
-                not melon_claims
-                and day >= 13
+                occupant != "MELON"
                 and plant_budget.get("WHEAT", 0) > 0
             ):
-                prefer = "WHEAT"
-        # Fact 39: post-MELON home leftover is WHEAT or wait-empty, not STRAW.
-        fact39_home_wait = on_home and prefer not in ("MELON", "WHEAT")
-        if not wait_empty and on_home and prefer in ("MELON", "WHEAT"):
-            # Home claim crop only — never fall through to STRAW via
-            # require_held_seed.
-            crop = choose_crop(
-                farm,
-                state["market_state"],
-                private,
-                day,
-                unlocked_shops=state.get("unlocked_shops", ()),
-                start_step=state.get("step"),
-                opponent_pipeline=state.get("opponent_pipeline"),
-                prefer_crop=prefer,
-            )
-            if crop != prefer or plant_budget.get(prefer, 0) <= 0:
-                crop = choose_crop(
-                    farm,
-                    state["market_state"],
-                    private,
-                    day,
-                    unlocked_shops=state.get("unlocked_shops", ()),
-                    start_step=state.get("step"),
-                    opponent_pipeline=state.get("opponent_pipeline"),
-                    require_held_seed=True,
-                    prefer_crop=prefer,
-                )
-            if crop == prefer and plant_budget.get(prefer, 0) > 0:
-                plant_budget[prefer] -= 1
-                return act_here(["PLANT", prefer])
-        elif not wait_empty and not fact39_home_wait:
-            crop = choose_crop(
-                farm,
-                state["market_state"],
-                private,
-                day,
-                unlocked_shops=state.get("unlocked_shops", ()),
-                start_step=state.get("step"),
-                opponent_pipeline=state.get("opponent_pipeline"),
-                prefer_crop=prefer,
-            )
-            if crop and plant_budget.get(crop, 0) <= 0:
-                # Top pick can't be planted this turn (zero held seed, chosen
-                # via can_afford) - fall back to the best-scoring crop we
-                # actually hold seed for, rather than wasting the turn. See
-                # choose_crop's require_held_seed docstring.
-                crop = choose_crop(
-                    farm,
-                    state["market_state"],
-                    private,
-                    day,
-                    unlocked_shops=state.get("unlocked_shops", ()),
-                    start_step=state.get("step"),
-                    opponent_pipeline=state.get("opponent_pipeline"),
-                    require_held_seed=True,
-                    prefer_crop=prefer,
-                )
-            if crop and plant_budget.get(crop, 0) > 0:
-                # Fact 38: product WHEAT is home (NW) only — never NE/SW fill.
-                if crop == "WHEAT" and not on_home:
-                    pass
-                elif occupant and crop != occupant:
-                    pass
-                else:
-                    if later_occ is not None:
-                        sw_slots[0] -= 1
-                    plant_budget[crop] -= 1
-                    return act_here(["PLANT", crop])
+                plant_crop = "WHEAT"
+            if plant_crop:
+                if later_window is not None and plant_crop == later_window:
+                    sw_slots[0] -= 1
+                plant_budget[plant_crop] -= 1
+                return act_here(["PLANT", plant_crop])
 
     # 9b. Fact 29: at most sw_slots units walk to later-extra empty, only
     #     when a later hour can still water (hour <= 21). Ranked below
@@ -3677,6 +3804,7 @@ def choose_unit_action(
         leftover_target = find_empty_later_extra_occupant(
             farm, board_size, ux, uy, day,
             exclude=claimed, seeds=seeds, plant_budget=plant_budget,
+            unlocked_shops=state.get("unlocked_shops"),
         )
         if leftover_target:
             sw_slots[0] -= 1
@@ -3763,8 +3891,8 @@ def nikaangukia_meroni(obs):
         private = state["private"]
         seeds = private.get("seeds", {})
 
-        # Fact 9: whether this turn lists BUY_ANIMAL decides fert sell vs
-        # hold-for-STRAW. Prefer STRAW fert walks when not selling for a buy.
+        # Fact 9/10: BUY_ANIMAL emit sells the fert lot (not the apply-gap
+        # keep). Prefer STRAW fert walks when not selling for a buy.
         animals = decide_animal_market_actions(
             farm, private, board_size, day,
             hour=hour,
@@ -3829,10 +3957,10 @@ def nikaangukia_meroni(obs):
         pending_builds = [0]
         feed_claimed = set()
         plant_budget = dict(seeds)
-        # Fact 36/38: credit same-turn BUY_SEED MELON/WHEAT — engine applies
-        # market before units, but obs seeds are still pre-buy.
+        # Fact 36/38/30: credit same-turn BUY_SEED MELON/WHEAT/STRAW —
+        # engine applies market before units, but obs seeds are still pre-buy.
         for o in buy_seeds:
-            if o and o[0] == "BUY_SEED" and o[1] in ("MELON", "WHEAT"):
+            if o and o[0] == "BUY_SEED" and o[1] in ("MELON", "WHEAT", "STRAWBERRY"):
                 qty = o[2] if len(o) > 2 else 1
                 plant_budget[o[1]] = plant_budget.get(o[1], 0) + qty
         if pending_sw_unlock_day(farm, day) and hour == 0:

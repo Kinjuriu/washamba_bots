@@ -21,19 +21,27 @@ Do not paste Path A crop-first gates into the animal-first throwaway (same failu
 
 Contested `$`: use `experiments/_trace_cashflow_v20.py` (lockstep) and
 `experiments/_trace_straw_wool.py` / `_trace_d10_melon.py` for path stages.
-**Live card: fact 33 first-buy reserve dropped.** Waive-alone
-hit 28,751 / 36,766, land [7, 11], herd 18 — same pair as the
-bundle. 15/17 align stays dropped. Throwaway is hold-6 + cap 18.
+**Live card: produce funds the calendar; a miss is a diagnosis.**
+Keep the tape calendar and land windows. Collect-then-harvest is
+dropped (inflow held, land [7, 11]; ungated 1 escape, unfed-gated
+39,587 / 52,878). Do not retry it, harvest-before-collect
+(39,690 / 55,210), the emitter-rewrite (38,649 / 46,533; seed 0
+herd 4 through d17), freeze-until-milk, or first-land without the
+d6 day floor. First-buy waive stays dropped (28,751 / 36,766, herd
+18). 15/17 tape-ladder and cap 14 alone stay dropped. Throwaway is
+hold-6 + cap 18.
 Throwaway `experiments/_facts_v20.py` is 40,236 / 55,411 versus v20
 114k / 133k (**−74k / −78k**). Largest stream is STRAW **−43.5k /
 −38.7k** (widened). Wheat d0 holds; MELON after d0 = 0; fert −1.4k
-(parked). Fact 44 yarn lock stays; its −570 is a self-nick, parked.
-Do not retry first-buy land-reserve waive alone or bundled with
+(parked). Fact 44 yarn lock’s sheep=2 half stays; its −570 is a
+self-nick, parked. Do not retry the shop+post-sell rewrite
+(38,649 / 46,533). Do not retry harvest-before-collect. Do not retry first-buy land-reserve waive alone or bundled with
 seed-before-cow (both 28,751 / 36,766, herd 18). Do not retry d5–8
 seed-before-cow alone (d8 7/4, seed 0 bank 33,303, herd 19). Do not
 retry home leftover walk (h23 night-death, or d7 stays 0 behind
 all-fed; banks down). Do not retry hold-the-d11-burst, d12h0 slack,
-d8 land-hour seed + hold-6 pin, or d6 wool DROP. Do not retry the
+d8 land-hour seed + hold-6 pin, or d6 wool DROP, or harvest-before-collect.
+Do not retry the
 tape-ladder calendar or cap 14 alone. Do not hunt a third fert-only
 bind. Do not revert the stack. Facts 40/41/42 are **closed, not
 paused**. Fact 34 d10 MELON DROP holds; fact 38 is folded into 22;

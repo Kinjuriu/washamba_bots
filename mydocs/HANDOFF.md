@@ -1,4 +1,402 @@
-# Current session: 2026-09-06 — fact 33 first-buy reserve dropped
+# Current session: 2026-09-07 — collect-then-harvest dropped
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Named miss: d7 land $1,374 vs $1,500 because 3 wool sat on sheep
+(4,4). Bind: COLLECT still first, HARVEST at any yield>0, walk-back
+above K-STRAW. Not harvest-before-collect, not d6 DROP, not a gate
+rewrite. Yarn left the early draw → Stage 2 no-yarn table cows not
+cap-2. Unfed gate on the walk after a d24 cow escape. Reverted.
+
+## Counters
+
+| arm | seed 0 | seed 8 | land | STRAW d5–8 | end | yarn | dips |
+|---|---|---|---|---|---|---|---|
+| live | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 14 / 17 | d12 / none | 0 / 1 |
+| Stage1 walk | 40,033 | **61,130** | **[7, 11]** | 1/5/**3**/1 | 16 14C2S / 13 5C8S | **d21** / **d9** | 0 / **1** |
+| + Stage2 mix | **52,019** | 61,130 | [7, 11] | 1/5/3/1 | 14 10C4S / 13 5C8S | d21 / d9 | 0 / **1** |
+| unfed gate | **39,587** | **52,878** | [7, 11] | 1/5/3/1 | 14 10C4S / 14 6C8S | d12 / d9 | 0 / 0 |
+| restored | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 14 / 17 | d12 / none | 0 / 1 |
+
+Inflow held on every harvest arm: both sheep yld=0 d6 EOD, shed
+wool 7 d7h00, SELL WOOL 7 d7. Wheat d0 landed 7. MELON after d0=0.
+
+## Why the bind failed
+
+Same two fights as harvest-before-collect, plus a feed fight:
+
+1. **Shop-draw reroll.** Land [7, 11] and STRAW d7 0→3. Seed 0 yarn
+   d12→d21 (Stage1/2) or restored d12 only after the unfed gate.
+   Seed 8 gained yarn d9. Extra d7 NE plants are the `_spawn_weeds`
+   class.
+2. **Harvest-walk vs feed.** Ungated walk escaped a cow seed 8 d24
+   (6C8S→5C8S). Gating the walk on `any_unfed` cleared dips and
+   killed both banks (−649 / −2,533).
+3. Stage 2 (no-yarn table 10/8 not cap-2) recovered seed 0 to
+   52,019 **without** fixing the seed-8 escape. Do not lead with it
+   on the live [8, 11] throwaway (cap-14 class).
+
+## Verdict
+
+**Dropped.** Kind: supplement (facts 15, 33, 44 rider). Do not retry
+collect-then-harvest, harvest-before-collect, no-yarn cap-fill cut,
+freeze-until-milk, first-land without d6, first-buy waive, d6 wool
+DROP, ladder, cap 14. No `main.py` port.
+
+The d7-land / stranded-wool drawer is diagnosed and both harvest
+orders that empty it reroll shops. Next liquidity move ≠ another
+wool HARVEST reorder.
+
+## How we continue
+
+```text
+Kind: — (collect-then-harvest is closed)
+Was: land [7, 11]; inflow held; bank either −203 with 1 escape or
+     −649/−2,533 with 0 dips
+Now: throwaway hold-6 + cap 18; land [8, 11]; $500 on both buys
+Fights: d7 land vs shop-draw (20); harvest-walk vs feed (20)
+Throwaway: experiments/_facts_v20.py
+Counters: land [8, 11]; wheat d0=7; MELON after d0=0; STRAW d6
+     half-tape; bank 40,236 / 55,411
+```
+
+## Open
+
+- Next ≠ collect-then-harvest, ≠ harvest-before-collect, ≠ no-yarn
+  cap-fill cut, ≠ freeze-until-milk, ≠ first-land without d6, ≠
+  first-buy waive, ≠ bundle, ≠ d6 wool DROP, ≠ ladder, ≠ cap 14.
+  d7-land-via-wool harvest reorders are closed. Next miss should
+  not move first-land day, or should fund without extra d7 NE STRAW.
+- Live throwaway still 40,236 / 55,411; land [8, 11]; hold-6 / cap 18.
+- Fact 44 −570 parked. Port to shipped `main.py` blocked.
+- STRAW `$` is still the hole (−43.5k / −38.7k).
+
+---
+
+# Prior session: 2026-09-07 — direction: fund the calendar from produce
+
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+The rewrite-15/44 bind was the wrong idea, not a failed test of the
+right one. Recorded the split. Throwaway already restored (hold-6 +
+cap 18, 40,236 / 55,411). No new bind this write.
+
+## What was done (wrong polarity)
+
+Replaced the calendar as the buy emitter. After d0 a `BUY_ANIMAL`
+fired only if shed wool+fert post-sell covered it *and* a shop ate
+that product. Closed shop → the slot did not exist. First land
+ignored `day >= 6`. Banks 38,649 / 46,533. Seed 0 herd sat at 4
+through d17 (no milk shop in the first 3, so hold-6 never asked).
+Land [7, 11] rerolled shops (yarn lost). Reverted.
+
+That deleted the wall instead of diagnosing it. The tape still
+*wanted* the d3 cow; the bind *refused the slot*.
+
+## Direction we needed
+
+**Keep the tape calendar as the goal. Produce funds it. A miss is a
+diagnosis, then a rearrangement.**
+
+The existing calendar shape stays: `calendar_owned_target` still
+asks for the day’s head; land windows still ask for NE/SW on their
+days. Fert, wool, melon — what is actually in the shed and can be
+sold — is how those buys get paid (facts 9–13 already sequence
+sell-before-buy; this is *when the drawer is empty*).
+
+When a calendar buy or land does not emit, do not change the gate.
+Name the missing inflow (d7 land was $1,374 vs $1,500 because 3 wool
+sat on the sheep, not because `day >= 6` was wrong). Then rearrange
+the farm activity that should have put that produce in the shed on
+time. Still following the tapes. Shop mix still picks *which*
+species (fact 44 yarn lock), not whether the day’s slot exists.
+
+Not: tape days become a check. Not: closed shop deletes the cow.
+Not: first land when wool+fert vs $1,500 *instead of* the day
+window. Those three *were* the dropped bind.
+
+Worked example already in hand: harvest-before-collect *was* a
+liquidity rearrangement (wool off the tile into the shed so d7 can
+clear $1,500). It landed the wool and the land day, then died on a
+shop-draw reroll. The diagnosis was right; that particular
+rearrangement is closed. Next liquidity move ≠ that HARVEST reorder,
+≠ reserve waive, ≠ dropping the day gate.
+
+## How we continue
+
+```text
+Kind: supplement (facts 15, 33) — produce funds the calendar; miss
+     → name the inflow → rearrange that activity
+Was: calendar still hold-6 + land windows; when a buy misses we
+     either ignore it or replace the gate (dropped rewrite)
+Now: calendar still emits the goal. A miss names which produce
+     would have covered it. Next card rearranges that activity
+     only. Shop mix still which, not whether. Day windows stay.
+Fights: the dropped emitter-rewrite (freeze-until-milk, land
+     without d6); buy-whenever-affordable (14); harvest-before-
+     collect; first-buy waive; d6 wool DROP; tape ladder; cap 14
+Throwaway: experiments/_facts_v20.py
+Pre-run: facts 1–14, 16, 18–36 still true in source; d0 2C2S / 4/4
+Counters: calendar still asks on its days (d0=4, hold-6 through
+     d10); 0 escapes; wheat d0=7; MELON after d0=0; STRAW d6
+     half-tape; named inflow present on the miss turn; bank not
+     down vs 40,236 / 55,411 on seeds 0 and 8
+```
+
+## Open
+
+- Next card: one liquidity rearrangement that funds a named calendar
+  miss. Not a rewrite of what emits the buy.
+- Do not retry the emitter-rewrite, freeze-until-milk, first-land
+  without the d6 day floor, harvest-before-collect, first-buy waive,
+  the bundle, d6 wool DROP, tape ladder, cap 14.
+- Live throwaway still 40,236 / 55,411; land [8, 11]; hold-6 / cap 18.
+- Fact 44 −570 parked. Port to shipped `main.py` blocked.
+- STRAW `$` is still the hole (−43.5k / −38.7k).
+
+---
+
+# Prior session: 2026-09-07 — shop + post-sell rewrite dropped
+
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+Implemented the named rewrite of facts 15/44 (33 WHEN follows): after
+d0, `BUY_ANIMAL` only if shed wool+fert post-sell covers it and a shop
+eats the product; no-yarn mix uses the table count not `cap-2`; first
+land when shed wool+fert vs $1,500, not `day >= 6`. $500 floor stayed.
+Not harvest-before-collect, not waive, not ladder, not cap 14.
+
+Reverted. Kill switch: bank down vs 40,236 / 55,411.
+
+## Counters
+
+| arm | seed 0 | seed 8 | land | STRAW d5–8 | end herd |
+|---|---|---|---|---|---|
+| live (fact 44) | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 14 / 18 |
+| shop+post-sell | **38,649** | **46,533** | **[7, 11]** / [8, 11] | **5/4/12/4** / 1/5/0/1 | **8C2S=10** / **10C4S=14** |
+| restored | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 14 / 18 |
+
+0 dips both seeds. MELON after d0 = 0. Wheat d0 = 7. Seed 0 herd
+**4 through d17**, then 10 on d18 (`cow_d13plus=6`). Seed 0 yarn
+**lost** (shops `BRUNCH_SPOT, PET_CAFE, BRUNCH_SPOT, BAKERY…`). Seed 8
+yarn **d21** (was none); sheep_after_d0=2; cow_d13plus=0.
+
+## Why the bind failed
+
+Two named mechanisms, one bind:
+
+1. **Freeze-until-milk.** Seed 0 had no milk shop in the first 3, so
+   extra cow slots did not exist. Hold-6 never bought the 5th/6th.
+   Herd sat at beach-head 4 until ICE_CREAM/PIZZA unlocked late, then
+   dumped 6 cows on d13+. Closed shop → no slot did what it said and
+   killed the d3/d5 cows the ceiling still allowed.
+2. **d7 land shop-reroll.** Dropping `day >= 6` landed first land on
+   d7 (seed 0). STRAW d7 0→12. Same `_spawn_weeds` RNG class as
+   harvest-before-collect: yarn left the draw.
+
+Seed 8 bank −8,878 is the missing no-yarn cap-fill cows (18→14) plus
+a late yarn mix, not the waive’s $0 dump.
+
+## Verdict
+
+**Dropped.** Kind: rewrite (facts 15, 44). Do not retry this bind,
+freeze-until-milk, or first-land without the d6 day floor. Still no
+harvest-before-collect, first-buy waive, bundle, d6 wool DROP, ladder,
+cap 14, leftover walk, land-hour seed, 40–42, fert-only, STRAW pin,
+holdout, or list reorder. No `main.py` port.
+
+## How we continue
+
+```text
+Kind: — (shop+post-sell rewrite is closed)
+Was: 38,649 / 46,533; seed 0 herd 4 through d17; land [7, 11]
+Now: throwaway hold-6 + cap 18; land [8, 11]; $500 on both buys
+Fights: 15 (count) vs 44 (sink) — do not average them into
+     freeze-until-milk; d7 land vs shop-draw (20)
+Throwaway: experiments/_facts_v20.py
+Counters: land [8, 11]; wheat d0=7; MELON after d0=0; STRAW d6
+     half-tape; bank 40,236 / 55,411
+```
+
+## Open
+
+- Next ≠ shop+post-sell rewrite, ≠ freeze-until-milk, ≠ first-land
+  without the d6 day floor, ≠ harvest-before-collect, ≠ first-buy
+  waive, ≠ bundle, ≠ d6 wool DROP, ≠ ladder, ≠ cap 14.
+- Live throwaway still 40,236 / 55,411; land [8, 11]; hold-6 / cap 18.
+- Fact 44 −570 parked. Port to shipped `main.py` blocked.
+- STRAW `$` is still the hole (−43.5k / −38.7k).
+
+---
+
+# Prior session: 2026-09-07 — direction: shop + post-sell emit the calendar
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+After harvest-before-collect dropped, named the polarity that session
+exposed: fert paid for cows, wool almost paid for land, and the bank
+nick was a shop-draw reroll — not an empty drawer. That is not “hit
+the tape’s Tuesday.” The farm should pay for itself unless that shop
+is closed.
+
+Recorded as the next shape, not implemented this session. Throwaway
+untouched (still hold-6 + cap 18, 40,236 / 55,411).
+
+## Direction
+
+**Liquidity + shop-sink emit the calendar. The day table does not emit
+the buys.**
+
+A buy fires when this turn’s post-sell of what is actually in the shed
+covers it, **and** a shop eats the product that unit will make. If that
+shop is closed, that slot does not exist. The tape ladder (4 / 5 / 6 /
+8 / 10 / 12 / 13 / 14) stays as a *check* (did inflows get us near
+there?), not as `calendar_owned_target(day)`.
+
+Fact 44 today: shop picks *which*, calendar picks *how many*. That split
+is the fight. No-yarn filling remaining cap with cows is calendar
+powering count. Prefix-affordable without the sink is the d11 dump.
+
+Land follows the same WHEN: first `BUY_LAND` when wool+fert **in the
+shed** clear $1,000+$500, not when `day >= 6`. $500 floor stays. Wool
+stranded on the tile is a drawer hole (20/34), not a waive and not a
+day pin.
+
+Not a slogan. Next card is a rewrite of **15 and 44** (33’s WHEN
+follows). One throwaway bind: shop+post-sell gate `BUY_ANIMAL` after
+d0; calendar days become a ceiling. Do not bundle harvest-before-
+collect, first-buy waive, d6 wool DROP, the tape ladder, or cap 14.
+
+## How we continue
+
+```text
+Kind: rewrite (facts 15, 44) — shop + post-sell emit the calendar
+Was: calendar_owned_target(day) buys; shop_mix picks species inside
+     that count; land windows by engine day; no-yarn still fills
+     cows to cap 18
+Now: a buy emits iff post-sell of shed flow covers it AND a shop
+     eats that product; closed shop → slot does not exist. Tape
+     days are a check, not the gate. No-yarn does not fill cap
+     with cows. Land WHEN follows (shed wool+fert vs $1,500),
+     $500 floor stays.
+Fights: tape-day counters as emitters; buy-whenever-affordable
+     (fact 14); no-yarn→16C; dropped day-chases (ladder, cap 14,
+     harvest-before-collect, first-buy waive)
+Throwaway: experiments/_facts_v20.py
+Pre-run: facts 1–14, 16, 18–36 still true in source; d0 2C2S / 4/4;
+     yarn lock’s *sheep=2* half stays (count half is what changes)
+Counters: 0 escapes contested; no-yarn end SHEEP=2 and no extra cows
+     just because day>=13; yarn seed SHEEP>2; d0 wheat=7; MELON
+     after d0=0; STRAW d6 half-tape; bank not down vs 40,236 /
+     55,411 on seeds 0 and 8. Tape herd days are reported, not gated.
+```
+
+## Open
+
+- Next card: rewrite 15/44 as above. One bind. Kill switch: bank down
+  vs 40,236 / 55,411, or escapes.
+- Do not retry harvest-before-collect, first-buy waive, the bundle,
+  d6 wool DROP, tape ladder, cap 14, leftover walk, land-hour seed,
+  hold-the-burst, d12h0 slack.
+- Live throwaway still 40,236 / 55,411; land [8, 11]; hold-6 / cap 18.
+- Fact 44 −570 parked. Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-07 — fact 20 harvest-before-collect dropped
+
+> **Standing rule:** Report to the user in chat before writing this file.
+
+## What this session did
+
+HANDOFF said land-via-reserve is closed and early land still wants a
+mechanism that does not dump d11. Diagnosed the $1,374 vs $1,500 miss:
+apply-gap fert keep is 0 on d7; d6 morning wool DROP cannot fire (shed
+has fert only). v20 buys land d6h04 after `SELL WOOL 6`. We sell 4 wool
+on d7; 3 more sit on sheep (4,4) through d7 because underfoot HARVEST
+only fires at `yield >= max_held-2` (4) and COLLECT wins at 3. v20
+harvests both day-0 sheep to 0 on d6 (12 wool).
+
+Tried the named card: HARVEST if `yield_units > 0` before COLLECT.
+Reserve stayed $500. No waive, no d6 DROP, no calendar. Reverted.
+
+## Counters
+
+| arm | seed 0 | seed 8 | land | STRAW d5–8 | end herd |
+|---|---|---|---|---|---|
+| live (fact 44) | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 14 / **18** |
+| harvest-before-collect | **39,690** | **55,210** | **[7, 11]** | 1/5/**3**/1 | **18** / 14 |
+| restored | 40,236 | 55,411 | [8, 11] | 1/5/0/1 | 14 / 18 |
+
+Sheep yld=0 both tiles d6 EOD. wool d7 4→7. d7h01 leftover **$573**
+(not the waive's $0). Wheat d0=9. MELON after d0=0. 0 dips.
+
+## Why the bind failed
+
+The extra 3 wool *is* enough to clear the $1,500 floor. Land [7, 11]
+and STRAW d7 0→3. d7 leftover $573, then the d7h01 cow leaves **$7**
+(same cash accident as live's d8 $17, one day earlier). That is not
+the waive's $0 dump.
+
+The bank nick is a **shop-draw reroll**. Extra d7 NE tiles change
+`_spawn_weeds` RNG before later shop unlocks (same class as the
+dropped hold-the-burst). Fact 44's mix follows yarn:
+
+| | yarn | d13 buy | end |
+|---|---|---|---|
+| live 0 | d12 (4th shop) | SHEEP x2 | 10C4S = 14 |
+| harvest 0 | **none** | COW x6 | **16C2S = 18** |
+| live 8 | none | COW x6 | 16C2S = 18 |
+| harvest 8 | **d9 in first 3** | sheep mix | **6C8S = 14** |
+
+No-yarn lock fills remaining cap with cows (fact 44). Losing yarn on
+seed 0 bought 4 extra cows; gaining it on seed 8 cut 4 cows for
+sheep. Banks −546 / −201. Not the waive's 28k crash. Still a fail
+on the "bank not down" bar. Do not retry: any d7 NE plant rerolls
+shops.
+
+## Verdict
+
+**Dropped.** Kind: supplement (fact 20). Do not retry harvest-before-
+collect, first-buy waive, the bundle, d6 wool DROP, ladder, or cap 14.
+Still no leftover walk, land-hour seed, 40–42, fert-only, STRAW pin,
+holdout, or list reorder. No `main.py` port.
+
+## How we continue
+
+```text
+Kind: — (land-via-harvest is closed; land-via-reserve stays closed)
+Was: harvest-before-collect → 39,690 / 55,210, land [7, 11], seed 0 herd 18
+Now: throwaway hold-6 + cap 18; land [8, 11]; $500 on both buys
+Fights: early land vs the d11 dump (15) — do not average them
+Throwaway: experiments/_facts_v20.py
+Counters: land [8, 11]; wheat d0=7; MELON after d0=0; STRAW d6
+     half-tape; bank 40,236 / 55,411
+```
+
+## Open
+
+- Next ≠ harvest-before-collect, ≠ first-buy waive, ≠ bundle, ≠ d6
+  wool DROP, ≠ calendar. Early land without a dump is still the hole,
+  and this drawer (stranded wool) is now known to be the waive-class
+  dump, not a new funding class.
+- Live throwaway 40,236 / 55,411; land [8, 11]; T1 vs v20 ~75k.
+- Written 15/17 stay; throwaway still hold-6 / cap 18.
+- Fact 44 −570 parked. Port to shipped `main.py` blocked.
+
+---
+
+# Prior session: 2026-09-06 — fact 33 first-buy reserve dropped
 
 > **Standing rule:** Report to the user in chat before writing this file.
 

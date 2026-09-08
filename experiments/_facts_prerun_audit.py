@@ -53,7 +53,7 @@ def run_src_audit(src):
         [15], "Fact 15: calendar prefix hold + d11+ shop mix",
         "day >= 11" in src and "shop_mix_target" in src
         and "day < 11" in src and "return 12" in src,
-        "hold 6 through d10; d11+ mix toward ceiling",
+        "hold 6 through d10; d11+ mix toward ceiling (ladder card reverted)",
     ))
     checks.append(src_check(
         [9, 10, 11, 12, 13], "Facts 9-13: buy-emit market order",
@@ -94,10 +94,19 @@ def run_src_audit(src):
         "occupied unfed pre-claimed; feed-walk excludes feed_claimed",
     ))
     checks.append(src_check(
-        [21], "Fact 21: no BUY_PRODUCT FERTILIZER",
-        '["BUY_PRODUCT", "FERTILIZER"' not in src
-        and "never BUY_PRODUCT FERTILIZER" in src,
-        "no fertilizer buy path",
+        [9], "Fact 9: no live-STRAW fert existence-hold",
+        "hold_for_straw" not in src
+        and "live_strawberry_count" not in src
+        and "fert_sell" in src
+        and "apply_gap" in src,
+        "sell collected flow above apply-gap; hold deleted",
+    ))
+    checks.append(src_check(
+        [21], "Fact 21: BUY_PRODUCT FERTILIZER sized to apply-gap",
+        '["BUY_PRODUCT", "FERTILIZER"' in src
+        and "count_fertilize_demand" in src
+        and "FERTILIZER_CARRY_BATCH" in src,
+        "buy apply-gap only, never a stock target",
     ))
     checks.append(src_check(
         [22], "Fact 22: no force-wheat wrapper",
@@ -128,8 +137,11 @@ def run_src_audit(src):
     ))
     checks.append(src_check(
         [27, 28], "Fact 27/28: leftover occupant routing",
-        "leftover_occupant" in src and "later_extra_quadrants_effective" in src,
-        "MELON on NE, STRAW on later extras",
+        "leftover_occupant" in src
+        and "STRAW_HOME_NE_DAY_START" in src
+        and 'return "WHEAT"' in src
+        and '"MELON": (0, 0)' in src,
+        "STRAW d5-8 home/NE; MELON d0 only; WHEAT default",
     ))
     checks.append(src_check(
         [29], "Fact 29: K pre-unlock + unlock bypass",
@@ -140,8 +152,10 @@ def run_src_audit(src):
     ))
     checks.append(src_check(
         [30], "Fact 30: STRAW seed cadence fn",
-        "fact30_wants_straw_seed" in src,
-        "occupant-aware STRAW restock",
+        "fact30_wants_straw_seed" in src
+        and "straw_wave_restock_quantity" in src
+        and "STRAW_WAVE_RESTOCK_CAP" in src,
+        "occupant-sized STRAW restock, no 450 floor",
     ))
     checks.append(src_check(
         [31], "Fact 31: unlock morning preamble",
@@ -181,13 +195,12 @@ def run_src_audit(src):
         "day-0 MELON opening bulk + plant_budget credit path",
     ))
     checks.append(src_check(
-        [38, 39], "Fact 38/39: NW wheat product + post-MELON claim",
-        "fact38_wants_wheat_seed" in src
+        [22, 39], "Fact 22/39: wheat default; NW STRAW ban withdrawn",
+        "fact22_wants_wheat_seed" in src
         and "wheat_product_restock_quantity" in src
-        and "fact39_home_wait" in src
-        and "pending_second_land(farm)" in src
-        and "Fact 39" in src,
-        "d13+ home WHEAT; refuse STRAW refill; fact30 unlock halves",
+        and "fact39_home_wait" not in src
+        and "STRAW_HOME_NE_DAY_START" in src,
+        "WHEAT empty-tile default from d0; home takes STRAW d5-8",
     ))
     checks.append(src_check(
         [41], "Fact 41: post-carpet SW STRAW fert coverage",
@@ -578,8 +591,8 @@ def run_counter_audit(ep):
         f"nw_wheat={nw_wheat}", seed,
     ))
     checks.append(ctr(
-        [39], f"seed {seed}: fact39 NW PLANT STRAW=0 (no home refill)",
-        nw_straw == 0,
+        [39], f"seed {seed}: fact39 NW PLANT STRAW>0 (d5-8 wave)",
+        nw_straw > 0,
         f"nw_straw={nw_straw}", seed,
     ))
     return checks

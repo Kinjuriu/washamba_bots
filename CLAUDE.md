@@ -31,16 +31,23 @@ versus `route_v20` are **bank −74k / −78k**, with STRAW **−43.5k /
 −5.6k / −11.4k, melon −3.2k, fert −1.4k. Fact 44's −570 is versus our
 prior throwaway, not versus v20. `experiments/tape_profile.py` diffs
 crew, herd, plantings and sells per engine day against the tapes — run it
-before the bank. Live: **fact 33 first-buy reserve dropped** — waive
-alone 28,751 / 36,766, land [7, 11], herd 18 (same pair as the
-bundle). 15/17 align stays dropped (ladder 27,204; cap 14 alone
-46,746). Throwaway banks 40,236 / 55,411 (hold-6, cap 18). Do not
-revert the stack or the yarn lock; do not hunt a third fert-only
+before the bank. Live: **produce funds the calendar; a miss is a
+diagnosis** (keep the tape days; rearrange the inflow that should
+have paid). Collect-then-harvest dropped (inflow held, land [7, 11];
+unfed-gated 39,587 / 52,878). Emitter-rewrite dropped (38,649 /
+46,533; herd frozen at 4). Harvest-before-collect dropped
+(39,690 / 55,210, shop reroll). First-buy waive stays dropped
+(28,751 / 36,766, herd 18). 15/17 tape-ladder and cap 14 alone
+stay dropped (ladder 27,204; cap 14 46,746). Throwaway
+banks 40,236 / 55,411 (hold-6, cap 18). Do not
+revert the stack or the yarn lock’s sheep=2 half; do not hunt a third fert-only
 bind; do not retry hold-the-d11-burst, d12h0 slack, first-buy
 reserve waive, the waived-first-land-reserve bundle, d5–8
 seed-before-cow alone (33,303 / 73,063, herd 19), home leftover
 walk (h23 night-death or d7 stays 0 behind all-fed), d8 land-hour
-seed + hold-6 pin, d6 wool DROP, the tape-ladder calendar, or cap
+seed + hold-6 pin, d6 wool DROP, harvest-before-collect, the
+shop+post-sell rewrite (freeze-until-milk / first-land without d6),
+the tape-ladder calendar, or cap
 14 alone. Facts 40–42 are closed, not paused.
 
 ## What this repo is

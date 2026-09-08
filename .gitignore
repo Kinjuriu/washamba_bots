@@ -48,3 +48,6 @@ experiments/_facts_seed8.py
 experiments/_facts_escape.py
 experiments/_facts_feed_miss.py
 experiments/_facts_leftover.py
+experiments/_iso_*.py
+experiments/_diverge_0_8.py
+experiments/_shop_aware_test.py

@@ -91,6 +91,9 @@ d12h0 slack: escapes). Do not revert the yarn lock. Do not hunt a
 third fert-only bind. Throwaway is back on hold-6 + `MAX_ANIMALS=18`
 (15/17 align dropped). Fact 33 first-buy reserve 0 is dropped
 (same 28,751 / 36,766 / herd 18 as the land-reserve bundle).
+Fact 20 harvest-before-collect is dropped (39,690 / 55,210, land
+[7, 11], seed 0 herd 18). Shop+post-sell rewrite of 15/44 is dropped
+(38,649 / 46,533; seed 0 herd 4 through d17; land [7, 11]).
 
 Timing both seeds (same shape): wheat **d0 = 7** (tape 7); STRAW d5
 **1/4**, d6 **5/8**, d7 **0/4**, d8 **1/4**; d11 carpet **15**; MELON after
@@ -119,11 +122,16 @@ empties + BUILD — do not judge d5 against half-tape); wheat d0 holds;
 MELON after d0 = 0. Do not reopen 40–42 (crew-wide walk / DROP / SW
 fert).
 
-**Live card: fact 33 first-buy reserve dropped.** Waive-alone
-hit 28,751 / 36,766, land [7, 11], herd 18 — same pair as the
-bundle. 15/17 align stays dropped. Throwaway is hold-6 + cap 18
-(40,236 / 55,411, land [8, 11]). Do not retry first-buy waive,
-the bundle, d6 wool DROP, the tape ladder, or cap 14 alone.
+**Live card: produce funds the calendar; a miss is a diagnosis.**
+Keep `calendar_owned_target` and land windows. When a buy does not
+emit, name the missing inflow and rearrange that activity — do not
+replace the gate. Collect-then-harvest is dropped (inflow held,
+land [7, 11]; ungated walk 40,033/61,130 with 1 escape, or
++11,783/+5,719 with Stage 2 then 1 escape; unfed-gated walk
+39,587/52,878, 0 dips). Do not retry that bind, harvest-before-
+collect, freeze-until-milk, first-land without d6, first-buy
+waive, the bundle, d6 wool DROP, the tape ladder, or cap 14 alone.
+Throwaway still hold-6 + cap 18 (40,236 / 55,411, land [8, 11]).
 Fact 44 −570 is parked. **Do not merge Path A.** Do not port
 `main.py`.
 
@@ -186,15 +194,7 @@ was illegal because it broke 2.
 |---|---|---|---|---|---|
 | 18 | Wheat buffer scales with **owned** animals, not a flat 2 for the farm. | every wheat buy/sell | shed wheat tracks owned; not pegged at 2 | `MIN_WHEAT_RESERVE_FOR_FEEDING` used as a per-head multiplier on **owned**; both `decide_animal_market_actions` buy trigger and `decide_market_actions` sell exemption. | false (flat 2; sell keyed on filled) |
 | 19 | Feed wheat is not gated behind `MIN_CASH_RESERVE_FOR_SEED_BUYING`. | anytime cash is $9–$375 | `BUY_PRODUCT WHEAT` still emits | wheat buy lives in `decide_animal_market_actions` (no seed reserve today — **keep it that way**). Do not add the seed floor to this path. | true (buy path); still loses if fact 13 spends the bank first |
-| 20 | FEED happens every day: units on the animal tiles, wheat in the acting inventory. A walker must not `claimed`-steal an occupied unfed tile from a unit already on it with wheat. Walking to an unfed animal outranks local CARE / COLLECT on a different tile; it does **not** outrank WATER or crop HARVEST underfoot. Nearest-unfed skips already-assigned tiles; it does not drop feed. | every day | `FEED` ≈ owned × days; 0 escapes; far pens fed after the free first miss | `choose_unit_action`: FEED-underfoot ignores `claimed`; occupied unfed+wheat tiles are pre-marked into `feed_claimed`; `find_nearest_target(..., exclude=feed_claimed)`; feed `walk_to` does not add to `claimed`; crop HARVEST / WATER underfoot, then feed-walk, then CARE/COLLECT. A market order alone is not this fact. | true at cap 4; false at cap 8 without the walk/claim rules |
-
-## Crop constraints that coexist with this equilibrium
-
-These are not a STRAW pin. They stop Path B’s hole (herd exists, leftover
-tiles wheat-flood) without importing Path C.
-
-| ID | Invariant | When | Counter | Code that must afford it | Shipped |
-|---|---|---|---|---|---|
+| 20 | FEED happens every day: units on the animal tiles, wheat in the acting inventory. A walker must not `claimed`-steal an occupied unfed tile from a unit already on it with wheat. Walking to an unfed animal outranks local CARE / COLLECT on a different tile; it does **not** outrank WATER or crop HARVEST underfoot. Nearest-unfed skips already-assigned tiles; it does not drop feed. **Harvest-before-collect (`yield_units > 0` before COLLECT) is dropped.** **Collect-then-harvest (any yield after COLLECT + walk-back) is dropped** — inflow held, land [7, 11]; ungated 40,033/61,130 with 1 escape, Stage 2 52,019/61,130 with 1 escape, unfed-gated 39,587/52,878. Do not retry either harvest reorder. | every day | `FEED` ≈ owned × days; 0 escapes; far pens fed after the free first miss | `choose_unit_action`: FEED-underfoot ignores `claimed`; occupied unfed+wheat tiles are pre-marked into `feed_claimed`; `find_nearest_target(..., exclude=feed_claimed)`; feed `walk_to` does not add to `claimed`; crop HARVEST / WATER underfoot, then feed-walk, then CARE/COLLECT. A market order alone is not this fact. | true at cap 4; false at cap 8 without the walk/claim rules |
 | 21 | **Buy fertilizer back to apply it, in the tens per season** (tape: 35–64 `BUY_PRODUCT FERTILIZER`, alongside 280–360 sold). Fact 9 sells the flow because holding it is a liquidity cost; this row buys the few units a tile actually wants at the hour it wants them. That is not the arbitrage `CLAUDE.md` rules out (buy-the-dip / sell-the-recovery, −1,486), and not shipped `main.py`'s liquidation-era incidental buying — it is fert-on-demand for `FERTILIZE`. | when a tile is fertilized and the shed is empty of fert | `BUY_PRODUCT FERTILIZER` between ~20 and ~70 for the season; `FERTILIZE` count does not fall when fact 9 starts selling the flow | `decide_market_actions` top-up sized to the turn's `FERTILIZE` demand, never to a stock target. | false |
 | 22 | **WHEAT is the default crop on any empty tile, from day 0** (tape: 7 on d0, then a continuous 3–14/day to d28, ~190 plantings and ~190 `BUY_SEED WHEAT` a season). Its harvest is what feeds the herd; `BUY_PRODUCT` (facts 5, 18, 19) is the top-up, not the supply. Buying every mouthful instead cost **−20k net** contested on seed 0 (we paid 16.9k for wheat and sold 0.7k; v20 paid 47.4k and sold 51.1k — and its churn is what pushes the price we pay). Still forbidden, and this is the distinction the row exists for: no wrapper that force-plants because **stock is low** or `tiles < animals` (Path C F7), and no blocked-MELON→WHEAT mapping. Default-crop-on-empty is keyed on the **tile**, not on the shed. **d0 leftover after the melon opening (~12) is WHEAT** — fact 36's bulk and this restock are not exclusive; an `if melon_opening: elif wheat` chain left 9 NW tiles empty on d0 (measured seed 0). Plant falls through to WHEAT when melon budget is exhausted. | season, every empty tile without a window occupant | `tape_profile.py` PLANT WHEAT within ~±3/day of tape from d0 (d0 itself > 0); `PLANT WHEAT` does not scale with herd size; `SELL WHEAT` > 0 by d2 | `choose_crop` / empty-tile plant: WHEAT is the fallback pick everywhere, including SW and NE, whenever no window occupant (27) claims the tile. `BUY_SEED WHEAT` follows plantings and emits **alongside** d0 `BUY_SEED MELON`, not behind it. | partial (no force-wheat; fact 38 plant half is home-only and d13+) |
 | 23 | Never plant TOMATO. | season | `PLANT TOMATO` = 0 | `CROP_PLANTING_WINDOWS["TOMATO"] is None` / `choose_crop`. Independent of carrying the rest of the window gate as a fact. | true |
@@ -282,6 +282,92 @@ switch is withdrawn.
    36,766**, herd 6 through d10 then **12 / 18**. Same pair as the
    bundle. STRAW `$` narrowed (−35.2k / −33.9k) and d7 us hit $0.
    Do not retry. Next ≠ another reserve waive, ≠ d6 wool DROP.
+5. **Fact 20 harvest-before-collect dropped.** Land [7, 11], STRAW
+   1/5/3/1, banks 39,690 / 55,210, seed 0 herd 18. Counters (sheep
+   yld=0, wool 7, d7 land) held; bank bar did not. The nick was a
+   shop-draw reroll, not the waive’s $0 dump. Do not retry.
+6. **Rewrite 15/44 dropped — and it was the wrong idea.** Emitter
+   replaced the calendar (38,649 / 46,533; herd 4 through d17). The
+   direction we needed: keep the tape calendar; produce funds it; a
+   miss names the inflow, then rearrange that activity. Next ≠ the
+   emitter-rewrite, ≠ freeze-until-milk, ≠ first-land without d6.
+7. **Collect-then-harvest dropped.** Inflow held (yld=0, wool 7,
+   land [7, 11]). Ungated walk −203 / +5,719 with 1 escape; Stage 2
+   +11,783 / +5,719 still 1 escape; unfed gate 0 dips but
+   **39,587 / 52,878**. Same shop-draw class as harvest-before-
+   collect (STRAW d7 0→3). Do not retry.
+
+## Produce funds the calendar — collect-then-harvest (2026-09-07) **← failed, reverted**
+
+```text
+Kind: supplement (facts 15, 33; 44 rider) — dropped
+Was: after COLLECT, HARVEST only if yield >= max_held-2 (sheep=4);
+     yield=3 sits through d7; d7 post-sell $1,374 vs $1,500;
+     land [8, 11]
+Tried: COLLECT still first; HARVEST at any yield>0; walk-back
+     above K-STRAW. No d6 DROP, no day-gate rewrite, $500 stayed.
+     Stage 2: no-yarn mix table cows 10/8 not cap-2 (yarn left
+     the early draw). Unfed gate on the walk (1 cow escaped).
+Result: inflow held (sheep yld=0 d6 EOD; shed wool 7 d7h00);
+     land [7, 11]; STRAW 1/5/3/1; MELON after d0=0.
+     Stage1: 40,033 / 61,130 (−203 / +5,719); seed 8 1 escape
+     d24. Stage2: 52,019 / 61,130; seed 0 10C4S=14; seed 8
+     still 1 escape. Unfed-gated walk: 39,587 / 52,878
+     (−649 / −2,533); 0 dips; seed 0 yarn d12 restored.
+Now: revert. Do not retry collect-then-harvest, harvest-before-
+     collect, no-yarn cap-fill cut, freeze-until-milk, land
+     without d6, first-buy waive, d6 wool DROP, ladder, cap 14.
+Fights: d7 land vs shop-draw (20); harvest-walk vs feed (20)
+Throwaway: experiments/_facts_v20.py (reverted)
+Counters: land [8, 11]; wheat d0; MELON after d0=0; STRAW d6
+     half-tape; bank 40,236 / 55,411
+```
+
+## Shop + post-sell emit the calendar (2026-09-07) **← failed, reverted**
+
+```text
+Kind: rewrite (facts 15, 44) — dropped
+Was: calendar_owned_target(day) buys; shop_mix picks which inside
+     that count; land windows by engine day; no-yarn fills cows to 18
+Tried: post-d0 BUY_ANIMAL iff shed wool+fert post-sell covers it AND
+     a shop eats the product; mix-table cow count not cap-2; first
+     land when shed wool+fert vs $1,500, not day >= 6. $500 floor
+     stayed. Not harvest-before-collect, not waive, not ladder, not
+     cap 14.
+Result: banks 38,649 / 46,533 (−1,587 / −8,878). 0 dips. MELON after
+     d0=0; wheat d0=7. Seed 0: herd 4 through d17 then 10 (8C2S);
+     land [7, 11]; STRAW 5/4/12/4; yarn lost (shops rerolled). Seed 8:
+     land [8, 11]; STRAW 1/5/0/1; yarn d21; end 10C4S=14; cow_d13+=0.
+Now: revert. That bind replaced the emitter; the direction is
+     produce-funds-the-calendar (see card above). Do not retry
+     freeze-until-milk or first-land without the d6 day floor.
+Fights: hold-6 cows need a slot before milk is in the first 3 shops;
+     d7 land + extra NE STRAW is the same shop-draw reroll as
+     harvest-before-collect.
+Throwaway: experiments/_facts_v20.py (reverted)
+Counters: land [8, 11]; wheat d0=7; MELON after d0=0; STRAW d6
+     half-tape; bank 40,236 / 55,411
+```
+
+## Fact 20 harvest-before-collect (2026-09-07) **← failed, reverted**
+
+```text
+Kind: supplement (fact 20) — dropped
+Was: HARVEST only if yield >= max_held or >= max_held-2; sheep (4,4)
+     holds 3 wool through d7; d7 post-sell $1,374 vs $1,500; land [8, 11]
+Tried: underfoot HARVEST if yield_units > 0, before COLLECT. $500
+     reserve stayed. Not d6 wool DROP, not waive, not calendar.
+Result: both sheep yld=0 d6 EOD; wool d7 4→7; land [7, 11]; STRAW
+     1/5/3/1; wheat d0=9; MELON after d0=0; 0 dips. Banks 39,690 /
+     55,210 (−546 / −201). Seed 0 end herd 18; seed 8 end 14.
+     d7h01 leftover $573 (not the waive's $0). Dump still came.
+Now: revert. Do not retry harvest-before-collect, first-buy waive,
+     the bundle, d6 wool DROP, ladder, cap 14.
+Fights: 15 (d11+ dump once land is d7)
+Throwaway: experiments/_facts_v20.py (reverted)
+Counters: land [8, 11]; wheat d0; MELON after d0 = 0; STRAW d6
+     half-tape; bank 40,236 / 55,411
+```
 
 ## Fact 33 first-buy reserve (2026-09-06) **← failed, reverted**
 
