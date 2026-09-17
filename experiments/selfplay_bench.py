@@ -15,9 +15,10 @@ that looks good only because nobody else is trading will show up here.
 
 Usage:
     .venv/Scripts/python.exe experiments/selfplay_bench.py [n_seeds]
+    .venv/Scripts/python.exe experiments/selfplay_bench.py 6 --agent experiments/_facts_v20.py
 
 Runs 6 seeds by default (~90s). Every seed is fixed, so this is directly
-comparable across changes.
+comparable across changes. `--agent` defaults to `main.py`.
 
 One statistical note: each episode produces two banks, but they are the same
 agent playing itself and are near-perfectly correlated - often identical to
@@ -51,11 +52,30 @@ SEED_SETS = {"dev": DEV_SEEDS, "holdout": HOLDOUT_SEEDS}
 TRACKED_CROPS = ("WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON")
 
 
-def main():
-    n_seeds = int(sys.argv[1]) if len(sys.argv) > 1 else 6
+def _parse_args(argv):
+    agent = "main.py"
     seed_set = "dev"
-    if "--seed-set" in sys.argv:
-        seed_set = sys.argv[sys.argv.index("--seed-set") + 1]
+    n_seeds = 6
+    positionals = []
+    args = argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == "--agent":
+            agent = args[i + 1]
+            i += 2
+        elif args[i] == "--seed-set":
+            seed_set = args[i + 1]
+            i += 2
+        else:
+            positionals.append(args[i])
+            i += 1
+    if positionals:
+        n_seeds = int(positionals[0])
+    return agent, seed_set, n_seeds
+
+
+def main():
+    agent, seed_set, n_seeds = _parse_args(sys.argv)
     if seed_set not in SEED_SETS:
         print(
             f"error: unknown seed set '{seed_set}'. Use one of {list(SEED_SETS)}.",
@@ -79,7 +99,7 @@ def main():
             configuration={"episodeSteps": 720, "seed": seed},
             debug=False,
         )
-        env.run(["main.py", "main.py"])
+        env.run([agent, agent])
         left, right = env.steps[-1]
 
         # Both sides are us. Their banks are NOT two independent samples -
@@ -100,7 +120,7 @@ def main():
         for product, price in left.observation["market"]["prices"].items():
             price_totals[product] += price
 
-    print(f"self-play over {n_seeds} seeds (set={seed_set}, mean of both sides per seed)")
+    print(f"self-play {agent} over {n_seeds} seeds (set={seed_set}, mean of both sides per seed)")
     print(f"  mean  {statistics.mean(scores):8.0f}")
     print(f"  stdev {statistics.stdev(scores):8.0f}")
     print(f"  min   {min(scores):8.0f}   max {max(scores):8.0f}")

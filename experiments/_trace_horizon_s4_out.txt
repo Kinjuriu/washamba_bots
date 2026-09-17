@@ -1,0 +1,676 @@
+﻿.venv\Scripts\python.exe : OpenSpiel exception: Unknown game 'universal_poker'. Available games are:
+At C:\Users\user\AppData\Local\Temp\ps-script-b126b2d5-a40e-4a9f-be1c-f96bc3e8909b.ps1:97 char:331
++ ... oding utf8; .venv\Scripts\python.exe experiments\_trace_horizon_s4.py ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (OpenSpiel excep...able games are::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+2048
+add_noise
+amazons
+amazons_proxy
+ant_foraging_arena
+antichess
+backgammon
+backgammon_proxy
+banqi
+bargaining
+bargaining_proxy
+battleship
+blackjack
+blotto
+breakthrough
+breakthrough_proxy
+bridge
+bridge_arena
+bridge_uncontested_bidding
+cached_tree
+capture_the_flag
+capture_the_flag_proxy
+catch
+chat_game
+checkers
+checkers_proxy
+chess
+chinese_checkers
+cliff_walking
+clobber
+clobber_proxy
+coin_game
+coin_game_arena
+coin_game_proxy
+colored_trails
+connect_four
+connect_four_proxy
+coop_box_pushing
+coop_to_1p
+coordinated_mp
+crazy_eights
+crazyhouse
+cribbage
+crossword
+cursor_go
+dark_chess
+dark_hex
+dark_hex_ir
+dark_hex_proxy
+deep_sea
+dots_and_boxes
+dots_and_boxes_proxy
+dou_dizhu
+efg_game
+einstein_wurfelt_nicht
+euchre
+first_sealed_auction
+gin_rummy
+gin_rummy_proxy
+go
+go_fish
+go_fish_proxy
+go_proxy
+gomoku
+goofspiel
+havannah
+havannah_proxy
+hearts
+hex
+hive
+hive_proxy
+kriegspiel
+kuhn_poker
+laser_tag
+latent_ttt
+leduc_poker
+lewis_signaling
+liars_dice
+liars_dice_ir
+lines_of_action
+lines_of_action_proxy
+maedn
+mancala
+mancala_proxy
+markov_soccer
+markov_soccer_proxy
+matching_pennies_3p
+matrix_bos
+matrix_brps
+matrix_cd
+matrix_coordination
+matrix_mp
+matrix_pd
+matrix_rps
+matrix_rpsw
+matrix_sh
+matrix_shapleys_game
+mfg_crowd_modelling
+mfg_crowd_modelling_2d
+mfg_dynamic_routing
+mfg_garnet
+misere
+mnk
+morpion_solitaire
+negotiation
+negotiation_proxy
+nfg_game
+nim
+nine_mens_morris
+nine_mens_morris_proxy
+normal_form_extensive_game
+oh_hell
+oshi_zumo
+oshi_zumo_proxy
+othello
+othello_proxy
+oware
+pathfinding
+pentago
+phantom_go
+phantom_ttt
+phantom_ttt_ir
+pig
+python_ant_foraging
+python_ant_foraging_proxy
+python_block_dominoes
+python_dynamic_routing
+python_hangman
+python_iterated_prisoners_dilemma
+python_kuhn_poker
+python_liars_poker
+python_pokerkit_wrapper
+python_pokerkit_wrapper_acpc_style
+python_repeated_pokerkit
+python_team_dominoes
+python_tic_tac_toe
+quoridor
+rbc
+repeated_game
+repeated_leduc_poker
+restricted_nash_response
+sheriff
+shogi
+shogi_proxy
+skat
+snake
+snake_proxy
+social_deduction
+solitaire
+spades
+start_at
+stones_and_gems
+tarok
+tic_tac_toe
+tiny_bridge_2p
+tiny_bridge_4p
+tiny_hanabi
+trade_comm
+turn_based_simultaneous_game
+twixt
+ultimate_tic_tac_toe
+ultimate_tic_tac_toe_proxy
+xiangqi
+y
+y_proxy
+yacht
+zerosum
+OpenSpiel exception: Unknown game 'repeated_poker'. Available games are:
+2048
+add_noise
+amazons
+amazons_proxy
+ant_foraging_arena
+antichess
+backgammon
+backgammon_proxy
+banqi
+bargaining
+bargaining_proxy
+battleship
+blackjack
+blotto
+breakthrough
+breakthrough_proxy
+bridge
+bridge_arena
+bridge_uncontested_bidding
+cached_tree
+capture_the_flag
+capture_the_flag_proxy
+catch
+chat_game
+checkers
+checkers_proxy
+chess
+chinese_checkers
+cliff_walking
+clobber
+clobber_proxy
+coin_game
+coin_game_arena
+coin_game_proxy
+colored_trails
+connect_four
+connect_four_proxy
+coop_box_pushing
+coop_to_1p
+coordinated_mp
+crazy_eights
+crazyhouse
+cribbage
+crossword
+cursor_go
+dark_chess
+dark_hex
+dark_hex_ir
+dark_hex_proxy
+deep_sea
+dots_and_boxes
+dots_and_boxes_proxy
+dou_dizhu
+efg_game
+einstein_wurfelt_nicht
+euchre
+first_sealed_auction
+gin_rummy
+gin_rummy_proxy
+go
+go_fish
+go_fish_proxy
+go_proxy
+gomoku
+goofspiel
+havannah
+havannah_proxy
+hearts
+hex
+hive
+hive_proxy
+kriegspiel
+kuhn_poker
+laser_tag
+latent_ttt
+leduc_poker
+lewis_signaling
+liars_dice
+liars_dice_ir
+lines_of_action
+lines_of_action_proxy
+maedn
+mancala
+mancala_proxy
+markov_soccer
+markov_soccer_proxy
+matching_pennies_3p
+matrix_bos
+matrix_brps
+matrix_cd
+matrix_coordination
+matrix_mp
+matrix_pd
+matrix_rps
+matrix_rpsw
+matrix_sh
+matrix_shapleys_game
+mfg_crowd_modelling
+mfg_crowd_modelling_2d
+mfg_dynamic_routing
+mfg_garnet
+misere
+mnk
+morpion_solitaire
+negotiation
+negotiation_proxy
+nfg_game
+nim
+nine_mens_morris
+nine_mens_morris_proxy
+normal_form_extensive_game
+oh_hell
+oshi_zumo
+oshi_zumo_proxy
+othello
+othello_proxy
+oware
+pathfinding
+pentago
+phantom_go
+phantom_ttt
+phantom_ttt_ir
+pig
+python_ant_foraging
+python_ant_foraging_proxy
+python_block_dominoes
+python_dynamic_routing
+python_hangman
+python_iterated_prisoners_dilemma
+python_kuhn_poker
+python_liars_poker
+python_pokerkit_wrapper
+python_pokerkit_wrapper_acpc_style
+python_repeated_pokerkit
+python_team_dominoes
+python_tic_tac_toe
+quoridor
+rbc
+repeated_game
+repeated_leduc_poker
+restricted_nash_response
+sheriff
+shogi
+shogi_proxy
+skat
+snake
+snake_proxy
+social_deduction
+solitaire
+spades
+start_at
+stones_and_gems
+tarok
+tic_tac_toe
+tiny_bridge_2p
+tiny_bridge_4p
+tiny_hanabi
+trade_comm
+turn_based_simultaneous_game
+twixt
+ultimate_tic_tac_toe
+ultimate_tic_tac_toe_proxy
+xiangqi
+y
+y_proxy
+yacht
+zerosum
+running S4 seed 0...
+
+########################################################################################
+# HORIZON S4  seed=0  seat=0  bank us=67177  v20=142523  escapes us=0 v20=0
+########################################################################################
+  first BUY_LAND  us=(6, 11)  v20=(6, 5)
+  all BUY_LAND us=[(6, 11), (11, 1)]  v20=[(6, 5), (11, 1)]
+  d5 BUY_ANIMAL us=none
+
+--- S3ne pictures (EOD) ---
+  d0 us $=     24 herd=4 placed=4 2C2S pens=4 wheatF=7 straw=0 melon=12 land=NW  | v20 $=     20 herd=4 placed=4 wheatF=7 straw=0 melon=12
+       PLANT WHEAT us=9 v20=7  PLANT STRAW us=0 v20=0  PLANT MELON us=12 v20=12  NE empty/straw us=0/0 NW straw=0  shedW us=0 heldW=0  crew maxH=6/5
+  d3 us $=    325 herd=5 placed=5 3C2S pens=5 wheatF=7 straw=0 melon=12 land=NW  | v20 $=     29 herd=5 placed=5 wheatF=7 straw=0 melon=12
+       PLANT WHEAT us=4 v20=0  PLANT STRAW us=0 v20=0  PLANT MELON us=0 v20=0  NE empty/straw us=0/0 NW straw=0  shedW us=0 heldW=7  crew maxH=6/5
+  d5 us $=    605 herd=5 placed=5 3C2S pens=6 wheatF=3 straw=3 melon=12 land=NW  | v20 $=    311 herd=6 placed=6 wheatF=3 straw=4 melon=12
+       PLANT WHEAT us=0 v20=0  PLANT STRAW us=3 v20=4  PLANT MELON us=0 v20=0  NE empty/straw us=0/0 NW straw=3  shedW us=0 heldW=11  crew maxH=6/5
+  d6 us $=    177 herd=6 placed=6 4C2S pens=6 wheatF=0 straw=8 melon=12 land=NW+NE  | v20 $=   1561 herd=6 placed=6 wheatF=3 straw=6 melon=12
+       PLANT WHEAT us=0 v20=0  PLANT STRAW us=5 v20=2  PLANT MELON us=0 v20=0  NE empty/straw us=22/3 NW straw=5  shedW us=4 heldW=18  crew maxH=6/4
+  d7 us $=      3 herd=6 placed=6 4C2S pens=6 wheatF=0 straw=16 melon=12 land=NW+NE  | v20 $=     17 herd=10 placed=9 wheatF=3 straw=8 melon=12
+       PLANT WHEAT us=0 v20=0  PLANT STRAW us=9 v20=2  PLANT MELON us=0 v20=0  NE empty/straw us=13/11 NW straw=5  shedW us=1 heldW=11  crew maxH=11/8
+  d8 us $=     15 herd=6 placed=6 4C2S pens=6 wheatF=0 straw=20 melon=12 land=NW+NE  | v20 $=    961 herd=10 placed=10 wheatF=3 straw=19 melon=12
+       PLANT WHEAT us=0 v20=3  PLANT STRAW us=4 v20=11  PLANT MELON us=0 v20=0  NE empty/straw us=10/14 NW straw=6  shedW us=0 heldW=7  crew maxH=11/11
+
+--- d6 hourly (EOD leftover; 8-by-d6 still blocked) ---
+    h      $  own/pl pens shedW heldW  woolS/H land buyA hire unlocked
+    0    605  5/5     6    11    11   0/0      0 -          0 NW
+    2    615  5/5     6     0     9   0/0      0 -          3 NW
+    4    615  5/5     6     0     8   0/4      0 -          0 NW
+    6   1466  5/5     6     0     6   0/0      0 -          0 NW
+    8   1466  5/5     6     0     6   0/5      0 -          0 NW
+   10   1466  5/5     6     0     6   0/5      0 -          0 NW
+   11   1430  5/5     6     0     6   0/0      1 -          0 NW+NE LAND
+   12    509  6/5     6     6    12   0/0      0 COW1       0 NW+NE
+   14    477  6/5     6     7    14   0/0      0 -          0 NW+NE
+   16    477  6/5     6     7    16   0/0      0 -          0 NW+NE
+   18    377  6/6     6     7    18   0/0      0 -          0 NW+NE
+   20    277  6/6     6     7    18   0/0      0 -          0 NW+NE
+   22    177  6/6     6     7    18   0/0      0 -          0 NW+NE
+   23    177  6/6     6     4    18   0/0      0 -          0 NW+NE
+
+--- 8-by-d6 still blocked (not the S4 rewrite) ---
+  EOD d6 owned=6 placed=6 cash=177  first land=(6, 11)
+
+--- d6 executed $ / units (us vs v20) ---
+  cat                           $us     $v20     gap$   u us  u v20
+  SELL_WOOL                    1815     2439     -624      9     12
+  SELL_FERTILIZER               369      466      -97      4      5
+  SELL_WHEAT                     30        0       30      1      0
+  BUY_LAND                     1000     1000        0      1      1
+  BUY_ANIMAL_COW                400        0      400      1      0
+  BUY_SEED_STRAWBERRY          1000      300      700     10      3
+  BUY_PRODUCT_WHEAT             222      188       34      7      6
+  HIRE                           20        7       13      6      4
+  d6 SELL total                2214     2905     -691
+  d6 spend total               2642     1495     1147
+  EOD d5->d6 us $605->177 (net -428)  v20 $311->1561 (net +1250)
+  identity: v20 leftover is wool/fert minus land, no extra animal; us delays land then spends deferred cow + seed/wheat.
+
+--- d9-d10 S4 window (EOD) ---
+  day     $us    $v20    herd  pens melonF  heldM         SELL_M $        BUY_A     HIRE    maxH  wheatF shedW
+    9    1445    1960  6/12   6/12  12/12     0       0/0        -             9/12  9/12   7/5      3
+   10    8603   17603  6/12   6/12   0/0     35    8099/15785    -            12/11 12/12  15/9      6
+   11    5524   13533 14/14   6/14   0/0      0    3556/900      COW6+SHEEP2  12/12 12/12  15/17    21
+   12    6137   15518 14/14   6/14   0/0      0       0/0        -            12/10 12/12  11/17     2
+
+--- d9-d12 selected hours (us) ---
+   d   h      $  own/pl melonF heldM shedM shedW buyA hire land sellM
+   9   0     15  6/6      12     0     0     7 -          0 0 0
+   9   1   1837  6/6      12     0     0     9 -          0 0 0
+   9   4   1624  6/6      12     0     0     0 -          3 0 0
+   9   8   1553  6/6      12     0     0     2 -          0 0 0
+   9  12   1481  6/6      12     0     0     2 -          0 0 0
+   9  16   1445  6/6      12     0     0     3 -          0 0 0
+   9  20   1445  6/6      12     0     0     3 -          0 0 0
+   9  23   1445  6/6      12     0     0     3 -          0 0 0
+  10   0   1445  6/6      12     0     0    12 -          0 0 0
+  10   1   2046  6/6      12     0     0     9 -          3 0 0
+  10   4   1637  6/6      12     0     0     0 -          3 0 0
+  10   8   1526  6/6      11     6     0     3 -          0 0 0
+  10  12   1439  6/6       6    35     0     1 -          0 0 1
+  10  16   1361  6/6       2    59     0     2 -          0 0 1
+  10  20   2816  6/6       0    64     0     4 -          0 0 1
+  10  23   8603  6/6       0    35     0     6 -          0 0 1
+  11   0   9430  6/6       0    30    30    12 -          0 0 1
+  11   1   8651  6/6       0    15    15     9 -          3 1 1 LAND2
+  11   4   9755  6/6       0     0     0     0 -          3 0 0
+  11   8   9677  6/6       0     0     0     2 -          0 0 0
+  11  12   9560  6/6       0     0     0     5 -          0 0 0
+  11  15   5524 14/6       0     0     0    21 COW1+COW1+COW1+COW1+SHEEP1+COW1+SHEEP1+COW1   0 0 0
+  11  16   5524 14/6       0     0     0    21 -          0 0 0
+  11  20   5524 14/6       0     0     0    21 -          0 0 0
+  11  23   5524 14/6       0     0     0    21 -          0 0 0
+  12   0   5524 14/6       0     0     0    28 -          0 0 0
+  12   1   6763 14/6       0     0     0    28 -          3 0 0
+  12   4   6350 14/6       0     0     0     2 -          3 0 0
+  12   8   6268 14/6       0     0     0     4 -          0 0 0
+  12  12   6197 14/6       0     0     0     2 -          0 0 0
+  12  16   6177 14/6       0     0     0     2 -          0 0 0
+  12  20   6157 14/6       0     0     0     2 -          0 0 0
+  12  23   6137 14/6       0     0     0     2 -          0 0 0
+
+--- can Actual fund rewritten S4 (pace to 14 after melon, stop)? ---
+  EOD d9  $1445 herd=6 heldM=0 pens=6 shedW=3
+  EOD d10 $8603 herd=6 heldM=35 pens=6 shedW=6
+  EOD d11 $5524 herd=14 heldM=0 pens=6 shedW=21
+  EOD d12 $6137 herd=14
+  SELL_MELON d9 $0/0u  d10 $8099/40u  d11 $3556/30u
+  second BUY_LAND us=(11, 1)  cash at emit=8651.0
+  to hit 14 from d10 herd 6: need 8 head (~$3200 cows / $4000 sheep) + wheat 16
+  second land $2000 + floor $500 = $2500 reserved; extra head must not steal that.
+  EOD d10 $8603 - land2 $2000 - floor $500 = $6103 leftover for extra head
+  leftover vs 1 cow $400: FITS +1
+  leftover vs 8 cows $3200: FITS all-14 same morning
+  cash at land2 emit $8651 - $2000 = $6651; after floor $6151 vs 1 cow $400 FITS +1 after land2
+  after land2+floor vs 8 cows $3200: FITS all-14 after land2
+  EOD d11 $5524 herd=14 need 0 more ($0 cows): could buy next morning
+
+--- BUY_ANIMAL by day (us / v20 order qty) ---
+  day  us                   v20                    herd us/v20  tape
+    0  COW2+SHEEP2          COW2+SHEEP2             4/4    4
+    3  COW1                 COW1                    5/5    6
+    5  -                    COW1                    5/6    
+    6  COW1                 -                       6/6    8
+    7  -                    COW2+SHEEP2             6/10   10
+    9  -                    COW2                    6/12   13
+   11  COW6+SHEEP2          COW2                   14/14   
+
+--- crew (hires / max hands) d0-d12 ---
+  day   HIRE us/v20   maxH us/v20
+    0    6/5          6/5  
+    1    6/0          6/5  
+    2    6/4          6/4  
+    3    6/5          6/5  
+    4    6/5          6/5  
+    5    6/4          6/5  
+    6    6/4          6/4  
+    7   11/8         11/8  
+    8    8/11        11/11 
+    9    9/12         9/12 
+   10   12/11        12/12 
+   11   12/12        12/12 
+   12   12/10        12/12 
+
+--- season executed $ ---
+  cat                              us        v20        gap
+  SELL_STRAWBERRY               28151      58301     -30150
+  SELL_WOOL                      4059       7211      -3152
+  SELL_MELON                    11655      16685      -5030
+  SELL_WHEAT                     3875      26512     -22637
+  SELL_MILK                     40411      60283     -19872
+  BUY_PRODUCT_WHEAT             11667      22318     -10651
+  BUY_ANIMAL_SHEEP               2000       2000          0
+  BUY_ANIMAL_COW                 4000       4000          0
+  BUY_LAND                       3000       3000          0
+  BUY_SEED_WHEAT                 1010       1330       -320
+  BUY_SEED_STRAWBERRY            4400       4200        200
+  BUY_SEED_MELON                  960        960          0
+  units:
+    SELL_STRAWBERRY           136    274
+    SELL_WOOL                  83    120
+    SELL_MELON                 70     72
+    SELL_WHEAT                 89    539
+    BUY_ANIMAL_SHEEP            4      4
+    BUY_ANIMAL_COW             10     10
+  PLANT STRAW d5-8 us=21 v20=19  d11 us=15 v20=18
+  PLANT WHEAT d0 us=9 v20=7  PLANT MELON after d0 us=0 v20=0
+  d0 4/4 check owned=4 placed=4 wheatF=7 melonF=12
+running S4 seed 8...
+
+########################################################################################
+# HORIZON S4  seed=8  seat=0  bank us=59203  v20=134066  escapes us=0 v20=0
+########################################################################################
+  first BUY_LAND  us=(6, 11)  v20=(6, 5)
+  all BUY_LAND us=[(6, 11), (11, 1)]  v20=[(6, 5), (11, 1)]
+  d5 BUY_ANIMAL us=none
+
+--- S3ne pictures (EOD) ---
+  d0 us $=     24 herd=4 placed=4 2C2S pens=4 wheatF=7 straw=0 melon=12 land=NW  | v20 $=     20 herd=4 placed=4 wheatF=7 straw=0 melon=12
+       PLANT WHEAT us=9 v20=7  PLANT STRAW us=0 v20=0  PLANT MELON us=12 v20=12  NE empty/straw us=0/0 NW straw=0  shedW us=0 heldW=0  crew maxH=6/5
+  d3 us $=    325 herd=5 placed=5 3C2S pens=5 wheatF=7 straw=0 melon=12 land=NW  | v20 $=     29 herd=5 placed=5 wheatF=7 straw=0 melon=12
+       PLANT WHEAT us=4 v20=0  PLANT STRAW us=0 v20=0  PLANT MELON us=0 v20=0  NE empty/straw us=0/0 NW straw=0  shedW us=0 heldW=7  crew maxH=6/5
+  d5 us $=    605 herd=5 placed=5 3C2S pens=6 wheatF=3 straw=3 melon=12 land=NW  | v20 $=    311 herd=6 placed=6 wheatF=3 straw=4 melon=12
+       PLANT WHEAT us=0 v20=0  PLANT STRAW us=3 v20=4  PLANT MELON us=0 v20=0  NE empty/straw us=0/0 NW straw=3  shedW us=0 heldW=11  crew maxH=6/5
+  d6 us $=    177 herd=6 placed=6 4C2S pens=6 wheatF=0 straw=8 melon=12 land=NW+NE  | v20 $=   1561 herd=6 placed=6 wheatF=3 straw=6 melon=12
+       PLANT WHEAT us=0 v20=0  PLANT STRAW us=5 v20=2  PLANT MELON us=0 v20=0  NE empty/straw us=22/3 NW straw=5  shedW us=4 heldW=18  crew maxH=6/4
+  d7 us $=      3 herd=6 placed=6 4C2S pens=6 wheatF=0 straw=16 melon=12 land=NW+NE  | v20 $=     17 herd=10 placed=9 wheatF=3 straw=8 melon=12
+       PLANT WHEAT us=0 v20=0  PLANT STRAW us=9 v20=2  PLANT MELON us=0 v20=0  NE empty/straw us=14/10 NW straw=6  shedW us=1 heldW=11  crew maxH=11/8
+  d8 us $=     15 herd=6 placed=6 4C2S pens=6 wheatF=0 straw=20 melon=12 land=NW+NE  | v20 $=   1146 herd=10 placed=10 wheatF=3 straw=19 melon=12
+       PLANT WHEAT us=0 v20=3  PLANT STRAW us=4 v20=11  PLANT MELON us=0 v20=0  NE empty/straw us=11/14 NW straw=6  shedW us=0 heldW=7  crew maxH=11/11
+
+--- d6 hourly (EOD leftover; 8-by-d6 still blocked) ---
+    h      $  own/pl pens shedW heldW  woolS/H land buyA hire unlocked
+    0    605  5/5     6    11    11   0/0      0 -          0 NW
+    2    615  5/5     6     0     9   0/0      0 -          3 NW
+    4    615  5/5     6     0     8   0/4      0 -          0 NW
+    6   1466  5/5     6     0     6   0/0      0 -          0 NW
+    8   1466  5/5     6     0     6   0/5      0 -          0 NW
+   10   1466  5/5     6     0     6   0/5      0 -          0 NW
+   11   1430  5/5     6     0     6   0/0      1 -          0 NW+NE LAND
+   12    509  6/5     6     6    12   0/0      0 COW1       0 NW+NE
+   14    477  6/5     6     7    14   0/0      0 -          0 NW+NE
+   16    477  6/5     6     7    16   0/0      0 -          0 NW+NE
+   18    377  6/6     6     7    18   0/0      0 -          0 NW+NE
+   20    277  6/6     6     7    18   0/0      0 -          0 NW+NE
+   22    177  6/6     6     7    18   0/0      0 -          0 NW+NE
+   23    177  6/6     6     4    18   0/0      0 -          0 NW+NE
+
+--- 8-by-d6 still blocked (not the S4 rewrite) ---
+  EOD d6 owned=6 placed=6 cash=177  first land=(6, 11)
+
+--- d6 executed $ / units (us vs v20) ---
+  cat                           $us     $v20     gap$   u us  u v20
+  SELL_WOOL                    1815     2439     -624      9     12
+  SELL_FERTILIZER               369      466      -97      4      5
+  SELL_WHEAT                     30        0       30      1      0
+  BUY_LAND                     1000     1000        0      1      1
+  BUY_ANIMAL_COW                400        0      400      1      0
+  BUY_SEED_STRAWBERRY          1000      300      700     10      3
+  BUY_PRODUCT_WHEAT             222      188       34      7      6
+  HIRE                           20        7       13      6      4
+  d6 SELL total                2214     2905     -691
+  d6 spend total               2642     1495     1147
+  EOD d5->d6 us $605->177 (net -428)  v20 $311->1561 (net +1250)
+  identity: v20 leftover is wool/fert minus land, no extra animal; us delays land then spends deferred cow + seed/wheat.
+
+--- d9-d10 S4 window (EOD) ---
+  day     $us    $v20    herd  pens melonF  heldM         SELL_M $        BUY_A     HIRE    maxH  wheatF shedW
+    9    1520    1991  6/12   6/12  12/12     0       0/0        -             9/12  9/12   2/5      3
+   10    7881   17281  6/12   6/12   1/0     35    6564/15429    -            12/11 12/12   9/9      6
+   11    5106   13174 14/14   6/14   1/0      0    4792/1024     COW2+SHEEP6  12/12 12/12   9/17    21
+   12    5713   15168 14/14   6/14   0/0      6       0/0        -            12/10 12/12  10/17     2
+
+--- d9-d12 selected hours (us) ---
+   d   h      $  own/pl melonF heldM shedM shedW buyA hire land sellM
+   9   0     15  6/6      12     0     0     7 -          0 0 0
+   9   1   1921  6/6      12     0     0     9 -          0 0 0
+   9   4   1698  6/6      12     0     0     0 -          3 0 0
+   9   8   1628  6/6      12     0     0     2 -          0 0 0
+   9  12   1556  6/6      12     0     0     2 -          0 0 0
+   9  16   1520  6/6      12     0     0     3 -          0 0 0
+   9  20   1520  6/6      12     0     0     3 -          0 0 0
+   9  23   1520  6/6      12     0     0     3 -          0 0 0
+  10   0   1520  6/6      12     0     0    12 -          0 0 0
+  10   1   2001  6/6      12     0     0     9 -          3 0 0
+  10   4   1592  6/6      12     0     0     0 -          3 0 0
+  10   8   1518  6/6      11     6     0     2 -          0 0 0
+  10  12   1424  6/6       5    41     0     2 -          0 0 1
+  10  16   1357  6/6       4    47     0     3 -          0 0 1
+  10  20   4050  6/6       1    53     0     5 -          0 0 1
+  10  23   7881  6/6       1    35     0     6 -          0 0 1
+  11   0   7861  6/6       1    35    35    12 -          0 0 1
+  11   1   7715  6/6       1    20    20     9 -          3 1 1 LAND2
+  11   4   9723  6/6       1     0     0     0 -          3 0 0
+  11   8   9647  6/6       1     0     0     2 -          0 0 0
+  11  12   9530  6/6       1     0     0     5 -          0 0 0
+  11  15   5106 14/6       1     0     0    21 SHEEP1+SHEEP1+SHEEP1+SHEEP1+SHEEP1+COW1+SHEEP1+COW1   0 0 0
+  11  16   5106 14/6       1     0     0    21 -          0 0 0
+  11  20   5106 14/6       1     0     0    21 -          0 0 0
+  11  23   5106 14/6       1     0     0    21 -          0 0 0
+  12   0   5106 14/6       1     0     0    28 -          0 0 0
+  12   1   6345 14/6       1     0     0    28 -          3 0 0
+  12   4   5933 14/6       1     0     0     2 -          3 0 0
+  12   8   5853 14/6       1     0     0     4 -          0 0 0
+  12  12   5813 14/6       1     0     0     2 -          0 0 0
+  12  16   5793 14/6       1     0     0     2 -          0 0 0
+  12  20   5753 14/6       0     6     0     2 -          0 0 1
+  12  23   5713 14/6       0     6     0     2 -          0 0 1
+
+--- can Actual fund rewritten S4 (pace to 14 after melon, stop)? ---
+  EOD d9  $1520 herd=6 heldM=0 pens=6 shedW=3
+  EOD d10 $7881 herd=6 heldM=35 pens=6 shedW=6
+  EOD d11 $5106 herd=14 heldM=0 pens=6 shedW=21
+  EOD d12 $5713 herd=14
+  SELL_MELON d9 $0/0u  d10 $6564/29u  d11 $4792/35u
+  second BUY_LAND us=(11, 1)  cash at emit=7715.0
+  to hit 14 from d10 herd 6: need 8 head (~$3200 cows / $4000 sheep) + wheat 16
+  second land $2000 + floor $500 = $2500 reserved; extra head must not steal that.
+  EOD d10 $7881 - land2 $2000 - floor $500 = $5381 leftover for extra head
+  leftover vs 1 cow $400: FITS +1
+  leftover vs 8 cows $3200: FITS all-14 same morning
+  cash at land2 emit $7715 - $2000 = $5715; after floor $5215 vs 1 cow $400 FITS +1 after land2
+  after land2+floor vs 8 cows $3200: FITS all-14 after land2
+  EOD d11 $5106 herd=14 need 0 more ($0 cows): could buy next morning
+
+--- BUY_ANIMAL by day (us / v20 order qty) ---
+  day  us                   v20                    herd us/v20  tape
+    0  COW2+SHEEP2          COW2+SHEEP2             4/4    4
+    3  COW1                 COW1                    5/5    6
+    5  -                    COW1                    5/6    
+    6  COW1                 -                       6/6    8
+    7  -                    COW2+SHEEP2             6/10   10
+    9  -                    SHEEP2                  6/12   13
+   11  COW2+SHEEP6          SHEEP2                 14/14   
+
+--- crew (hires / max hands) d0-d12 ---
+  day   HIRE us/v20   maxH us/v20
+    0    6/5          6/5  
+    1    6/0          6/5  
+    2    6/4          6/4  
+    3    6/5          6/5  
+    4    6/5          6/5  
+    5    6/4          6/5  
+    6    6/4          6/4  
+    7   11/8         11/8  
+    8    8/11        11/11 
+    9    9/12         9/12 
+   10   12/11        12/12 
+   11   12/12        12/12 
+   12   12/10        12/12 
+
+--- season executed $ ---
+  cat                              us        v20        gap
+  SELL_STRAWBERRY               27808      53155     -25347
+  SELL_WOOL                     24769      42375     -17606
+  SELL_MELON                    11911      16453      -4542
+  SELL_WHEAT                     1900      25098     -23198
+  SELL_MILK                     13506      22047      -8541
+  BUY_PRODUCT_WHEAT             11011      21362     -10351
+  BUY_ANIMAL_SHEEP               4000       4000          0
+  BUY_ANIMAL_COW                 2400       2400          0
+  BUY_LAND                       3000       3000          0
+  BUY_SEED_WHEAT                  810       1330       -520
+  BUY_SEED_STRAWBERRY            4400       4200        200
+  BUY_SEED_MELON                  960        960          0
+  units:
+    SELL_STRAWBERRY           150    274
+    SELL_WOOL                 125    208
+    SELL_MELON                 70     72
+    SELL_WHEAT                 48    539
+    BUY_ANIMAL_SHEEP            8      8
+    BUY_ANIMAL_COW              6      6
+  PLANT STRAW d5-8 us=21 v20=19  d11 us=15 v20=18
+  PLANT WHEAT d0 us=9 v20=7  PLANT MELON after d0 us=0 v20=0
+  d0 4/4 check owned=4 placed=4 wheatF=7 melonF=12

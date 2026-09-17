@@ -4,13 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## How we build (from 2026-09-01)
 
-Shape is specified in **`mydocs/FACTS.md`**, not as slogans (Path A–C) or
-knob sweeps. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`. Diary:
-`mydocs/HANDOFF.md`.
+Shape is specified in **`mydocs/FACTS.md`** (required calendar), not as
+slogans (Path A–C) or knob sweeps. Actual farm vs next state:
+**`mydocs/HORIZON.md`** (overwrite; snapshot before code). Method:
+`mydocs/AGENT_BUILDING_PROTOCOL.md`. Diary: `mydocs/HANDOFF.md`.
 
-Before a shape edit: add / remove / supplement a row in `FACTS.md`, then
-diff a throwaway `experiments/_*.py` against **every** row, then measure
-the named counters. Do not patch shipped `main.py` until those counters
+Before a shape edit: fill HORIZON Actual on seeds 0 and 8; if that farm
+cannot fund the next FACTS row as written, change the row first; then
+diff a throwaway `experiments/_*.py` against **every already-landed**
+row, then measure. Do not patch shipped `main.py` until those counters
 hold. `docs/EXPERIMENT_WORKFLOW.md` is for knobs **inside** a fact-set
 that already holds — not a substitute for writing the facts.
 
@@ -29,8 +31,13 @@ dollar gaps (STRAWBERRY −29.6k, WOOL −25.3k, WHEAT-net −20k, FERTILIZER
 against the tape, and the "STRAW acreage bind" three sessions chased was
 self-inflicted by two of them. `experiments/tape_profile.py` now diffs
 crew, herd, plantings and sells per engine day against the tapes — run it
-before the bank. Live next lever: **timing card T1** in `mydocs/FACTS.md`
-(rows 9/15/17/21/22/27/28/39 + 43). Facts 40–42 are closed, not paused.
+before the bank. Live next lever: **grow d6 leftover** (us $177 vs
+v20 $1,561) on `_facts_v20_s4_lead.py` (banks 67,325 / 72,410). Mix
+already lands; do not recode. Snapshot d6 hours, then one fact (STRAW
+seed 10→~3 **or** wool 9→12 to shed). Do not paste 8-by-d6 onto $177.
+Do not waive the $500 floor. Do not retry S3d6 / S1. Do not clip pens.
+Do not carpet NE. Do not port `main.py`. See `mydocs/HORIZON.md`.
+Facts 40–42 are closed.
 
 ## What this repo is
 

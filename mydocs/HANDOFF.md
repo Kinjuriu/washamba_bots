@@ -1,4 +1,1642 @@
-# Current session: 2026-09-05 — the judge was wrong; timing card T1 opened
+# Current session: 2026-09-17 — d1-feed hours snapshotted; next is the row
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s4_lead.py` (banks **67,325 /
+> 72,410**). Snapshot: `experiments/_trace_d1_feed.py`.
+
+## Hidden (the progress)
+
+Product wheat is already payable **without extra h0 buy**: after the
+last d0 FEED (h10, held 4→0) the drawer sits at **$114 / px $28 / aff=4
+/ held=0** through d0h15. Day-0 policy is hour-0 only, so those five
+hours never restock. h15 `BUY_SEED WHEAT` ×9 ($114→$24) is the spend
+that closes it. After that, no hour through d1h23 can buy 1 unit. Skip
+that seed and d0 PLANT WHEAT goes 9→0 (seed held 0 until h15). v20
+leftover 3 is h0 BUY×6, h1 SELL×3, h6 BUY×2, h12 BUY×1 — overnight 3,
+d1 morning feeds 3, then d1h18 FERT×3 + BUY×5. Not a morning buy. Not
+S1 on this farm.
+
+## What this session did
+
+Snapshot `_trace_d1_feed.py` contested vs `route_v20` seeds 0 and 8.
+Did not edit the throwaway. Did not port `main.py`. No FACTS row yet.
+
+## Contested vs `route_v20` — d1-feed hours (seat 0, both seeds identical)
+
+| | us S4-lead | v20 |
+|---|---|---|
+| d0h11–h15 | **$114 aff=4 held=0** | leftover 2–3; h12 BUY×1 |
+| d0h15 | **SEED×9 $114→$24** | $20 held 3 |
+| overnight / d1h0 | held 0 $24 aff 0 BUY×4 no-op | held **3** $20 aff 0 no buy |
+| d1 FEED | 0 | 3 leftover + 1 after h18 |
+| d0 PLANT WHEAT | 9 | SEED×7 at h0 |
+| bank 0 / 8 | 67,325 / 72,410 | — |
+
+## Verdict
+
+**Snapshot filled.** Payable window is d0h11–h15 from live cash. Do not
+retry leftover-2 at h0, d1h0 ×4, skip-seed, or S1 fert-sale. Next is
+the FACTS row for a post-FEED d0 product-wheat restock sized against
+h15 seed so PLANT WHEAT stays in ±3 of 7.
+
+## Next
+
+1. Write the row, then the throwaway. Size leftover vs d0 wheat seed.
+2. No `main.py` port. No S1 / S3d6 / 8-by-d6 on $177.
+
+---
+
+# Previous session: 2026-09-17 — feeder-stay CARE dropped; next is d1 feed
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s4_lead.py` (banks **67,325 /
+> 72,410**). Snapshot: `experiments/_trace_horizon_s4_lead_care.py`.
+> Failed CARE-stay: `experiments/_facts_v20_s4_lead_care_stay.py`.
+
+## Hidden (the progress)
+
+FEED clears `fed_today`, so fact 20’s feed-walk leaves before step-3
+CARE. Last-fed sheep still CARES; first-fed ((4,4) h5) does not. Feeder
+stays one hour for CARE — claimed, sheep-only, not walker
+CARE-before-feed-walk — **does** land (4,4) d0 CARE (h5 then h6) and
+lifts first wool 5+4 → 5+5. It also zeros NE STRAW and drops the bank
+**22,311 / 62,543**. Same tripwire as pulling walkers in to CARE: one
+stolen hour on the feeder still eats the land-day crop. d1 still never
+feeds (held 0, BUY×4 no-op). 6+6 still needs d1 wheat.
+
+## What this session did
+
+Copied S4-lead to `_facts_v20_s4_lead_care_stay.py`. After FEED, that
+unit records the tile; next hour if still there, CARE before shed
+pickup / feed-walk. Other units do not. Contested seeds 0 and 8 vs
+`route_v20`. Did not port `main.py`. Reverted the fact 20 supplement.
+
+## Contested vs `route_v20` — feeder-stay (seat 0)
+
+| | S4-lead | stay | v20 |
+|---|---|---|---|
+| (4,4) d0 CARE | no | **h6** | yes |
+| d6h0 yield | 5+4 | **5+5** | 6+6 |
+| land | d6 | d6 | — |
+| NE STRAW EOD d6 | > 0 | **0** | — |
+| bank 0 / 8 | 67,325 / 72,410 | **22,311 / 62,543** | — |
+| d1 sheep FEED | 0 | 0 | both |
+
+## Verdict
+
+**Drop feeder-stay CARE.** Counter moved; bank and NE STRAW failed.
+Keep `_facts_v20_s4_lead.py`. Do not retry CARE-before-feed-walk or
+stay. Both CARE flavours and leftover extra-buy are closed.
+
+## Next
+
+1. **d1 feed** — snapshot which hours can hold wheat without extra h0
+   buy. v20 leftover 3 is overnight *product* wheat after sells, then
+   d1h18 ×5 after more sales — not a morning BUY. Not leftover-2 at
+   h0. Not d1h0 ×4. d0h15 `BUY_SEED WHEAT` ×9 ($114→$24) is the spend
+   that empties the trough.
+2. No `main.py` port. No S1 / S3d6 / 8-by-d6 on $177.
+
+---
+
+# Previous session: 2026-09-17 — d1 leftover extra-buy failed bank
+
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s4_lead.py` (banks **67,325 /
+> 72,410**). Snapshot: `experiments/_trace_d1_wheat.py`. Failed leftover:
+> `experiments/_facts_v20_s4_lead_d1wheat.py`.
+
+## Hidden (the progress)
+
+d1h0 BUY×4 at $24 is a silent no-op because wheat is **$28** (aff **0**
+all of d1). v20 does not buy that morning — shed already holds **3**.
+Extra 2 product wheat at d0h0 *does* leftover 2 and can lift first wool
+5+4 → 5+5, but every flavour fails the bank. EOD $24 → $10 drops under
+`MIN_MONEY_TO_HIRE=20` (land miss) unless wheat-seed is capped; with the
+cap, land/NE STRAW hold and the bank is still **−22k / −19k**. 6+6 is
+not payable as leftover extra-buy or as a d1 morning buy.
+
+## What this session did
+
+Snapshot d0 leftover vs d1 buy/fill/pickup vs `route_v20` seeds 0 and 8.
+Changed the row to overnight leftover (aff 0). Three throwaway flavours.
+Did not port `main.py`. Reverted the fact 5/36 supplement.
+
+## Contested vs `route_v20` — d1 drawer (seat 0, both seeds identical)
+
+| | us S4-lead | v20 |
+|---|---|---|
+| d1h0 $ / px / aff | 24 / 28 / **0** | 20 / 28 / 0 |
+| held wheat | **0** | **3** |
+| BUY ×4 fill | **0** | (none morning; ×5 h18) |
+| d0 $114 spends | `BUY_SEED WHEAT` ×9 | extra product wheat |
+
+## Contested — leftover extra-buy copies
+
+| flavour | seed 0 | seed 8 | d6h0 | land |
+|---|---|---|---|---|
+| +2 h0 + sheep-first | 32,138 | 49,106 | 4+2 | none |
+| +2 h0, no sheep-first | 21,452 | 31,635 | 5+3 | none |
+| +2 h0 + seed cap ≥$20 | **44,677** | **52,807** | 5+5 | d6 |
+| S4-lead baseline | **67,325** | **72,410** | 5+4 | d6 |
+
+## Verdict
+
+**Drop overnight leftover extra-buy.** **Drop d1h0 BUY of 4.** Affordable
+qty is 0. Keep `_facts_v20_s4_lead.py`. First wool 9 vs 12 is not payable
+as written.
+
+## Next
+
+1. **Different next state** — snapshot before code. Not leftover-2 at h0.
+   Not sheep-first. Not d1h0 ×4. Not CARE-before-feed-walk. Not S1 sell-fert.
+2. No `main.py` port.
+
+---
+
+# Previous session: 2026-09-17 — hidden d1 wheat no-op; CARE lift failed bank
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s4_lead.py` (banks **67,325 /
+> 72,410**). Snapshot: `experiments/_trace_horizon_s4_lead_care.py`.
+> Failed CARE: `experiments/_facts_v20_s4_lead_care.py`.
+
+## Hidden (the progress)
+
+First wool 9 vs v20 12 was **never leftover / PLACE / COLLECT stall**.
+Engine: night-of-d5 yield = `min(6, 1 + fed+cared nights d0–d4)`.
+Both sheep **skip d1 entirely** because `BUY_PRODUCT WHEAT ×4` at h0
+with **$24 / shed 0** is a silent no-op — PICKUP 0, FEED 0, shed
+**never fills that day**. v20 starts d1 with **3** already in the shed
+and feeds 4. COLLECT-then-CARE on d2–d5 already recovers. (4,4) also
+misses d0 CARE; lifting CARE before feed-walk made **5+5** and crashed
+the bank. 6+6 needs d1 wheat that **lands**, not a CARE ladder patch.
+
+## What this session did
+
+Snapshot d0–d5 FEED/CARE/COLLECT/`pending_care_bonus` vs `route_v20`
+seeds 0 and 8. Then one CARE fact (same-tile CARE before feed-walk).
+Counters 5+5; bank failed every flavour. Did not port `main.py`.
+Reverted the fact 20 supplement.
+
+## Contested vs `route_v20` — d0–d5 (seat 0, both seeds identical)
+
+Engine: first wool end of d5; yield = min(6, 1 + fed+cared nights d0–d4).
+
+| sheep | us | v20 |
+|---|---|---|
+| (3,3) | d0,2,3,4 (**miss d1 feed**) → **5** | d0–d4 → **6** |
+| (4,4) | d2,3,4 (**miss d0 CARE + d1 feed**) → **4** | d0–d4 → **6** |
+| d6h0 | **5+4 = 9** | **6+6 = 12** |
+
+d1: us h0 $24 / shed 0 / BUY ×4 h0 / PICKUP 0 / FEED 0 / shed **never**.
+v20 h0 $20 / shed **3** / FEED 4. COLLECT-then-CARE on d2–d5 recovers.
+
+## Contested — CARE-before-feed-walk copies (5+5, bank tripwire)
+
+| flavour | seed 0 | seed 8 |
+|---|---|---|
+| `real_tile` COLLECT+CARE | 11,122 | 37,542 |
+| claimed, ungated | 39,577 | 71,697 |
+| claimed, d0–d5 | 30,021 | 60,427 |
+| sheep-only d0–d5 | 32,436 | 37,734 |
+| S4-lead baseline | **67,325** | **72,410** |
+
+## Verdict
+
+**Drop same-tile CARE before feed-walk.** 5+5 is not payable. **Change
+the 6+6 row:** d1 wheat ×4 at $24 never fills. Keep `_facts_v20_s4_lead.py`.
+
+## Next
+
+1. **d1 wheat that lands.** Snapshot buy vs fill vs pickup; if $24
+   cannot buy 4, change the row (overnight leftover or affordable qty)
+   before coding. Counters: d1 FEED both sheep; d6h0 **6+6**; land d6;
+   NE STRAW EOD d6 > 0; 0 escapes; bank vs 67,325 / 72,410 not down.
+2. Not CARE-before-feed-walk. Not leftover seed. Not extra runner.
+   No `main.py` port.
+
+---
+
+# Previous session: 2026-09-17 — d6 wool never-produced; leftover seed cap failed
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s4_lead.py` (banks **67,325 /
+> 72,410**). Wool snapshot: `experiments/_trace_horizon_s4_lead_d6_wool.py`.
+> Failed seed: `experiments/_facts_v20_s4_lead_d6seed.py`.
+
+## What this session did
+
+Traced d6 sheep tile yield / HARVEST / PLACE vs `route_v20` seeds 0 and
+8. Wool leftover is **never produced**. Then one seed throwaway: d6
+afternoon fill held to 4 (buy 3), stop h12+. Did not port `main.py`.
+
+## Contested vs `route_v20` — wool drawer (seat 0, both seeds)
+
+| | us | v20 |
+|---|---|---|
+| h0 tile yield | **5+4 = 9** | **6+6 = 12** |
+| PLACE hours extra holder | none | — |
+| leftover on tiles after sells | 0 | 0 |
+| d6 SELL_WOOL | 9 / $1,815 | 12 / $2,439 |
+
+## Contested — leftover seed copy
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank vs 67,325 / 72,410 | **24,740 (−42,585)** | **70,300 (−2,110)** |
+| d6 BUY_SEED STRAW | 3 (v20 3) | 3 |
+| EOD d6 $ / NE STRAW / d6 STRAW | 877 / 2 / 4 | same |
+| d7 BUY_ANIMAL | none (d7h1 STRAW ×8) | none |
+| escapes | 0 | 0 |
+
+## Verdict
+
+**Drop wool leftover.** Extra runner / shed-adj PLACE cannot mint 3.
+**Drop leftover seed as written.** d6 3-buy holds the counters; bank
+fails because the 8-pack moves to d7. Keep `_facts_v20_s4_lead.py`.
+
+## Next
+
+1. **Fix the care-bank miss** that is the 9 vs 12 wool. d6h0 yield is
+   already 5+4 vs v20 6+6 — PLACE/runner cannot mint it. Snapshot
+   **d0–d5** on both sheep vs `route_v20` seeds 0 and 8: FEED, CARE,
+   COLLECT_FERTILIZER, `pending_care_bonus` each night. Fill HORIZON
+   Actual. The throwaway already names a COLLECT-then-CARE stall
+   (`choose_unit_action` step 3: COLLECT before CARE). If Actual is
+   missed CARE days, one fact: CARE every fed day through first wool
+   night (feed first). Not an extra runner. Not leftover seed 10→3.
+2. Counters: d6h0 tile yield **6+6**; d6 `SELL_WOOL` 12; leftover up;
+   land still d6; NE STRAW EOD d6 > 0; 0 escapes; bank vs 67,325 /
+   72,410 not down. Keep the cow. Keep the $500 floor.
+3. Not S3d6 walk. Not 8-by-d6. No `main.py` port. d7 restock only after
+   this drawer, with a new Actual.
+
+---
+
+# Previous session: 2026-09-17 — d6 leftover snapshot; rewrite seed row
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s4_lead.py` (banks **67,325 /
+> 72,410**). Snapshot: `experiments/_trace_horizon_s4_lead_d6.py`.
+> Mix fallback still stands.
+
+## What this session did
+
+Filled HORIZON Actual at **d6 hours** on `_facts_v20_s4_lead.py` vs
+`route_v20` seeds 0 and 8. Both seeds identical at this window. Did not
+code a leftover fact. Did not port `main.py`. Did not recode mix.
+
+## Contested vs `route_v20` — d6 leftover (seat 0)
+
+| | us (both seeds) | v20 (both seeds) |
+|---|---|---|
+| bank | 67,325 / 72,410 | 151,028 / 139,770 |
+| first land | **d6h10** | d6h4 |
+| d6 h5 $ / woolS/H / sSeed | **1466 / 0/0 / 1** | 661 / 0/6 / 3 |
+| land-hour sSeed | **1, no buy** | **3** (bought h0) |
+| land-hour $ pre→post | 1466→1430 (floor holds) | 410→661 |
+| d6h11 | **COW1 + STRAW 7** | idle |
+| d6 STRAW seed | 10 / $1,000 (h11×7 + dribble) | 3 / $300 at h0 |
+| d6 wool | 9 / $1,815 | 12 / $2,439 |
+| EOD d6 $ / herd / NE STRAW | **177 / 6 / 3** | **1,561 / 6 / 2** |
+| d7 BUY_ANIMAL | none | h0 COW2+SHEEP2 from $1,561 |
+| d0 4/4 MELON 12 / escapes | yes / 0 | — / 0 |
+
+Identity still −$624 wool, −$700 STRAW seed, −$400 deferred cow.
+
+## Verdict
+
+**Change the row.** "STRAW seed 10 on the land hour" is false: land
+hour already holds 1; the 10 is the h11 NE-empty 7-pack (`wanted =
+min(empty, 8) - held` on 25 new tiles) plus afternoon dribble. Wool
+9→12 is not three units in shed/held at h5. Keep the cow. Keep the
+$500 floor. Not 8-by-d6. Not S3d6 walk.
+
+## Next
+
+1. One throwaway copy of S4-lead: after first land, early STRAW restock
+   must not treat NE empties as an 8-pack (cap held ~3 / K). Counters:
+   d6 BUY_SEED STRAW ~3 not 10; NE STRAW EOD d6 > 0; land still d6;
+   cow still deferred; EOD leftover up; d7 buy can exist; d0 4/4; 0
+   escapes; S4 pictures; bank vs 67,325 / 72,410 not down.
+2. If cutting the 7-pack zeros NE STRAW, change the row again.
+3. Not wool this copy. Not waive the floor. Not mix recode. No `main.py`
+   port.
+
+---
+
+# Previous session: 2026-09-17 — call: grow d6 leftover (not mix)
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s4_lead.py` (banks **67,325 /
+> 72,410**). Mix snapshot: `experiments/_trace_horizon_s4_lead.py`.
+> d6 identity (S3roles, still EOD **$177** on S4-lead): wool 9/$1,815
+> vs v20 12/$2,439; STRAW seed 10/$1,000 vs 3/$300; deferred cow $400
+> vs $0; land both $1,000; v20 EOD **$1,561**.
+
+## What this session did
+
+Named the next state: **grow d6 leftover toward v20 $1,561**, not a
+mix recode and not a paste of 8-by-d6 onto $177. Did not code. Did not
+port `main.py`. Mix fallback still stands (10C4S / 6C8S already land).
+
+S3/S4 walked around this drawer (STRAW on NE, then 12-then-14 after
+melon). That left mouths **4–6 days late**. Untried fork from the
+2026-09-16 blocked-S4 session: leftover first, then a d7 buy can exist.
+
+## Two facts, one copy — snapshot before either
+
+Identity (both seeds): leftover gap is **−$624 wool, −$700 STRAW seed,
+−$400 deferred cow**. Keep the cow (prefix 6; d5 buy fights land).
+Keep the **$500** land floor. Do not retry S3d6 all-holders wool walk.
+
+1. **STRAW seed on the land hour 10 → ~3** (v20 that hour), if S3ne
+   still has seed held from d4–d5. Seed *held* is the S3ne counter, not
+   a 10-pack on d6. If cutting d6 seed zeros NE STRAW, change the row.
+2. **Wool 9 → 12 into the shed by land hour.** Feed first. Not a
+   crew walk. Extra runner after feed, or PLACE from shed-adjacent
+   holders. SELL reads shed only.
+
+Do **one** after the d6-hour snapshot, not both.
+
+## Next
+
+1. **Snapshot** `_facts_v20_s4_lead.py` vs `route_v20` seeds 0 and 8
+   at **d6 hours**: wool shed vs held, `BUY_SEED STRAW` hour/qty, cash
+   at h5 vs land hour, when the deferred cow emits. Fill HORIZON Actual
+   at that window. If Actual cannot fund the row as written, change
+   the row first.
+2. Then **one** throwaway copy: seed-cadence **or** wool-to-shed.
+   Counters: EOD d6 leftover vs ~$1,561; d7 buy can exist; NE STRAW
+   EOD d6 > 0; land still d6; d0 4/4; 0 escapes; S4 pictures; bank vs
+   67,325 / 72,410 not down. Judge placed herd d7/d10, not owned.
+3. Not 8-by-d6 on $177. Not waive the floor. Not S3d6 walk. Not S1
+   sell-fert. Not dump-8. Not mix recode. Not 6c12s. Not goose. Not
+   carpet NE. No `main.py` port.
+
+---
+
+# Previous session: 2026-09-17 — S4-lead mix snapshot; fallback
+
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s4_lead.py` (banks **67,325 /
+> 72,410**). Snapshot: `experiments/_trace_horizon_s4_lead.py`.
+> Previous: `_facts_v20_s3_ne.py`. Failed dump: `_facts_v20_s4.py`.
+> Failed pace: `_facts_v20_s4_pace.py`.
+
+## What this session did
+
+Filled HORIZON Actual at the branch window (shops, C/S mix, goose, egg
+shops) on `_facts_v20_s4_lead.py` vs `route_v20` seeds 0 and 8. Did not
+recode `shop_mix_target`. Did not raise owned for 6c12s. Did not add
+goose. Did not port `main.py`. Did not clip pens. Did not carpet NE.
+
+## Contested vs `route_v20` — branch window (seat 0)
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank | **67,325** | **72,410** |
+| first-3 shops | BRUNCH, PIZZA, ICE_CREAM | ICE_CREAM, FARMERS_MARKET, YARN |
+| route | **milk 10c4s** | **yarn-in-3 6c8s** |
+| EOD d13 mix | **10C4S** owned=14 | **6C8S** owned=14 |
+| d11 BUY_ANIMAL | COW5+SHEEP1 → 12 | COW1+SHEEP5 → 12 |
+| d13 BUY_ANIMAL | COW1+SHEEP1 → 14 | COW1+SHEEP1 → 14 |
+| later BUY_ANIMAL | d19 COW1 (replacement) | none |
+| EOD d29 owned/placed/pens | 13/13/18 (9C4S) | **14/14/16** (6C8S) |
+| egg in first 3 | yes | **no** |
+| opp goose / us geese | 0 / 0 | 0 / 0 |
+| 6c12s | cannot fund (totals 18) | cannot fund (totals 18) |
+| goose pair | seed-0-only | **not funded** |
+| already landed? | milk table already true | yarn-in-3 already true |
+| d0 4/4 MELON 12 | yes | yes |
+| PLANT MELON after d0 | 0 | 0 |
+| d6 field STRAW / NE | 8 / 3 | 8 / 3 |
+| land | d6h11, d11h1 | d6h11, d11h1 |
+| escapes | 0 | 0 |
+
+## Verdict
+
+Pictures held. **Fallback.** Recoding `shop_mix_target` is not a fact.
+Do not raise the buy cap for 6c12s. Do not goose as a global suffix
+(fails seed 8). Keep `_facts_v20_s4_lead.py`. Do not port.
+
+## Next
+
+1. Not a mix recode. Headcount stays 14. Pens may lead.
+2. Stage 2 only after a new HORIZON Actual for that window: later-extra
+   CARROT d21–25, post-d12 STRAW harvest slices, or order-book timing
+   (`FACTS.md` open hole). Snapshot first.
+3. Not dump-8. Not cap-14-on-BUILD. Not 8-by-d6. Not fert-coverage.
+   Not S1 sell-fert. Do not carpet NE. No `main.py` port.
+
+---
+
+# Previous session: 2026-09-16 — S4 lead pictures held (buy-stop 14, pens lead)
+
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s4_lead.py` (banks **67,325 /
+> 72,410**). Previous: `_facts_v20_s3_ne.py`. Failed dump:
+> `_facts_v20_s4.py`. Failed pace (cap-14 on BUILD):
+> `_facts_v20_s4_pace.py`. Compare: `experiments/_trace_s4_pace_vs_s3ne.py`.
+
+## What this session did
+
+Split BUY from BUILD on a copy of S3ne. `calendar_owned_target` is 4 / 5
+/ 6 through d10 / 12 after carpet / **14 from d13** (stop buying).
+`calendar_pen_target` stays **18** from d13 so pens can lead (seed 8
+Actual: 14 owned / 16 pens). Cap-14 on BUILD had clipped that lead and
+failed seed 8. Did not port `main.py`. Did not retry dump-8. Did not
+clip pens. Did not carpet NE.
+
+## Contested vs `route_v20` — `_facts_v20_s4_lead.py` (seat 0)
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank vs S3ne | **67,325** (same) | **72,410** (same) |
+| d11h15 BUY_ANIMAL | → **12** | → **12** |
+| d13 BUY_ANIMAL | → **14** | → **14** |
+| later BUY_ANIMAL | d19 COW1 (replacement) | none |
+| EOD d17+ pens | 17 then 18 | **16** |
+| EOD d29 owned/placed/pens | 13/13/18 | 14/14/16 |
+| d0 4/4 WHEAT 7 MELON 12 | yes | yes |
+| PLANT MELON after d0 | 0 | 0 |
+| d6 STRAW / NE STRAW | 5 / 3 | 5 / 3 |
+| land | d6h11, d11h1 | d6h11, d11h1 |
+| escapes | 0 | 0 |
+
+On these two seeds the 18 *buy* ramp was already dead (mix totals 14).
+tape_profile cumulative BUY_ANIMAL hits 15 on seed 0 because of the d19
+replacement, not a 15th head (EOD d19 still 14/14, d29 13/13). Closing
+the ramp in code did not move the farm.
+
+## Verdict
+
+Pictures held. Tripwire pass (bank not down). Keep
+`_facts_v20_s4_lead.py`. Do not port. Do not retry dump-8. Do not clip
+pens.
+
+## Next
+
+1. **Snapshot this farm** at the branch window vs `route_v20` seeds 0
+   and 8 before touching a named branch. Headcount stays 14. Pens may
+   lead.
+2. Named branches only (yarn 6c12s / 6c8s · milk 10c4s · goose pair ·
+   fallback safe) — names, not code, until Actual is filled. Mix picks
+   *which*, never how many more.
+3. Not dump-8. Not cap-14-on-BUILD. Not 8-by-d6. Not fert-coverage.
+   Not S1 sell-fert. Do not carpet NE. No `main.py` port.
+
+---
+
+# Previous session: 2026-09-16 — S4 12-then-14 cap-14 failed seed 8 (pen-lead)
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s3_ne.py` (banks **67,325 /
+> 72,410**). Failed S4 dump: `_facts_v20_s4.py`. Failed S4 pace:
+> `_facts_v20_s4_pace.py`. Compare: `experiments/_trace_s4_pace_vs_s3ne.py`.
+
+## What this session did
+
+Rewrote S4 as 12 after carpet, 14 from d13, cap 14 (not dump-8). Copy of
+S3ne. Pictures held. Seed 0 bank up. Seed 8 bank failed because BUILD
+followed the 14 cap and clipped S3ne's pen-lead (16→14). Did not port
+`main.py`. Did not retry dump-8. Did not carpet NE.
+
+## Contested vs `route_v20` — `_facts_v20_s4_pace.py` (seat 0)
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank | **68,768** (was 67,325, **+1,443**) | **56,444** (was 72,410, **−15,966**) |
+| d11h15 BUY_ANIMAL | COW5+SHEEP1 → **12** | SHEEP5+COW1 → **12** |
+| d13 BUY_ANIMAL | SHEEP1+COW1 → **14** | SHEEP1+COW1 → **14** |
+| later BUY_ANIMAL | none (S3ne had d19 COW) | none |
+| EOD d15 own/pl/pens | 14/13/13 (same as S3ne) | 14/13/13 (same as S3ne) |
+| EOD d16+ pens | 14 (S3ne 16–17) | **14** (S3ne **16**) |
+| EOD d20 $ | 22,455 (was 21,040) | 29,251 (was 29,632, −381) |
+| SELL_STRAW / MILK vs S3ne | 26,169 / 40,074 (wash) | **22,188 / 15,663** (was 29,506 / 23,554) |
+| d0 4/4 WHEAT 7 MELON 12 | yes | yes |
+| PLANT MELON after d0 | 0 | 0 |
+| d6 STRAW / NE STRAW | 5 / 3 | 5 / 3 |
+| land | d6h11, d11h1 | d6h11, d11h1 |
+| escapes | 0 | 0 |
+
+## Verdict
+
+Pictures held. **Seed 8 tripwire FAIL.** Keep `_facts_v20_s3_ne.py`.
+Failed copy `_facts_v20_s4_pace.py`. Do not retry 8-at-once. Do not
+clip pens when stopping the 18 buy ramp. Do not port.
+
+## Next
+
+**S4 still:** stop *owned* at 14 after the 12-then-14 buy pace, but let
+pens lead (S3ne seed 8 ends 14 owned / 16 pens). Not dump-8. Not
+cap-14-on-BUILD. Not 8-by-d6. Not fert-coverage. Not S1 sell-fert. Do
+not carpet NE. No yarn / milk / goose. No `main.py` port.
+
+---
+
+# Previous session: 2026-09-16 — S4 dump-to-14 after land2 failed seed 8
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s3_ne.py` (banks **67,325 /
+> 72,410**). Failed S4: `_facts_v20_s4.py`. Snapshot:
+> `experiments/_trace_horizon_s3ne.py`. Measure:
+> `experiments/_trace_horizon_s4.py`. Fert:
+> `experiments/_trace_s3ne_fert.py`.
+
+## What this session did
+
+Snapshot S3ne at d9–d10 vs `route_v20` seeds 0 and 8. Rewrote S4 from
+that Actual (hold 6 through d10; prefix toward 14 after melon + second
+land; stop; cap 14). Implemented on a copy. Pictures held. Seed 8 bank
+failed. Then measured STRAW `FERTILIZE` vs v20. Did not port `main.py`.
+Did not retry occupation. Did not carpet NE. Did not reopen S1 sell-fert.
+
+## S3ne Actual (d9–d12, seat 0)
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank | **67,325** | **72,410** |
+| EOD d6 | $177 / herd 6 | $177 / herd 6 |
+| EOD d9 | $1,445 / 6 | $1,520 / 6 |
+| EOD d10 | **$8,603 / 6** | **$7,881 / 6** |
+| SELL_MELON d10 | $8,099 / 40u | $6,564 / 29u |
+| land2 | d11h1 @ $8,651 | d11h1 @ $7,715 |
+| leftover after floor | **$6,151** | **$5,215** |
+| 8 cows $3,200 | FITS | FITS |
+| S3ne d11 dump | → 12 | → 12 |
+
+8-by-d6 still blocked. Rewritten row funded on paper.
+
+## Contested vs `route_v20` — `_facts_v20_s4.py` (seat 0)
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank | **67,177** (was 67,325, **−148**) | **59,203** (was 72,410, **−13,207**) |
+| d11h15 BUY_ANIMAL | COW6+SHEEP2 → **14** | COW2+SHEEP6 → **14** |
+| later BUY_ANIMAL | none | none |
+| EOD d11 owned/placed/pens | 14 / 6 / 6 | 14 / 6 / 6 |
+| d0 4/4 WHEAT 7 MELON 12 | yes | yes |
+| PLANT MELON after d0 | 0 | 0 |
+| d6 STRAW / NE STRAW | 5 / 3 | 5 / 3 |
+| land | d6h11, d11h1 | d6h11, d11h1 |
+| escapes | 0 | 0 |
+| SELL_MILK vs S3ne | 40,411 (was 40,255) | **13,506** (was 23,554) |
+
+## Verdict
+
+Pictures held. **Seed 8 tripwire FAIL.** Keep `_facts_v20_s3_ne.py`.
+Failed copy `_facts_v20_s4.py`. Do not retry 8-at-once on carpet
+afternoon. Do not port.
+
+## STRAW fert (S3ne vs `route_v20`, seat 0)
+
+Not a sell-fert reopen. STRAW wants fert at age **7–15** (first yield
+d10, interval 2). A d5 plant first wants it on **d12**. v20 typically
+applies **2** times per plant that gets a visit.
+
+| | seed 0 us / v20 | seed 8 us / v20 |
+|---|---|---|
+| `FERTILIZE` on STRAW | **36 / 68** | **46 / 68** |
+| `PLANT` STRAW | 36 / 42 | 36 / 42 |
+| plants with ≥1 apply | **18 of 36** | **25 of 36** |
+| mean applies among those | 2.0 | 1.84 (v20 1.84, hist mostly 2) |
+| `SELL FERT` units | 180 / 236 | 183 / 236 |
+
+We do fertilize. Gap is **coverage** (walkers), not a surplus pile.
+Seed 0 d21: 14 STRAW want, shed **17**, apply **3**. Do not bundle
+“all wanting fert get it” with S4 — same crew steal as occupation
+(seed 8 milk). Do not retry S1 (9+21).
+
+v20 calendar is still the **spine of the work** (S0–S4). The working
+farm follows it on d0 / wheat / land days / melon-once / STRAW wave;
+it does **not** run v20 herd days 8/10/12/13/14 (hold 6 through d10).
+
+## Next
+
+**Only rewritten S4** — slower pace toward 14 after d10 melon +
+second land, stop. Extra head only as fast as pens and CARE can take.
+Not dump 8 after carpet. Not 8-by-d6. Not fert-coverage. Not S1
+sell-fert. Do not carpet NE. No yarn / milk / goose. No `main.py`
+port.
+
+---
+
+# Previous session: 2026-09-16 — S3ne bootstrap plants NE on d6
+
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s3_ne.py` (banks **67,325 /
+> 72,410**). Previous: `_facts_v20_s3_roles.py`. Tracer:
+> `experiments/_trace_s3_ne.py`.
+
+## What this session did
+
+Supplement facts 29+27: after first land, K<=3 walk onto NE empty STRAW
+until the first NE plant lands (after feed, hour <= 21). Not a hire. Not
+6a above feed. Not S4. Not `main.py`.
+
+Occupation (same K every hour of d6-8) failed seed 8. Bootstrap holds.
+
+## Contested vs `route_v20` (seat 0)
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| bank | **67,325** (was 45,154, **+22,171**) | **72,410** (was 53,578, **+18,832**) |
+| d6 STRAW | **5** | **5** |
+| EOD d6 NE STRAW | **3** | **3** |
+| d5-8 STRAW | 3/5/9/4 | 3/5/9/4 |
+| d11 STRAW | 15 | 15 |
+| land | d6h11, d11h1 | d6h11, d11h1 |
+| PLANT MELON after d0 | 0 | 0 |
+| d0 field | WHEAT 7 MELON 12 | WHEAT 7 MELON 12 |
+| escapes | 0 | 0 |
+| EOD d6 $ | **177** | **177** |
+
+Occupation (rejected): seed 8 bank 48,461 (-5,117). Milk -11.4k, STRAW
+-6.7k, wool +13.8k — CARE starved by a multi-day NE occupation.
+
+## Verdict
+
+Pictures held. Keep `_facts_v20_s3_ne.py`. Do not port. Do not retry
+occupation. Do not chase an NE STRAW carpet (v20 EOD d8 is 15/25, not
+25/0; leftover is d8 cash, not assignment). Empty tiles consume one
+weed-RNG draw each night and shift the shared shop stream; that is not
+a carpet fact.
+
+## Next
+
+1. **Snapshot S3ne** at the S4 window (d9–d10) vs `route_v20` seeds 0
+   and 8. The S3roles d9 $1.4k / d10 melon $4–5k numbers are the
+   previous farm. Fill HORIZON Actual before touching the row.
+2. **Rewrite S4** from that Actual. Not 8-by-d6 / 13-by-d9 as written
+   (EOD d6 still $177 / herd 6). Pace toward 14 **after** the d10 melon
+   wave and **stop**. Do not reconcile `calendar_owned_target` until
+   the rewritten row can fund. No yarn / milk / goose until it holds.
+   No `main.py` port.
+
+---
+
+# Previous session: 2026-09-16 — v20 d6 $1,561 is wool minus land
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s3_roles.py` (banks **45,154 /
+> 53,578**). Snapshot: `experiments/_trace_horizon_s3roles.py`.
+
+## What this session did
+
+Printed d6 executed `$` / units vs `route_v20` on seeds 0 and 8. Did not
+start S4. Did not touch `calendar_owned_target`. Did not edit the
+throwaway. Did not port `main.py`.
+
+## d6 executed (identical on seeds 0 and 8)
+
+| | us | v20 |
+|---|---|---|
+| EOD d5 → d6 | $605 → **$177** (net −428) | $311 → **$1,561** (net +1,250) |
+| SELL_WOOL | **9 / $1,815** | **12 / $2,439** |
+| SELL_FERTILIZER | 4 / $369 | 5 / $466 |
+| BUY_LAND | $1,000 | $1,000 |
+| BUY_ANIMAL | **COW $400** | **0** |
+| BUY_SEED STRAW | **10 / $1,000** | **3 / $300** |
+| BUY_PRODUCT WHEAT | 7 / $222 | 6 / $188 |
+| SELL total / spend | $2,214 / **$2,642** | $2,905 / **$1,495** |
+
+v20 leftover identity: 12 wool + fert − land − small restock, **no extra
+animal**. Live v20 on these seeds is not the tape (tape `PLACE WOOL 12`
+then `BUY_ANIMAL SHEEP 2` on the land turn).
+
+Us: 9 wool (4 then 5 PLACE), land delayed until the second pile clears
+the $500 floor (fert held for live STRAW, S1 reverted), then deferred
+cow + **10 STRAW seed**.
+
+## Verdict
+
+**S4 as written still cannot be funded.** Do not reconcile
+`calendar_owned_target`. The $1,561 is not a hidden crop.
+
+## What to do next
+
+1. Rewrite S4 or pick a different next state. Not 8-by-d6 on $177.
+2. Do not waive the $500 land floor. Do not retry S3d6 wool walk.
+   Do not walk the crew onto NE. Do not port `main.py`.
+
+---
+
+# Prior session: 2026-09-16 — S4 blocked (S3roles cannot fund 8-by-d6)
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s3_roles.py` (banks **45,154 /
+> 53,578**). S3 baseline: `_facts_v20_s3.py`. Failed S3home / S3d6 kept.
+> Snapshot: `experiments/_trace_horizon_s3roles.py`.
+
+## What this session did
+
+Snapshot S3roles at the d9–d10 window (and d6 leftover) contested vs
+`route_v20` on seeds 0 and 8. Did not start S4. Did not touch
+`calendar_owned_target`. Did not port `main.py`. Did not walk the crew
+onto NE.
+
+## Counters (S3roles vs `route_v20`, seat 0)
+
+| | seed 0 | seed 8 | v20 seed 0 | v20 seed 8 |
+|---|---|---|---|---|
+| bank | **45,154** | **53,578** | 121,086 | 126,418 |
+| first land | d6h11 | d6h11 | d6h5 | d6h5 |
+| d5 BUY_ANIMAL | none | none | COW ×1 | COW ×1 |
+| EOD d6 cash / herd | **$177 / 6** | **$177 / 6** | **$1,561 / 6** | **$1,561 / 6** |
+| leftover after land | $430 | $430 | (land h5) | (land h5) |
+| EOD d7 cash / herd | $58 / 6 | $58 / 6 | $18 / **10** | $18 / **10** |
+| EOD d9 cash / herd | **$1,421 / 6** | **$1,504 / 6** | $1,967 / **12** | $2,151 / **12** |
+| EOD d10 cash / SELL_MELON $ | $4,134 / $2,826 | $5,358 / $7,348 | $17,701 / $15,872 | $17,883 / $15,875 |
+| d11 BUY_ANIMAL | COW5+SHEEP1 → 12 | COW5+SHEEP1 → 12 | COW2 → 14 | COW2 → 14 |
+| d0 4/4 WHEAT 7 MELON 12 | yes | yes | yes | yes |
+| PLANT MELON after d0 | 0 | 0 | 0 | 0 |
+| escapes | 0 | 0 | 0 | 0 |
+
+## Mechanism
+
+S3roles still holds 6 through d10 (pre-T1 calendar). Land emits d6h11 at
+$1,430; $1,000 land leaves ~$430; deferred d5 cow lands h12. Two extra
+cows to hit 8 (~$800) do not fit beside the $500 land floor. Overnight
+d6 is $177; d7 $58; d8 $10. d9 ~$1.4k buys maybe two cows, not seven.
+
+v20 on the **same** seeds is also herd 6 EOD d6 — tape-mean 8-by-d6 is
+not this opponent here — then dumps four head on d7 from EOD d6 **$1,561**.
+That drawer is the missing fact-15 fuel. Ours is $177 because land is
+six hours later and the deferred cow spends the afternoon.
+
+d10 melon is the first real cash ($4.1k / $5.4k EOD; h16 still ~$1.3k
+with ~60 melon held, shed 0). d11 already dumps six animals (COW5+SHEEP1)
+to 12, then more through d13–16 to 14. That is the old shop-mix ramp,
+not a d10 13→14 step.
+
+## Verdict
+
+**S4 as written cannot be funded. Do not reconcile `calendar_owned_target`.**
+Keep `_facts_v20_s3_roles.py`. Do not port. Change the S4 row or pick a
+different next state before any herd-ladder code.
+
+## What to do next
+
+1. Rewrite S4 or pick a different next state. Not the tape 8/10/12/13/14
+   ladder on this cash. Candidates (not coded): (1) grow d6 leftover
+   toward v20’s $1,561 (land earlier than h11, without a feed-stealing
+   walk and without waiving the $500 floor) so a later d7 buy can exist;
+   (2) after d10 melon $ hits the shed, pace toward 14 and **stop** (cut
+   the d11 six-head dump and d13–16 extras) without opening d6–d8 buys.
+2. Do not retry S3home / S3d6 / S2h. Do not walk the crew onto NE.
+3. Do not port `main.py`.
+
+---
+
+# Prior session: 2026-09-16 — S3roles pictures held (d6 land, bank up)
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s3_roles.py` (banks **45,154 /
+> 53,578**). S3 baseline: `_facts_v20_s3.py`. Failed S3home / S3d6 kept.
+
+## What this session did
+
+Snapshot S3 d5–d6, then supplement fact 33: d5 cow defer while NE pending
+plus turn roles (feed labor first, ≤1 wool holder `PLACE WOOL n`, not
+full `DROP`). New throwaway from `_facts_v20_s3.py`. Did not start S4.
+Did not port `main.py`. Did not retry all-holders walk or prefix lift.
+
+## Counters (contested vs `route_v20`, seat 0)
+
+| | S3 seed 0 | S3roles seed 0 | S3 seed 8 | S3roles seed 8 |
+|---|---|---|---|---|
+| bank | **27,289** | **45,154** | 20,618 | **53,578** |
+| first land | d7h1 | **d6h10** | d7h1 | **d6h10** |
+| d5 BUY_ANIMAL | COW ×1 | **none** | COW ×1 | **none** |
+| PLANT STRAW d5 / d6 / d7 / d8 | 2 / 0 / 8 / 8 | **3 / 3 / 9 / 4** | 2 / 0 / 8 / 8 | **3 / 3 / 9 / 4** |
+| d11 STRAW | 17 | 16 | 17 | 16 |
+| PLANT MELON after d0 | 0 | 0 | 0 | 0 |
+| d0 4/4 WHEAT 7 MELON 12 | yes | yes | yes | yes |
+| escapes | 0 | 0 | 0 | 0 |
+
+## Mechanism
+
+S3 Actual: d5h0 spends the cow ($550 → $331, owned 6 / placed 5); d6h6
+one unit already shed-adj with 4 wool, wheat=0, not on unfed, while 2
+animals still unfed. 4 × ~$206 is $19 short of $1500 without the cow’s
+~$400. SELL reads shed only; `DROP` would dump wheat; all-holders walk
+killed seed 0.
+
+S3roles: slots=0 on d5 while NW-only; assigned runner `PLACE WOOL` after
+underfoot FEED/WATER. d6h4 PLACE+SELL 4 wool (cash 615 → 1466); land
+d6h10; deferred cow catch-up d6h11 after NE exists. d6 STRAW 0 → 3
+(half-tape of ~8 is 4 — still short, but NE unlocked mid-day).
+
+## NE STRAW after d6 land (measured, not a new card)
+
+Land hurdle is cleared; the **d6 NE STRAW wave is not**. Same shape on
+seeds 0 and 8 (`_trace_d6_land.py` on `_facts_v20_s3_roles.py`):
+
+| | us | v20 same episode |
+|---|---|---|
+| first `BUY_LAND` | d6h10 | d6h4 |
+| EOD d6 NE | **25 empty, 0 STRAW** | already bought h4 |
+| EOD d7 NE | 8 STRAW, 17 empty | |
+| EOD d8 NE | 12 STRAW, 13 empty | |
+| `PLANT STRAW` d5–8 | 3 / 3 / 9 / 4 | 4 / 2 / 2 / 11 |
+
+The three d6 plants are **NW** (home field 3 → 6). Occupant is already
+STRAW on NE leftover d5–8 once the quadrant exists. After h11 the farm
+has ~12 plantable hours; nobody stands on NE empty. Underfoot-only
+(feed-walk, then local plant). A crew walk onto NE is S3home / fact
+40 / 42 — do not retry.
+
+Tape ~8 on d6 is that NE wave. We get it as 8 on **d7** and 12 by d8 —
+a day late (first-yield ~d17 not ~d16), not the old d11-only carpet.
+
+## Verdict
+
+**S3roles pictures held. Bank tripwire pass both seeds.** Keep
+`_facts_v20_s3_roles.py`. Do not port. NE STRAW is a day late; that is
+not a licence to walk the crew. Do not start S4 until a d9–d10 snapshot
+of this farm. Do not retry S3d6 walk or S3home lift.
+
+## What to do next
+
+1. Snapshot S3roles (seeds 0 and 8) at the **d9–d10** window before any
+   S4 code: cash, herd owned/placed, melon field, wheat, land days.
+2. If Actual cannot fund fact 15’s 8-by-d6 ladder as written, change the
+   row (or pick a different next state). Do not reconcile
+   `calendar_owned_target` blind.
+3. Fact 27 d6 NE wave is still open: land earlier than h10 so underfoot
+   has a longer afternoon, or a unit **already standing on** NE empty
+   with STRAW seed. Snapshot before coding. Do not walk the crew onto NE.
+4. Do not retry S3home / S3d6 / S2h. Do not port `main.py`.
+
+---
+
+# Prior session: 2026-09-16 — direction: assign feed first, then ≤1 wool runner
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s3.py` (banks **27,289 / 20,618**).
+> Failed S3home: `_facts_v20_s3_home.py`. Failed S3d6: `_facts_v20_s3d6.py`.
+
+## What this session did
+
+No new throwaway. Named why S3d6’s wool walk and S3home’s prefix lift
+failed, then set the next labor shape. Did not start S4. Did not port
+`main.py`. Did not retry all-holders walk-to-shed.
+
+## Engine (not a slogan)
+
+There is **no unit-to-unit handoff**. `PICKUP` / `DROP` / shed-`PLACE`
+no-op unless the acting unit is on a shed-access tile `(4,4)`, `(5,4)`,
+`(4,5)`, `(5,5)`. `DROP` dumps that unit’s **entire** inventory. There
+is no `GIVE`. The only automatic transfer is `_drop_inventories_to_shed`
+at night (then hands vanish) — that is why wool becomes cash at d7h0.
+A simulated pass is A `DROP`s, B `PICKUP`s, both shed-adj; that does not
+move wool off a pasture harvester onto the farmer.
+
+`SELL` reads shed only. That is constraint one.
+
+## Labor (constraint two)
+
+The throwaway is a **priority list**, not assignment. Animal `HARVEST`
+sits **below** feed-walk (fact 20). Wool lands on whoever is on the
+pasture, not on a shed runner. Those holders then take nearest-unfed,
+not nearest-shed. The farmer on shed-adj tiles usually holds wheat, not
+wool.
+
+S3d6 sent **every** wool holder to the shed **before** feed-walk
+(opposite of matching). Land d6h8; seed 0 **27,289 → 2,301**. Do not
+retry that. A full-`DROP` at the shed would also dump wheat.
+
+## Dead cash besides wool
+
+The d5 cow is already owned 6 / placed 5 until NE. Shed stock does not
+eat or produce. ~$400 ornament. Animal-buy defer already covers d6–d10
+while NE pending; **d5 is the hole**. Deferring it leaves ~$1,050, still
+short of $1500 without shed wool. Melons, placed 3C2S, hires, d5 STRAW
+seed are not idle. Milk / collected fert / harvested wheat on units are
+the same DROP family. Do not waive the $500 land floor.
+
+## Direction (next card, not coded)
+
+Not another `if` at the top of `choose_unit_action`. **Precompute roles
+for the turn, then the ladder executes the assigned role.**
+
+1. Reserve feed labor first: cover unfed animals this hour (nearest
+   wheat-holders / shed-adj wheat pickup). Fact 20 is hard.
+2. Then **at most one** wool runner (maybe two): among units that
+   **already hold wool**, closest to shed; walk; `PLACE WOOL n` (not
+   full `DROP`) so wheat stays in hand. Pending first land only.
+3. Everyone else stays on upkeep. Same-turn `SELL` still needs that
+   `PLACE` before market (units then market).
+4. Pair with fact-33 **d5 cow defer** while NE pending (buy waits with
+   placement). Do not open the S4 herd ladder (8 by d6).
+
+This is fact-29-shaped (K walk, rest stay), not fact-40-shaped (crew
+diversion). Snapshot HORIZON Actual on S3 before coding. Judge contested
+0 and 8 vs **27,289 / 20,618**, 0 escapes, d0 4/4. If we accept land
+d7h0 from the night dump, this runner is optional; the runner is only
+required if we still want **engine d6** land.
+
+Fact 27 d6 half-tape stays waived while NE is locked until a card
+actually unlocks NE early enough to plant. Seed 8 −146 vs S2 is still
+book, not a reason to keep a walk that kills seed 0.
+
+## What to do next
+
+1. Snapshot S3 (seeds 0 and 8) at the d5–d6 window: cash, shed vs held
+   wool, owned vs placed, unfed remaining by hour.
+2. Fact card: supplement 33 — d5 animal defer + turn roles (feed first,
+   ≤1 wool `PLACE`). New throwaway from `_facts_v20_s3.py`. Do not edit
+   the failed S3d6/S3home copies as the working farm.
+3. Do not retry S3home prefix lift, all-holders walk, or waive land
+   reserve to 0. Do not start S4. Do not port `main.py`.
+
+---
+
+# Prior session: 2026-09-16 — S3home reverted (prefix lift missed d6, bank down)
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s3.py`. Failed S3home:
+> `_facts_v20_s3_home.py`. Failed S3d6: `_facts_v20_s3d6.py`.
+> Snapshot: `experiments/_trace_horizon_s2.py --s3home`.
+
+## What this session did
+
+S3d6 stays closed. Tried the prefix fork: lift underfoot STRAW occupant
+PLANT above feed-walk on home/NE leftover (hour ≤ 21, no walk), to plant
+the 5 home wheat-harvest empties on d6. Did not retry wool-walk. Did not
+start S4. Did not port `main.py`.
+
+Chat report goes out with the numbers. This file is the diary.
+
+## Counters (contested vs `route_v20`, seat 0)
+
+| | S3 seed 0 | S3home seed 0 | S3 seed 8 | S3home seed 8 |
+|---|---|---|---|---|
+| bank | **27,289** | **16,527** | 20,618 | 35,204 |
+| first land | d7 | d7 | d7 | d7 |
+| PLANT STRAW d5 / d6 / d7 / d8 | 2 / 0 / 8 / 8 | **4 / 0 / 7 / 7** | 2 / 0 / 8 / 8 | **4 / 0 / 7 / 7** |
+| d5–8 STRAW total | 18 | 18 | 18 | 18 |
+| d11 STRAW | 17 | 17 | 17 | 17 |
+| PLANT MELON after d0 | 0 | 0 | 0 | 0 |
+| d0 4/4 WHEAT 7 MELON 12 | yes | yes | yes | yes |
+| escapes | 0 | 0 | 0 | 0 |
+| SELL_STRAWBERRY $ | 21,597 | **12,041** | 10,928 | 9,260 |
+
+## Mechanism
+
+S3 Actual already had 5 home empties d6 EOD. Step 9 PLANT sits below
+feed-walk, so wheat-harvesters leave; 6a walk-back is deleted.
+
+The lift fired on **d5** (STRAW 2→4, matching tape). It never fired on
+**d6** (still 0). Extra d5 plants used the early STRAW seed; d6 harvest
+empties still had no standing unit with budget. Seed 0 STRAW $ 21.6k →
+12.0k — the earlier d5 wave sold into a worse book, not a free acreage
+gain.
+
+Did not take fallback 1 (after-feed walk to remaining home empties):
+seed 0 bank already failed, and that walk is fact 40/42-shaped.
+
+## Verdict
+
+**S3home not landed.** Keep `_facts_v20_s3.py`. Keep the failed copy.
+**Supplement fact 27: waive d6 half-tape while NE is locked.** Do not
+retry the prefix lift. Do not add a home-empty walk. Do not retry
+wool-walk. Do not start S4. S3 still not landed (seed 8 −146 vs S2).
+
+## What to do next
+
+1. Do not retry S3home, S3d6, or S2h. Do not start S4. Do not port
+   `main.py`.
+2. Working farm remains `_facts_v20_s3.py` at **27,289 / 20,618**.
+3. Fact 27 d6 is waived while NE is locked. Remaining S3 tripwire is
+   seed 8 −146 (book / d22 dump, not a plant miss).
+
+---
+
+# Prior session: 2026-09-16 — S3d6 reverted (wool walk killed seed 0)
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s3.py`. Failed S3d6:
+> `_facts_v20_s3d6.py`. Snapshot: `experiments/_trace_d6_land.py`.
+
+## What this session did
+
+Named the two S3 tripwires from traces, then one fact card (supplement
+33). Did not start S4. Did not port `main.py`. Did not retry S2h.
+
+**d6 STRAW=0** is a land-day miss: tape/v20 first `BUY_LAND` engine d6h4;
+S3 buys d7h1. Home 5 d6 empties are wheat-harvest leftovers (underfoot-
+only), not the tape’s ~8 (those are NE after land). d6 wool sits on
+units (shed 0, px 206); post-sell $657. Cap-5 sell on d7 leaves ~$190
+after $1000, below the $500 floor.
+
+**Seed 8 −146 vs S2** is not a plant miss: STRAW $ 7,955 → 10,928 (75 →
+130 units). vs seed 0 the $ gap is the d22 dump into a crashed book
+($1–42 vs ~$170). Tripwire letter.
+
+S3d6: same-turn WOOL DROP→SELL cap 12, keep $500 floor. v1 DROP after
+all-fed never dropped; phantom SELL ×143 / BUY_LAND every d6 hour; seed
+0 16,978. v2 walked wool holders to shed before feed-walk: land
+**executed d6h8**, NE 25 empty EOD, d6 STRAW still 0, d7 STRAW 13. Seed
+0 **2,301**.
+
+## Counters (contested vs `route_v20`, seat 0)
+
+| | S3 seed 0 | S3d6 v2 seed 0 | S3 seed 8 | S3d6 v2 seed 8 |
+|---|---|---|---|---|
+| bank | **27,289** | **2,301** | 20,618 | 58,765 |
+| first land | d7h1 | d6h8 executed | d7h1 | d6h8 executed |
+| PLANT STRAW d6 | 0 | **0** | 0 | **0** |
+| PLANT STRAW d7 | 8 | 13 | 8 | 13 |
+| SELL_STRAWBERRY $ | 21,597 | 3,550 | 10,928 | 16,549 |
+
+## Mechanism
+
+S3 Actual (before this card): home d5 is full (12 melon + wheat + 2 straw
++ 6 pens). d6 EOD home has 5 empties because wheat was harvested;
+underfoot-only leaves them empty through d8. NE is still locked. Tape’s
+~8 d6 STRAW tiles are NE after land, not those home leftovers. First
+`BUY_LAND` is $1000 + keep $500, so post-sell must be ≥ $1500. d6h6
+wool is 0 shed / 4 held, px 206, no SELL. d6h12 0/9, post-sell $657.
+d7h0 wool appears in the shed (hands vanish overnight). Cap-5 sell
+leaves ~$190 after land, below the floor. Land fires d7h1.
+
+SELL reads shed only. HARVEST leaves WOOL on units. Engine is
+units-then-market, so same-turn DROP→SELL works only if DROP actually
+fires.
+
+v1 gated DROP on `not any_unfed_animal` and put it below WATER /
+feed-walk. Unfed all day, DROP never ran. SELL counted held wool as if
+it were in the shed → phantom `SELL WOOL` qty 143 and `BUY_LAND` every
+d6 hour. NE still locked EOD. Seed 0 16,978.
+
+v2 DROPs wool first at shed-adj, and walks holders to the shed after
+underfoot WATER/HARVEST, **before** fact-20 feed-walk. That is the
+fact 40/42 feeder steal (wool-holder walk-to-shed before feed-walk).
+Land executed d6h8, NE 25 empty EOD. d6 STRAW still 0: NE unlocks too
+late in the day for seed/crew/hour to plant. d7 STRAW 13. Seed 0
+collapses to 2,301 (STRAW $ 21,597 → 3,550). Seed 8 rises 20,618 →
+58,765 on a cleaner book — same shape as S2h’s seed-8 control, not a
+reason to keep the walk.
+
+Seed 8 −146 vs S2 is independent of this card. Same plants as seed 0
+on S3; STRAW $ 7,955/75u → 10,928/130u. Remaining letter vs seed 0 is
+the d22 dump into a crashed book ($1–42 vs ~$170). Tripwire letter,
+not a plant miss. Do not reopen fact 40.
+
+## Verdict
+
+**S3d6 not landed.** Do not retry the wool-holder walk (fact 40/42
+steal). Keep `_facts_v20_s3.py`. Keep the failed copy. Next card vs
+**27,289 / 20,618**. Feed-safe wool into the shed on d6, or waive fact
+27’s d6 half-tape while NE is locked. Do not start S4.
+
+## What to do next
+
+1. Do not retry wool-holder walk-to-shed. Do not waive first-land
+   reserve to 0. Do not start S4. Do not port `main.py`.
+2. Next card judged against **27,289 / 20,618**.
+3. Feed-safe d6 wool (shed-adj DROP only, no crew walk) **or**
+   supplement 27: d6 half-tape waived while NE is locked.
+
+---
+
+# Prior session: 2026-09-16 — S3 not landed (seed 0 recovered)
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Working copy: `experiments/_facts_v20_s3.py`. Previous S2:
+> `_facts_v20_s2.py`. Failed S2h: `_facts_v20_s2h.py`. Snapshot:
+> `experiments/_trace_horizon_s2.py --s3`.
+
+## What this session did
+
+S3 from S2 Actual (not from failed S2h). Fact card: supplement 27 + 39
+(+ fact 30 cadence for the early wave). Underfoot STRAW occupant on
+home/NE leftover d5–8; never MELON on NE; deleted 6a walk-to-NE; no
+leftover_seed MELON restock; early `BUY_SEED STRAW` d5–8 waives $450,
+cap 8; same-turn `plant_budget` credits STRAW. d11 carpet unchanged.
+Did not wheat-fill NE. Did not touch `calendar_owned_target`. No
+`main.py` port.
+
+Chat report went out first. This file is the diary.
+
+## Counters (S3 vs S2, contested vs `route_v20`, seat 0)
+
+S0+S2 pictures held both seeds: d0 4/4, WHEAT 7, MELON 12, d3 cow,
+land d7, 0 escapes. `PLANT MELON` after d0 **0** (was 31|35).
+`BUY_SEED MELON` $960 = v20.
+
+| | seed 0 S2 | seed 0 S3 | seed 8 S2 | seed 8 S3 |
+|---|---|---|---|---|
+| bank | 8,713 | **27,289** | 20,764 | **20,618 (−146)** |
+| v20 bank (same episode) | 59,957 | 85,629 | 92,030 | 72,101 |
+| d10 EOD $ | 10,198 | 12,983 | 9,781 | 13,008 |
+| d10 SELL_MELON $ | 9,242 | 11,195 | 9,193 | 11,225 |
+| SELL_STRAWBERRY $ / u | 5,380 / 86 | **21,597 / 138** | 7,955 / 75 | 10,928 / 130 |
+| PLANT STRAW d5 / d6 / d7 | 0 / 0 / 0 | **2 / 0 / 8** | 0 / 0 / 0 | **2 / 0 / 8** |
+| PLANT STRAW d5–8 total | 0 | 18 (v20 19) | 0 | 18 (v20 19) |
+| PLANT STRAW d11 | 17 | 17 (v20 18) | 17 | 17 (v20 18) |
+| straw field peak (d11) | ~17 | 35 (v20 37) | ~17 | 35 (v20 37) |
+
+d5 STRAW=2 clears half-tape (~4). **d6 STRAW=0**: home 25/25 full,
+NE still locked (first `BUY_LAND` d7). d8 is the remainder of the 18
+(field d9=18). d11 carpet 17 ≥14.
+
+## Mechanism
+
+S2h wheat-fill of the same tiles killed seed 0 (8,713 → 3,096) because
+extra melon was the d10 drawer. S3 occupied those tiles with STRAW
+instead: melon-after-d0 went to 0 without flooding 22 wheat on d7, and
+seed 0 STRAW $ 5.4k → 21.6k.
+
+d6 cannot plant STRAW on this farm: 12 melon + wheat + 2 straw + 6 pens
+fill home, and NE does not exist until d7. That is a land-day constraint
+(fact 33: first buy d6–7 preferred), not a missing occupant.
+
+Seed 8 bank −146 is the tripwire letter. Same plant picture as seed 0;
+STRAW $ only 10.9k vs seed 0’s 21.6k (unit path / book, not acreage).
+
+## Verdict
+
+**S3 not landed.** Do not revert to S2 (that undoes seed 0’s 8.7k →
+27.3k). Do not call fact 27 landed: each-day half-tape fails on d6,
+and seed 8 is down $146. Keep `_facts_v20_s3.py`. No `main.py` port.
+
+## What to do next
+
+1. Do not start S4. Do not retry S2h wheat-fill. Do not put wait-empty
+   back.
+2. Next card judged against **27,289 / 20,618**.
+3. Name d6=0: buy land d6 (fact 33) vs accept d6 skip until NE exists.
+4. Trace seed 8’s −146 (sell path of the same 130 STRAW units, not a
+   plant miss).
+
+---
+
+# Prior session: 2026-09-16 — S2h reverted (wheat-fill NE)
+
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Diagnosis copy: `experiments/_facts_v20_s2.py` (S2 stack). Failed S2h:
+> `experiments/_facts_v20_s2h.py`. Restored S0: `experiments/_facts_v20.py`.
+> Snapshot: `experiments/_trace_horizon_s2.py`.
+
+## What this session did
+
+Filled HORIZON Actual on S2 at the d10 window vs `route_v20` (seeds 0
+and 8). Named the handoff: extra MELON on NE (31|35 plants after d0),
+not still-buying-18 (animal $ vs v20 identical) and not STRAW plant
+counts vs S0 (86 vs 81).
+
+Supplemented 27/36 as S2h: MELON window (0, 0), no NE MELON occupant,
+no leftover MELON restock, NE leftover takes S2 underfoot WHEAT. Did
+not start S3 STRAW and did not touch `calendar_owned_target`.
+
+## Counters (S2h vs S2, contested seat 0)
+
+Named picture **held** both seeds: `PLANT MELON` after d0 **0** (was
+31|35), d0 MELON 12, d0 WHEAT 7, 4/4, d3 cow, land d7, 0 escapes,
+`BUY_SEED MELON` $960 = v20.
+
+| | seed 0 S2 | seed 0 S2h | seed 8 S2 | seed 8 S2h |
+|---|---|---|---|---|
+| bank | 8,713 | **3,096** | 20,764 | 32,457 |
+| d10 EOD $ | 10,198 | **5,184** | 9,781 | 5,802 |
+| d10 SELL_MELON $ | 9,242 | 7,363 | 9,193 | 7,363 |
+| d7 PLANT WHEAT | 1 | **22** | 1 | **22** |
+| d9 melon field | 33 | 12 | 34 | 12 |
+| SELL_STRAWBERRY $ / u | 5,380 / 86 | **1,702 / 85** | 7,955 / 75 | 14,521 / 67 |
+
+Seed 0 tripwire FAIL. Seed 8 rose.
+
+## Mechanism (seed 0)
+
+The 31 extra melons were the d10 drawer, not a parasite on it. Cutting
+them drops d10 EOD by ~$5k. S2 underfoot WHEAT then carpets NE the day
+it unlocks (22 plants). STRAW units barely move; unit price collapses
+again. d11 still buys COW3+SHEEP3 out of the thinner drawer.
+
+Seed 8 is the control: same wheat flood, but milk/STRAW $ rise on a
+cleaner book (v20 bank 92k → 119k).
+
+## Verdict
+
+**S2h reverted.** Do not retry MELON-window-(0, 0) + wheat-fill NE.
+Do not put wait-empty back. The tiles that had extra MELON need STRAW
+(S3), not wheat. `calendar_owned_target` still opens d11 — not this
+fail. Work from `_facts_v20_s2.py`. No `main.py` port.
+
+## What to do next
+
+1. Next card is **S3 STRAW occupant on NE/home leftover d5–8** (fact 27
+   STRAW half), funded from S2 Actual: NE exists d7, STRAW window open,
+   carpet seed path already buys. Not wheat. Not empty.
+2. Snapshot is already on S2. Diff against S0+S2 pictures before coding.
+3. Leave `_facts_v20_s2h.py` as the failed copy so the wheat-fill can be
+   bisected.
+
+---
+
+# Prior session: 2026-09-16 — S2 picture held; seed 0 $ is price not plants
+
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md`. Method: `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+> Diagnosis copy: `experiments/_facts_v20_s2.py` (S2 stack). Restored
+> throwaway `experiments/_facts_v20.py` is S0-only. Diff tool:
+> `experiments/_trace_s2_vs_base.py`.
+
+## What this session did
+
+The prior note scored S2 on the bank tripwire and restored the
+throwaway. That treated the tripwire as the score. Horizon judge:
+named counters first; bank says the **handoff** was wrong, not that
+d0 wheat failed.
+
+Re-ran S2 vs restored baseline, both contested vs `route_v20` seat 1,
+seeds 0 and 8. Diff is **our** executed $ between two episodes — do
+not subtract against v20 from a different episode (order book moves;
+v20 seed 0 bank 111,387 → 59,957 under S2).
+
+## Counters (S2 minus restored baseline, contested seat 0)
+
+Seed 0 bank **26,429 → 8,713 (−17,716)**. 0 escapes. S2 picture holds:
+d0 field WHEAT **7** (was 0), PLANT WHEAT d0=9, d0 4/4, d3 cow, land d7.
+
+| stream | base | S2 | delta |
+|---|---|---|---|
+| SELL_WOOL $ | 21,603 | 4,144 | **−17,459** |
+| SELL_STRAWBERRY $ | 17,300 | 5,380 | **−11,920** |
+| BUY_PRODUCT_WHEAT | 16,891 | 11,048 | −5,843 (less spend) |
+| BUY_ANIMAL_SHEEP | 15 head / $7,500 | 6 head / $3,000 | **−9 sheep** |
+| SELL_WOOL units | 160 | 119 | −41 |
+| SELL_STRAWBERRY units | 81 | **86** | **+5** |
+| wool $/unit | 135 | **35** | |
+| straw $/unit | 213 | **63** | |
+| d10 EOD $ | 12,951 | 10,198 | **−2,753** |
+| EOD herd late | 18 (then 16) | 14 | |
+| PLANT STRAW d11 | 17 | 17 | carpet same |
+| v20 bank | 111,387 | 59,957 | both poorer |
+
+Seed 8 bank **8,269 → 20,764 (+12,495)**. Baseline never ramped past 14
+head / 6 sheep. Milk **+7,102**, straw **+5,085**. Wool $ almost flat
+(−71) despite −44 units.
+
+## Mechanism (seed 0)
+
+1. d0 wheat seed costs **$90** (EOD 114 → 24). d1–d9 S2 is then
+   **ahead** on cash (d6 +414).
+2. d10 melon wave EOD **−2,753**. That drawer is what baseline seed 0
+   uses to buy the d11+ yarn mix.
+3. Prefix-affordable then buys **6 sheep instead of 15**. Late herd 14
+   vs 18. Wool *volume* −26%.
+4. d22–24 is where the season splits (base d21 7,010 → d22 14,887;
+   S2 7,428 → 9,715). STRAW units sold **went up**. Unit price ~1/3.
+   Wool $ fall is mostly price too (119 units at base’s $135/u would
+   still be ~16k, not 4k).
+
+STRAW plants are not the hole: d5–8 still 0 (S3 unlanded); d11 carpet
+17=17; fruit sold 81 → 86. The dollar hole is **when/into what book**
+those units list, plus 9 missing sheep.
+
+Seed 8 is the control: no 18-head pile to starve, so the same wheat
+fill raises milk/straw $ instead of destroying them.
+
+## Verdict
+
+**S2 picture held. Handoff to seed 0’s leftover d11+ sheep ramp did
+not.** Do not score S2 as “wheat failed.” Do not put wait-empty back.
+Do not start S3 until d10 cash / still-buying-18 / STRAW sell path is
+named as its own row or dropped. Bank tripwire correctly flagged a
+poisoned handoff; it is not a licence to undo a landed picture.
+
+## What to do next
+
+1. Next card is the **handoff** (d10 wave cash, `calendar_owned_target`
+   still opening to 18, sell path of the same STRAW units) — not a
+   retry of wait-empty, not S1, not yarn/milk/goose as a branch.
+2. Work from `experiments/_facts_v20_s2.py`. Leave `_facts_v20.py` as
+   the S0 restore until a card says to merge.
+3. No `main.py` port. Snapshot HORIZON Actual on the S2 copy before
+   coding the handoff row.
+
+---
+
+# Prior session: 2026-09-16 — S2 reverted (seed 0 bank down)
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md` (overwrite; snapshot before code). Method:
+> `mydocs/AGENT_BUILDING_PROTOCOL.md`. Throwaway
+> `experiments/_facts_v20.py` restored (S1 and S2 reverted).
+
+## What this session did
+
+1. FACTS card for S2 (22 + 28). HORIZON Actual was already filled.
+2. Throwaway: underfoot WHEAT fallback from d0; `BUY_SEED WHEAT` sized to
+   empties; waived `$450` on wheat seed only; no K-walk for wheat; d0h0
+   still melon-opening so wheat cannot truncate `BUY_ANIMAL`.
+3. Diff against S0 (4/4, `hold_for_straw`, calendar untouched).
+4. `tape_profile.py` 0+8, `_trace_cashflow_v20.py 0 8`, `_trace_horizon_s0.py`.
+5. Seed 0 contested bank down → throwaway restored. No `main.py` port.
+
+## Counters (contested vs `route_v20`, seat 0)
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| baseline bank | 26,429 | 8,269 |
+| S2 bank | **8,713** | 20,764 |
+| d0 field WHEAT (was 0) | **7** (v20 7) | **7** (v20 7) |
+| PLANT WHEAT d0 | 9 (tape 7) | 9 (tape 7) |
+| d0 pens/herd | 4/4 | 4/4 |
+| d3 cow | yes | yes |
+| first `BUY_LAND` | 7 | 7 |
+| SELL WHEAT $ gap vs v20 | −24.1k | −22.2k |
+
+S0 pictures held. `PLANT STRAW` d5–8 still 0 (S3 not this card).
+
+## Verdict
+
+**S2 reverted.** The named pictures moved (d0 WHEAT on the tape) and seed
+8's bank rose, but the tripwire is either seed not down. Seed 0 26,429 →
+8,713 is a fail. Do not retry no-450 wheat restock as written. Do not
+start S3 on that stack.
+
+## What to do next
+
+1. Fill `HORIZON.md` Actual on the **restored** throwaway if the next
+   card is not 22+28 as written.
+2. Name a different next state (or supplement 22/28 so Actual can fund
+   it without dropping seed 0). Not S1 retry. Not yarn/milk/goose.
+3. No `main.py` port. Do not reconcile `calendar_owned_target`.
+
+---
+
+# Prior session: 2026-09-16 — HORIZON Actual filled; S1 closed; next = S2
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md` (overwrite; snapshot before code). Method:
+> `mydocs/AGENT_BUILDING_PROTOCOL.md`. Throwaway
+> `experiments/_facts_v20.py` restored (S1 reverted). Snapshot tool:
+> `experiments/_trace_horizon_s0.py`.
+
+## What this session did
+
+1. Confirmed the throwaway is restored: `hold_for_straw` still in
+   `decide_market_actions`; no `BUY_PRODUCT FERTILIZER`.
+2. Wrote `experiments/_trace_horizon_s0.py` (contested vs `route_v20`,
+   seat 0, executed SELL FERT units/$ via cashflow lockstep, EOD shed /
+   herd / STRAW / `FERTILIZE`).
+3. Ran `tape_profile.py` seeds 0 and 8, `_trace_cashflow_v20.py 0 8`,
+   and the snapshot. Filled `HORIZON.md` Actual. Named the gap. Ticked
+   **different next state (S2)**. No throwaway edit.
+
+## Counters (contested vs `route_v20`, seat 0)
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| d0 EOD $ / shed F/W | 114 / 0/0 | 114 / 0/0 |
+| d0 field WHEAT vs v20 | **0 vs 7** | **0 vs 7** |
+| d1–d3 SELL FERT | 8u / $788 | 8u / $788 |
+| d3 herd / cow | 5 placed 3C2S yes | 5 placed 3C2S yes |
+| live STRAW d0–d10 | 0 | 0 |
+| `FERTILIZE` through d15 | 0 | 0 |
+| first `BUY_LAND` | 7 | 7 |
+| season bank | 26,429 | 8,269 |
+| STRAW $ gap vs v20 | −29.6k | **−21.7k** |
+| WHEAT $ gap vs v20 | −50.4k sell / −20k net | **−24.0k** sell |
+
+d0–d3 boards are byte-identical across seeds. v20 on the same episodes:
+d0 field WHEAT 7, shed WHEAT 3, SELL FERT d1, first land d6, STRAW from
+d5 (field 11 seed 0 / 19 seed 8 by d8).
+
+## Verdict
+
+**Actual cannot fund facts 9+21.** The d1–d3 hold is not spent on STRAW
+(`FERTILIZE` = 0, STRAW = 0 until the d11 carpet). The existence-hold
+only locks unused liquidity after d11; selling it dropped seed 8
+(S1 A 7,118 / S1 B 7,115) by removing later STRAW/WHEAT inflow this
+farm has not planted. Surplus-only is not an untried card.
+
+**Card:** skip S1; next state is **S2** (facts 22 + 28). Throwaway
+untouched.
+
+## What to do next
+
+1. FACTS card for **S2** (22 + 28): WHEAT is the empty-tile default from
+   d0. HORIZON Actual already filled — field WHEAT 0 vs v20 7, shed
+   wheat 0, tiles wait empty, STRAW cannot land d5–8.
+2. Diff the throwaway against every already-landed S0 row (d0 4/4, no
+   5th, wheat not sold). Horizon judge: S0 still holds; contested bank
+   not down on 0 or 8.
+3. `tape_profile.py` then `_trace_cashflow_v20.py`. No 9+21 retry. No
+   `main.py` port. No yarn/milk/goose. Do not reconcile
+   `calendar_owned_target`.
+
+---
+
+# Prior session: 2026-09-16 — sequential states; S1 reverted; HORIZON added
+
+> **Standing rule:** Report to the user in chat before writing this file.
+> Numbers, win counts, and the add / drop / supplement call go in the
+> chat first. HANDOFF is the diary after that, not the first copy of
+> the result.
+>
+> **Read this first.** Calendar: `mydocs/FACTS.md`. Actual farm:
+> `mydocs/HORIZON.md` (overwrite; snapshot before code). Method:
+> `mydocs/AGENT_BUILDING_PROTOCOL.md`. Throwaway
+> `experiments/_facts_v20.py` was restored (S1 reverted).
+
+## What this session did
+
+1. Adopted sequential states on a branched calendar. Spine in FACTS:
+   S0–S4 shared prefix; yarn / milk / goose named only after S4.
+2. Landed T1 step 1 (facts 9 + 21) as **S1** without a snapshot of the
+   actual S0 farm. Horizon FAIL on seed 8 (see counters). Throwaway
+   restored.
+3. Protocol gap named: FACTS is required, HANDOFF is diary, neither is
+   the live farm. Added `mydocs/HORIZON.md` (overwrite). Ritual is now
+   snapshot Actual on 0+8 **before** coding a FACTS row as written.
+   “Land T1 step N” without a filled Actual block is a slogan.
+
+## Counters (contested vs `route_v20`, seat 0)
+
+| | seed 0 | seed 8 |
+|---|---|---|
+| baseline | 26,429 | 8,269 |
+| S1 A sell-all+buy | 27,863 | **7,118** |
+| S1 B surplus-only | 27,849 | **7,115** |
+
+S0 pictures held both arms (d0 herd 4, d3 herd 5, 0 escapes). SELL FERT
+from d2. Seed 8 drop is the same with BUY_FERT $0 — the existence-hold
+is load-bearing on seed 8; seed 0 likes selling the flow.
+
+## Verdict
+
+**S1 reverted. Do not retry facts 9+21 as written.** Next session does
+not touch the throwaway until `HORIZON.md` Actual is filled.
+
+## What to do next
+
+1. **Fill `mydocs/HORIZON.md` Actual** on the **restored** throwaway,
+   contested vs `route_v20`, seat 0, seeds 0 and 8. Window: EOD d0
+   through d3 (cash, shed FERT/WHEAT, SELL FERT units/$, herd, whether
+   the d3 cow lands, first `BUY_LAND` day). `tape_profile.py` then
+   `_trace_cashflow_v20.py`. Seed 0 is the control; seed 8 is the
+   question.
+2. **Name the gap in one sentence** on that board: what seed 8 uses the
+   held fert for, or what later inflow selling it removes. Then tick a
+   card decision (new/supplement row that fits Actual, a different next
+   state, or stop).
+3. **Only then** a FACTS card and throwaway edit. Not a re-run of 9+21
+   as written. No `main.py` port. No yarn/milk/goose branch. Do not
+   reconcile `calendar_owned_target` (S4).
+
+---
+
+# Prior session: 2026-09-05 — the judge was wrong; timing card T1 opened
+
+
 
 > **Standing rule:** Report to the user in chat before writing this file.
 > Numbers, win counts, and the add / drop / supplement call go in the
@@ -34,7 +1672,7 @@ direction is that rewrite — T1 is still unlanded code.
    **added 43**, folded 38 into 22, and opened **timing card T1**.
 6. **Un-ignored the throwaway** — the regression accumulated with no
    revision to bisect.
-
+b
 ## Counters (contested seed 0, executed `$`)
 
 | stream | us | v20 | gap | row |

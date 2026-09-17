@@ -6,33 +6,48 @@ neither wrote down the *state that must already be true* for a trajectory
 to replay. Pasting v20 tape orders onto crop-first gates is the same
 failure with a new costume.
 
-This is the method. The live fact-set is **`mydocs/FACTS.md`** — one table,
-each row an invariant + when + counter + code rule. `HANDOFF.md` is the
-session diary; it does not duplicate the table. Measurement harnesses and
-“change one thing” still apply **inside** a chosen equilibrium — see
-`docs/EXPERIMENT_WORKFLOW.md`. Do not use that sequence as a substitute
-for steps 1–3 here.
+This is the method. Three files, three jobs:
+
+- **`mydocs/FACTS.md`** — required calendar (invariant + when + counter +
+  code rule). Tape-shaped. Not a description of the throwaway today.
+- **`mydocs/HORIZON.md`** — live board. Actual farm on seeds 0 and 8 at
+  the previous state’s window, vs the next required state. **Overwrite,
+  do not append.** A FACTS row as written is not a licence to code until
+  Actual is filled and the gap is named.
+- **`mydocs/HANDOFF.md`** — session diary after the chat report. Does not
+  duplicate FACTS or replace HORIZON.
+
+Measurement harnesses and “change one thing” still apply **inside** a
+chosen equilibrium — see `docs/EXPERIMENT_WORKFLOW.md`. Do not use that
+sequence as a substitute for the steps here.
 
 ## Session ritual
 
-1. Read `mydocs/FACTS.md` first (not HANDOFF archaeology).
-2. Classify the change: **fact** (add/remove/supplement a row), **knob**
-   (number inside rows that hold), or **slogan** (stop; expand or drop).
-3. If fact: edit the table, paste the fact card from that file, diff the
-   throwaway against **every** row, then run. If a pre-run checkbox is
-   empty, the episode is not a test of this shape.
-4. Judge named counters **before bank**, and judge them **contested vs
-   `agents/route_v20.py` on seeds 0 and 8**. `starter` is a crash /
-   escape smoke check only — it never sells and never buys wheat, so it
-   cannot price a sell path, a feed bill, or a production-timing slip.
-   Run `experiments/tape_profile.py` (per-day crew / herd / plant / sell
-   against the tapes) before reading the bank: a row whose *day* is off
-   the tape is a failing row even when its own unit counter passes. Do
-   not patch shipped `main.py` until the throwaway shows the rows *and*
-   the contested bank is not down.
-5. **Report to the user before writing `mydocs/HANDOFF.md`.** Numbers,
-   win counts, and the add / drop / supplement call go in the chat first.
-   HANDOFF is the diary after that, not the first copy of the result.
+1. Read `mydocs/FACTS.md` (calendar) and `mydocs/HORIZON.md` (actual
+   farm). Not HANDOFF archaeology.
+2. Classify the change: **fact** (add / remove / supplement a row),
+   **knob** (number inside rows that hold), or **slogan** (stop; expand
+   or drop). “Land T1 step N” or “delete the fert hold” without a filled
+   HORIZON Actual block is a slogan.
+3. **Snapshot before code.** On the current throwaway, contested vs
+   `route_v20` seeds 0 and 8, fill HORIZON Actual at the previous state’s
+   window (cash, shed fert/wheat, herd, land day — whatever the next
+   state spends). Name the gap in one sentence. If Actual cannot fund
+   the next FACTS row as written, change the row or pick a different
+   next state **before** touching the throwaway. S1 2026-09-16 skipped
+   this: coded facts 9+21 from the tape; seed 0 +1,420, seed 8 −1,154.
+4. If fact: edit FACTS, paste the fact card, diff the throwaway against
+   **every already-landed** row, then run. Horizon judge: later rows may
+   still be false; earlier landed states must hold; contested bank on 0
+   and 8 not down.
+5. Judge named counters **before bank**, contested vs
+   `agents/route_v20.py` on seeds 0 and 8. `starter` is a crash / escape
+   smoke check only. Run `experiments/tape_profile.py` before the bank.
+   Do not patch shipped `main.py` until the throwaway shows the rows
+   *and* the contested bank is not down.
+6. **Report to the user before writing `mydocs/HANDOFF.md`.** Numbers
+   first in chat. Overwrite HORIZON to the new previous/next. HANDOFF is
+   the diary after that.
 
 Two speeds: **shape days** work the table and `experiments/_*.py`.
 **Knob days** use `docs/EXPERIMENT_WORKFLOW.md` and must leave every row
@@ -75,10 +90,11 @@ If two facts fight, drop one. Do not average them into a knob.
 ## The sequence
 
 ```
-1. WRITE THE FACTS
-     → 2. DROP THE ONES THAT CANNOT COEXIST
-     → 3. IMPLEMENT UNTIL A REAL EPISODE SHOWS THEM
-     → 4. THEN TUNE KNOBS INSIDE THAT SHAPE
+1. WRITE THE FACTS (required calendar)
+     → 2. SNAPSHOT THE ACTUAL FARM (HORIZON.md, seeds 0 and 8)
+     → 3. CHANGE THE ROW IF ACTUAL CANNOT FUND IT
+     → 4. IMPLEMENT UNTIL A REAL EPISODE SHOWS THEM
+     → 5. THEN TUNE KNOBS INSIDE THAT SHAPE
 ```
 
 ### 1. Write the facts
@@ -102,6 +118,16 @@ cow: pick one.
 What remains is the spec. Put it in `mydocs/FACTS.md` so the next session
 does not re-derive it. Session narrative goes in `HANDOFF.md`.
 
+### 2b. Snapshot the actual farm
+
+Fill `mydocs/HORIZON.md` from the **current** throwaway, seeds 0 and 8,
+at the previous state’s window. Required is the FACTS picture. Actual is
+what the throwaway has. If Actual cannot fund Required, the next edit is
+a different row (or a different next state), not the tape row as written.
+
+Pasting a FACTS row onto our board without this snapshot is the same
+failure as pasting tape orders onto crop-first gates.
+
 ### 3. Implement until a real episode shows them
 
 Throwaway copy of `main.py` (`experiments/_*.py`), real engine, seed 0
@@ -119,10 +145,11 @@ depend on pathing.
 
 Do not patch shipped `main.py` until the throwaway shows the facts
 **and** the usual harnesses (paired vs `starter`/`pass`, contested
-head-to-head when selling or scale changed). One fact at a time is
-allowed only when the rest of the set stays true; a “half stack” that
-breaks a fact you already had (calendar-only vs hour-0 batch that
-returns to 1/1) is a failed step 3, not a partial win.
+head-to-head when selling or scale changed). Sequential states use the
+**horizon judge** in `FACTS.md`: earlier landed states must still hold
+(hour-0 batch → d0 **1/1** is still a fail); later states may still be
+false; contested bank on seeds 0 and 8 must not drop. A half-stack that
+eats an already-landed state is a failed step 3, not a partial win.
 
 ### 4. Then tune knobs
 
@@ -138,8 +165,9 @@ compare, self-play, holdout last) applies **here**, in this step.
 
 | Tool | When |
 |---|---|
-| `mydocs/FACTS.md` | Step 1–2 output. Live spec. Every shape change starts here. |
-| `mydocs/HANDOFF.md` | Session diary. Points at FACTS.md; does not replace it. |
+| `mydocs/FACTS.md` | Required calendar. Live spec. Shape changes start here. |
+| `mydocs/HORIZON.md` | Actual vs required at the current horizon. Overwrite. Snapshot before code. |
+| `mydocs/HANDOFF.md` | Session diary. Points at FACTS and HORIZON; replaces neither. |
 | `experiments/tape_profile.py` | Step 3 timing. Per-day crew / herd / plant / sell vs the tapes, before the bank. |
 | Throwaway `experiments/_facts_v20.py` (tracked) | Step 3. Real engine, fact counters. Commit it with each card so a regression can be bisected. |
 | `bptk.py` | Crop/cash structure *inside* an equilibrium. Never cadence/pen/pathing. |
@@ -151,6 +179,7 @@ compare, self-play, holdout last) applies **here**, in this step.
 
 - Porting Path C, or “carrying Path A over” (A is already `main.py`).
 - Pasting tape orders onto gates from a different equilibrium.
+- Coding a FACTS row as written without a filled HORIZON Actual block.
 - Treating mean bank as evidence a fact moved.
 - Using `bptk.py` to certify an animal cadence.
 - Running `param_search` to find the architecture.

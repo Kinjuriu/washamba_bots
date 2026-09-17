@@ -1,0 +1,446 @@
+﻿.venv\Scripts\python.exe : OpenSpiel exception: Unknown game 'universal_poker'. Available games are:
+At C:\Users\user\AppData\Local\Temp\ps-script-b126b2d5-a40e-4a9f-be1c-f96bc3e8909b.ps1:97 char:166
++ ... oding utf8; .venv\Scripts\python.exe experiments\tape_profile.py expe ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (OpenSpiel excep...able games are::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+2048
+add_noise
+amazons
+amazons_proxy
+ant_foraging_arena
+antichess
+backgammon
+backgammon_proxy
+banqi
+bargaining
+bargaining_proxy
+battleship
+blackjack
+blotto
+breakthrough
+breakthrough_proxy
+bridge
+bridge_arena
+bridge_uncontested_bidding
+cached_tree
+capture_the_flag
+capture_the_flag_proxy
+catch
+chat_game
+checkers
+checkers_proxy
+chess
+chinese_checkers
+cliff_walking
+clobber
+clobber_proxy
+coin_game
+coin_game_arena
+coin_game_proxy
+colored_trails
+connect_four
+connect_four_proxy
+coop_box_pushing
+coop_to_1p
+coordinated_mp
+crazy_eights
+crazyhouse
+cribbage
+crossword
+cursor_go
+dark_chess
+dark_hex
+dark_hex_ir
+dark_hex_proxy
+deep_sea
+dots_and_boxes
+dots_and_boxes_proxy
+dou_dizhu
+efg_game
+einstein_wurfelt_nicht
+euchre
+first_sealed_auction
+gin_rummy
+gin_rummy_proxy
+go
+go_fish
+go_fish_proxy
+go_proxy
+gomoku
+goofspiel
+havannah
+havannah_proxy
+hearts
+hex
+hive
+hive_proxy
+kriegspiel
+kuhn_poker
+laser_tag
+latent_ttt
+leduc_poker
+lewis_signaling
+liars_dice
+liars_dice_ir
+lines_of_action
+lines_of_action_proxy
+maedn
+mancala
+mancala_proxy
+markov_soccer
+markov_soccer_proxy
+matching_pennies_3p
+matrix_bos
+matrix_brps
+matrix_cd
+matrix_coordination
+matrix_mp
+matrix_pd
+matrix_rps
+matrix_rpsw
+matrix_sh
+matrix_shapleys_game
+mfg_crowd_modelling
+mfg_crowd_modelling_2d
+mfg_dynamic_routing
+mfg_garnet
+misere
+mnk
+morpion_solitaire
+negotiation
+negotiation_proxy
+nfg_game
+nim
+nine_mens_morris
+nine_mens_morris_proxy
+normal_form_extensive_game
+oh_hell
+oshi_zumo
+oshi_zumo_proxy
+othello
+othello_proxy
+oware
+pathfinding
+pentago
+phantom_go
+phantom_ttt
+phantom_ttt_ir
+pig
+python_ant_foraging
+python_ant_foraging_proxy
+python_block_dominoes
+python_dynamic_routing
+python_hangman
+python_iterated_prisoners_dilemma
+python_kuhn_poker
+python_liars_poker
+python_pokerkit_wrapper
+python_pokerkit_wrapper_acpc_style
+python_repeated_pokerkit
+python_team_dominoes
+python_tic_tac_toe
+quoridor
+rbc
+repeated_game
+repeated_leduc_poker
+restricted_nash_response
+sheriff
+shogi
+shogi_proxy
+skat
+snake
+snake_proxy
+social_deduction
+solitaire
+spades
+start_at
+stones_and_gems
+tarok
+tic_tac_toe
+tiny_bridge_2p
+tiny_bridge_4p
+tiny_hanabi
+trade_comm
+turn_based_simultaneous_game
+twixt
+ultimate_tic_tac_toe
+ultimate_tic_tac_toe_proxy
+xiangqi
+y
+y_proxy
+yacht
+zerosum
+OpenSpiel exception: Unknown game 'repeated_poker'. Available games are:
+2048
+add_noise
+amazons
+amazons_proxy
+ant_foraging_arena
+antichess
+backgammon
+backgammon_proxy
+banqi
+bargaining
+bargaining_proxy
+battleship
+blackjack
+blotto
+breakthrough
+breakthrough_proxy
+bridge
+bridge_arena
+bridge_uncontested_bidding
+cached_tree
+capture_the_flag
+capture_the_flag_proxy
+catch
+chat_game
+checkers
+checkers_proxy
+chess
+chinese_checkers
+cliff_walking
+clobber
+clobber_proxy
+coin_game
+coin_game_arena
+coin_game_proxy
+colored_trails
+connect_four
+connect_four_proxy
+coop_box_pushing
+coop_to_1p
+coordinated_mp
+crazy_eights
+crazyhouse
+cribbage
+crossword
+cursor_go
+dark_chess
+dark_hex
+dark_hex_ir
+dark_hex_proxy
+deep_sea
+dots_and_boxes
+dots_and_boxes_proxy
+dou_dizhu
+efg_game
+einstein_wurfelt_nicht
+euchre
+first_sealed_auction
+gin_rummy
+gin_rummy_proxy
+go
+go_fish
+go_fish_proxy
+go_proxy
+gomoku
+goofspiel
+havannah
+havannah_proxy
+hearts
+hex
+hive
+hive_proxy
+kriegspiel
+kuhn_poker
+laser_tag
+latent_ttt
+leduc_poker
+lewis_signaling
+liars_dice
+liars_dice_ir
+lines_of_action
+lines_of_action_proxy
+maedn
+mancala
+mancala_proxy
+markov_soccer
+markov_soccer_proxy
+matching_pennies_3p
+matrix_bos
+matrix_brps
+matrix_cd
+matrix_coordination
+matrix_mp
+matrix_pd
+matrix_rps
+matrix_rpsw
+matrix_sh
+matrix_shapleys_game
+mfg_crowd_modelling
+mfg_crowd_modelling_2d
+mfg_dynamic_routing
+mfg_garnet
+misere
+mnk
+morpion_solitaire
+negotiation
+negotiation_proxy
+nfg_game
+nim
+nine_mens_morris
+nine_mens_morris_proxy
+normal_form_extensive_game
+oh_hell
+oshi_zumo
+oshi_zumo_proxy
+othello
+othello_proxy
+oware
+pathfinding
+pentago
+phantom_go
+phantom_ttt
+phantom_ttt_ir
+pig
+python_ant_foraging
+python_ant_foraging_proxy
+python_block_dominoes
+python_dynamic_routing
+python_hangman
+python_iterated_prisoners_dilemma
+python_kuhn_poker
+python_liars_poker
+python_pokerkit_wrapper
+python_pokerkit_wrapper_acpc_style
+python_repeated_pokerkit
+python_team_dominoes
+python_tic_tac_toe
+quoridor
+rbc
+repeated_game
+repeated_leduc_poker
+restricted_nash_response
+sheriff
+shogi
+shogi_proxy
+skat
+snake
+snake_proxy
+social_deduction
+solitaire
+spades
+start_at
+stones_and_gems
+tarok
+tic_tac_toe
+tiny_bridge_2p
+tiny_bridge_4p
+tiny_hanabi
+trade_comm
+turn_based_simultaneous_game
+twixt
+ultimate_tic_tac_toe
+ultimate_tic_tac_toe_proxy
+xiangqi
+y
+y_proxy
+yacht
+zerosum
+tape profile: mean over 10 tapes (all_tapes_turns.csv)
+contested episode: experiments/_facts_v20_s4.py (seat 0) vs route_v20.py (seat 1), seed 8
+  bank: candidate 59203  opponent 134066  delta -74863
+  land days: tape [6, 11]  candidate [6, 11]  opponent [6, 11]
+
+crew (max hands acting in a turn)
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         4    3    3    5    3    4    8    8   10   10   11   11    9   10   10   11   11   11   12   11   12   12   12   12   12   11   11   11   11   11
+candidate         6    6    6    6    6    6    6   11   11    9   12   12   12   12   12   12   12   12   12   12   12   12   12   12   12   12   12   12   12   12
+opponent          5    5    4    5    5    5    4    8   11   12   12   12   12   11   11   12   12   12   12   12   12   12   12   12   12   11   11   11   11   10
+cand - tape       2    3    3    1    3    2   -2    3    1   -1    1    1    3    2    2    1    1    1    0    1    0    0    0    0    0    1    1    1    1    1
+
+herd owned (cumulative BUY_ANIMAL)
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         4    4    5    6    6    6    8   10   12   13   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14
+candidate         4    4    4    5    5    5    6    6    6    6    6   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14
+opponent          4    4    4    5    5    6    6   10   10   12   12   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14   14
+cand - tape       0    0   -1   -1   -1   -1   -2   -4   -6   -7   -8   -0   -0   -0   -0   -0   -0   -0   -0   -0   -0   -0   -0   -0   -0   -0   -0   -0   -0   -0
+
+PLANT MELON
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean        12    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+candidate        12    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+opponent         12    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+cand - tape       0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+
+PLANT WHEAT
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         7    0    3    4    3    0    5    4    1    4    8   10   10    6    7    7    7    7    7    6    7    8   10   14   12    9   12   10    5    0
+candidate         9    2    4    4    3    0    0    0    0    2    9    0   10    3    1    2    1    2    3    0    4    3    0    3    3    0    2    1    0    0
+opponent          7    0    0    0    3    0    0    0    3    2    4    8    3    4    2    3    8    3    6    6    6    1   10    4   10   13    9   10    0    0
+cand - tape       2    2    1    0    0    0   -5   -4   -1   -2    2  -10    0   -3   -6   -5   -6   -5   -4   -6   -3   -5  -10  -11   -9   -9  -10   -9   -5   -0
+
+PLANT STRAWBERRY
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         0    0    0    0    0    4    8    4    4    0    0   15    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+candidate         0    0    0    0    0    3    5    9    4    0    0   15    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+opponent          0    0    0    0    0    4    2    2   11    0    0   18    2    3    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+cand - tape       0    0    0    0    0   -1   -3    5    0   -0   -0   -0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+
+PLANT CARROT
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    1    0    0    1    4    1    2    0    0
+candidate         0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    1    0    0    0    0    0
+opponent          0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    1    1    0    1    2    0    0    0
+cand - tape       0    0    0    0    0    0    0    0    0    0    0    0    0    0   -0    0    0   -0    0    0    0   -1   -0   -0    0   -4   -1   -2    0    0
+
+SELL MELON (order qty)
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         0    0    0    0    0    0    0    0    0    0   60   12    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+candidate         0    0    0    0    0    0    0    0    0    0  560   70   36   12    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+opponent          0    0    0    0    0    0    0    0    0    0   66    6    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+cand - tape       0    0    0    0    0    0    0    0    0    0  500   58   36   12    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0
+
+SELL WHEAT (order qty)
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         0    0    2    5    2    2    0    7    3    2    5    9    9    8   11   13    9    6   15    5   10   26    4    9    9   20   19   25   31  112
+candidate         0    0    0    6    0    0    1    5    0    0    0    0    0   12    0   10    0    0    3    2    0    4    0    2    2    0    0    0    0    1
+opponent          3    0    0    0    0   18    0    0    0    8   30    0    0    5    1   25   14   24   15   25   11   75   20   85   23  113  101  147   17   96
+cand - tape       0    0   -2    1   -2   -2    1   -2   -3   -2   -5   -9   -9    4  -11   -3   -9   -6  -12   -3  -10  -22   -4   -7   -7  -20  -19  -25  -31 -111
+
+SELL STRAWBERRY (order qty)
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    7   16   17   24   16   23   26   30   14   15   17   15   15   13   10
+candidate         0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    4   13    7   13    3   33    4   29    1   23    0   20    0
+opponent          0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    8   10    6   24   20   38   18   45   21   45    6   38   13    4
+cand - tape       0    0    0    0    0    0    0    0    0    0    0    0    0    0    0   -7  -16  -13  -11   -9  -10  -23    2  -10   14  -16    8  -15    7  -10
+
+SELL CARROT (order qty)
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    7    8
+candidate         0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    2    0    0
+opponent          0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    2    3    0    6
+cand - tape       0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    0    2   -7   -8
+
+SELL WOOL (order qty)
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         0    0    0    0    0    0   12    0    0    8    0    0   12    1   12    8    7    6    5    7    6    8    7   12   16    9   11   13   10    8
+candidate         0    0    0    0    0    0    9    0    0    0    4    0    0    6    0    0    4    6    0    0   17   12    6    8    4   10   10    4    6   19
+opponent          0    0    0    0    0    0   12    0    0    8    0    0    0    8    6    6    0   13    0   34    0   17    2   42    8   15    0   31    8   32
+cand - tape       0    0    0    0    0    0   -3   -0    0   -8    4    0  -12    5  -12   -8   -3   -0   -5   -7   11    4   -1   -4  -12    1   -1   -9   -4   10
+
+SELL MILK (order qty)
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         0    0    0    0    0    0    0    0   12    0   12    6    8    4   14   13   11   10    8   12    8    8   10   11   15   14   11   14   13   10
+candidate         0    0    0    0    0    0    0    0    0   10    0    0    6   12    0    6    6    6    5    5    5    5    0   22    5    5    0   15    0   22
+opponent          0    0    0    0    0    0    0    0   12    0    0    6    6    6    9   18    6    6   24    6   30    6   24    6   24   12   18    6   24   30
+cand - tape       0    0    0    0    0    0    0    0  -12   10  -12   -6   -2    8  -14   -7   -5   -4   -3   -7   -3   -4  -10   11  -10   -9  -11    1  -13   12
+
+SELL FERTILIZER (order qty)
+day               0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29
+tape mean         0    3    5    4    6    6    8    8   11   13    9   15   16   14   10   11   12   10   12    8   10   16   15   17   10   15   14   14   17   16
+candidate         0    0    4    4    4    4    4    4    6    6    6    6    0   12    0    0    0    0   31    0   18    0   15    9    6    9   10   11   11   13
+opponent          0    3    0    4    4    5    5    6    6    9  145    0   26   15   12  210   46  292  267  329  186  289  200  318  139  235  134   28   12    7
+cand - tape       0   -3   -1    0   -2   -2   -4   -4   -5   -7   -3   -9  -16   -2  -10  -11  -12  -10   19   -8    8  -16    0   -8   -4   -6   -4   -3   -6   -3
+
+first day each series falls behind the tape by more than a third:
+  crew               never
+  herd               day 7
+  PLANT MELON        never
+  PLANT WHEAT        day 6
+  PLANT STRAWBERRY   day 6
+  PLANT CARROT       day 25
+  PLANT TOMATO       never

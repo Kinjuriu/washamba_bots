@@ -280,6 +280,7 @@ def analyze_episode(steps, us_seat=0):
     season = [Counter(), Counter()]
     season_units = [Counter(), Counter()]
     by_day = [defaultdict(Counter), defaultdict(Counter)]
+    by_day_units = [defaultdict(Counter), defaultdict(Counter)]
     turns = []
     max_err = [0.0, 0.0]
     err_count = [0, 0]
@@ -372,6 +373,8 @@ def analyze_episode(steps, us_seat=0):
             season_units[p].update(units[p])
             for cat, dollars in ledgers[p].items():
                 by_day[p][day][cat] += dollars
+            for cat, n in units[p].items():
+                by_day_units[p][day][cat] += n
 
         turns.append({
             "day": day,
@@ -405,6 +408,8 @@ def analyze_episode(steps, us_seat=0):
         "units_v20": season_units[them_i],
         "by_day_us": by_day[us_i],
         "by_day_v20": by_day[them_i],
+        "by_day_units_us": by_day_units[us_i],
+        "by_day_units_v20": by_day_units[them_i],
         "turns": [
             {
                 **t,

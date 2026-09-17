@@ -5,27 +5,24 @@ alwaysApply: true
 
 # Fact-first agent building
 
-Before any shape edit, read `mydocs/FACTS.md` and `mydocs/AGENT_BUILDING_PROTOCOL.md`.
+Before any shape edit, read `mydocs/FACTS.md` (calendar),
+`mydocs/HORIZON.md` (actual farm), and
+`mydocs/AGENT_BUILDING_PROTOCOL.md`.
 
 Classify first:
 - **Fact** — add / remove / supplement a row in `FACTS.md`, then the throwaway. Not a sweep.
 - **Knob** — number inside rows that already hold. `docs/EXPERIMENT_WORKFLOW.md` only.
-- **Slogan** — “match v20”, “STRAW pin”, “raise MAX_ANIMALS”. Expand to a fact or drop.
+- **Slogan** — “match v20”, “STRAW pin”, “raise MAX_ANIMALS”, “land T1 step N” without a filled HORIZON Actual block. Expand to a fact or drop.
 
-Do not patch shipped `main.py` until a throwaway (`experiments/_*.py`) shows the named counters. Diff the throwaway against **every** row before running. A half-stack that breaks a row you already had (hour-0 batch → d0 **1/1**) is a failed run, not a partial win.
+**Snapshot before code.** Fill HORIZON Actual on seeds 0 and 8 at the previous state’s window. If that farm cannot fund the next FACTS row as written, change the row (or pick a different next state) before touching the throwaway. S1 2026-09-16 skipped this and failed seed 8 (−1,154).
 
-Judge fact counters before bank, and judge them **contested vs `agents/route_v20.py` on seeds 0 and 8** — that is the acceptance bar. `starter` is a crash/escape smoke check only; it never sells and never buys wheat, so it blessed seven sessions during which the contested bank fell from ~51k to ~8k. Run `experiments/tape_profile.py` (per-day crew / herd / plant / sell against the tapes) before the bank: a row whose day is off the tape is a failing row even when its own counter passes. Do not use `bptk.py` for pens, travel, or animal cadence.
+Do not patch shipped `main.py` until a throwaway (`experiments/_*.py`) shows the named counters. Diff the throwaway against **every already-landed** row before running. Eating an earlier state (hour-0 batch → d0 **1/1**) is a failed run, not a partial win. Later unlanded rows may still be false (horizon judge).
+
+Judge fact counters before bank, and judge them **contested vs `agents/route_v20.py` on seeds 0 and 8** — that is the acceptance bar. `starter` is a crash/escape smoke check only. Run `experiments/tape_profile.py` before the bank. Do not use `bptk.py` for pens, travel, or animal cadence.
 
 Path A is shipped `main.py`. Path C is parked. Do not paste tape orders onto crop-first gates.
 Do not paste Path A crop-first gates into the animal-first throwaway (same failure mode as Path C).
 
 Contested `$`: use `experiments/_trace_cashflow_v20.py` (lockstep) and
 `experiments/_trace_straw_wool.py` / `_trace_d10_melon.py` for path stages.
-**Live card: timing card T1** in `FACTS.md` — rewrite rows 9/15/17/21/22/
-27/28/39 and add 43 so each names the tape's day, in five steps (fert
-cadence → wheat as the empty-tile default → STRAW d5–8 → herd ladder →
-crew). Facts 40/41/42 are **closed, not paused**: they were buying back
-with sell paths, fert and crew walks what those rows gave away. Fact 34
-d10 MELON DROP holds; fact 38 is folded into 22; fact 39's NW STRAW ban
-is withdrawn. The throwaway `experiments/_facts_v20.py` is tracked in
-git — commit it with each step so a regression can be bisected.
+**Live board: `mydocs/HORIZON.md`.** Calendar: timing card T1 as states S0–S4 in FACTS. S1 (facts 9+21) reverted — Actual cannot fund it. **S2 pictures held** on `_facts_v20_s2.py`. **S3 not landed.** **S3d6 and S3home reverted.** **S3roles pictures held** on `_facts_v20_s3_roles.py`. **S3ne pictures held** on `_facts_v20_s3_ne.py`. **S4 dump-8 failed. S4 cap-14-on-BUILD failed. S4 lead pictures held** on `_facts_v20_s4_lead.py` (buy-stop 14, pens lead, banks 67,325 / 72,410). Named mix **fallback**. CARE-before-feed-walk and feeder-stay CARE both dropped (5+5, bank down). Leftover extra-buy dropped. **Next: d1 feed** — snapshot, not leftover-2 at h0, not d1h0 BUY×4. Keep S4-lead. Do not paste 8-by-d6 onto $177. Do not retry S3d6 / S1 / CARE-stay. Do not recode `shop_mix_target`. Do not clip pens. Do not port `main.py`. Facts 40/41/42 are closed. The throwaway `experiments/_facts_v20.py` is tracked in git.

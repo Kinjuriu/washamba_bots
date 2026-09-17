@@ -183,8 +183,10 @@ PATH_C_FERT_ELEVATE_MIN_ANIMALS = 3
 #   scale_max; "owned" keys the same requirement to owned+1 instead of
 #   scale_max - the F8 guard, since 2*10=20 may be unreachable while the valve
 #   sawtooths around 2*(owned+1)=8 and the herd would stick at the beach-head.
+#   "off" skips the check entirely (F8 Option A: when scale_unlocked, the cap
+#   jumps to scale_max with no wheat-stock hurdle). Beach-head + pause stay.
 PATH_C_PIN_WHEAT_VALVE = False
-PATH_C_SCALE_WHEAT_BUFFER = None  # None | number | "owned"
+PATH_C_SCALE_WHEAT_BUFFER = None  # None | number | "owned" | "off"
 # Composite arm (2026-08-26, user-designed sequence - never before run as ONE
 # arm): phase-0 filler policy, force WHEAT plantings while day <= end_day and
 # live WHEAT tiles are under `tiles`. Bounded twice over - by tile count and by
@@ -385,6 +387,10 @@ class EconomyModel:
         self.step = 0
         self.counters = collections.defaultdict(int)
         self.daily_log = []
+        # Morning counter snapshot so end-of-day can stamp that day's BUY_W /
+        # FEED / HARVEST_WHEAT / unserved-STRAW / idle deltas onto daily_log.
+        # F11 diagnostics only; never read by a policy branch.
+        self._day_counter_baseline = None
 
     # -- state assembly, matching main.py's extract_state()/get_market_state() shape --
     def _state(self):
@@ -688,6 +694,41 @@ class EconomyModel:
 
         take(empty_tiles, empty_action, tier_name="EMPTY")
 
+        # F11 / F4 leftover: STRAW-ready and plant-WATER demand that got no
+        # unit, plus idle crew after the whole ladder. Always-on, read-only.
+        straw_ready_n = sum(
+            1 for t in ready_tiles if len(t) > 3 and t[3] == "STRAWBERRY"
+        )
+        plant_water_n = sum(1 for t in water_care_tiles if t[3] is not None)
+        straw_harvested = 0
+        watered = 0
+        for _, x, y, action in assignments:
+            op = action[0]
+            tile = farm["tiles"][y][x]
+            if (
+                op == "HARVEST"
+                and isinstance(tile, dict)
+                and tile.get("kind") == "PLANT"
+                and tile.get("crop") == "STRAWBERRY"
+            ):
+                straw_harvested += 1
+            elif (
+                op == "WATER"
+                and isinstance(tile, dict)
+                and tile.get("kind") == "PLANT"
+            ):
+                watered += 1
+        unserved_straw = max(0, straw_ready_n - straw_harvested)
+        unserved_water = max(0, plant_water_n - watered)
+        idle = len(available)
+        self.counters["unserved_straw_harvest"] += unserved_straw
+        self.counters["unserved_water"] += unserved_water
+        self.counters["crew_idle"] += idle
+        if self.day >= 18:
+            self.counters["unserved_straw_harvest_d18plus"] += unserved_straw
+            self.counters["unserved_water_d18plus"] += unserved_water
+            self.counters["crew_idle_d18plus"] += idle
+
         return assignments
 
     def _apply_assignment(self, idx, x, y, action):
@@ -703,6 +744,19 @@ class EconomyModel:
         inv = private["inventories"][idx]
         shed = private["shed"]
         op = action[0]
+
+        # F11: self-grown wheat inflow. Read the tile before the engine
+        # mutates it - HARVEST on a one-shot crop clears the plant.
+        if op == "HARVEST":
+            tile = farm["tiles"][y][x]
+            if (
+                isinstance(tile, dict)
+                and tile.get("kind") == "PLANT"
+                and tile.get("crop") == "WHEAT"
+            ):
+                self.counters["HARVEST_WHEAT"] += 1
+                if self.day >= 18:
+                    self.counters["HARVEST_WHEAT_d18plus"] += 1
 
         # Deliberate simplification (see module docstring): the unit "already
         # has" whatever it needs from the shed this turn, instead of a
@@ -725,6 +779,8 @@ class EconomyModel:
         self.counters[op] += 1
         if op == "PLANT":
             self.counters[f"crop_planted_{action[1]}"] += 1
+        if op == "FEED" and self.day >= 18:
+            self.counters["FEED_d18plus"] += 1
 
     def _decide_market_orders(self, state):
         farm, private = self.farm, self.private
@@ -808,6 +864,36 @@ class EconomyModel:
                 "unlocked_shops": len(self.town["unlocked_shops"]),
             }
         )
+        self._day_counter_baseline = {
+            "BUY_PRODUCT_WHEAT": self.counters["BUY_PRODUCT_WHEAT"],
+            "FEED": self.counters["FEED"],
+            "HARVEST_WHEAT": self.counters["HARVEST_WHEAT"],
+            "unserved_straw_harvest": self.counters["unserved_straw_harvest"],
+            "crew_idle": self.counters["crew_idle"],
+        }
+
+    def _stamp_daily_deltas(self):
+        """Write this day's BUY_W / FEED / harvest-W / leftover onto the
+        morning snapshot. F11 day-strips need the tax split by day; the
+        morning log alone cannot. No-op if no snapshot was taken.
+        """
+        if not self.daily_log or self._day_counter_baseline is None:
+            return
+        snap = self.daily_log[-1]
+        base = self._day_counter_baseline
+        snap["buy_w"] = self.counters["BUY_PRODUCT_WHEAT"] - base["BUY_PRODUCT_WHEAT"]
+        snap["feed"] = self.counters["FEED"] - base["FEED"]
+        snap["harvest_w"] = self.counters["HARVEST_WHEAT"] - base["HARVEST_WHEAT"]
+        snap["unserved_straw"] = (
+            self.counters["unserved_straw_harvest"] - base["unserved_straw_harvest"]
+        )
+        snap["crew_idle"] = self.counters["crew_idle"] - base["crew_idle"]
+
+    def _note_buy_w_window(self, before):
+        if self.day >= 18:
+            self.counters["BUY_PRODUCT_WHEAT_d18plus"] += (
+                self.counters["BUY_PRODUCT_WHEAT"] - before
+            )
 
     def step_once(self):
         if self.hour == 0:
@@ -820,11 +906,14 @@ class EconomyModel:
         for unit_idx, x, y, action in assignments:
             self._apply_assignment(unit_idx, x, y, action)
 
+        buy_w_before = self.counters["BUY_PRODUCT_WHEAT"]
         self._process_market_orders(orders)
+        self._note_buy_w_window(buy_w_before)
         self._consume_town_demand()
         _decay_plants(self.farm, self.step)
 
         if (self.step + 1) % TURNS_PER_DAY == 0:
+            self._stamp_daily_deltas()
             self._end_of_day()
 
         self.step += 1
@@ -926,6 +1015,7 @@ class ContestedEconomyModel:
             for unit_idx, x, y, action in side_assignments:
                 side._apply_assignment(unit_idx, x, y, action)
 
+        befores = [side.counters["BUY_PRODUCT_WHEAT"] for side in self.sides]
         _process_market_two_sided(
             [
                 {"farm": side.farm, "private": side.private, "orders": side_orders, "counters": side.counters}
@@ -933,12 +1023,15 @@ class ContestedEconomyModel:
             ],
             self.market,
         )
+        for side, before in zip(self.sides, befores):
+            side._note_buy_w_window(before)
         _tick_town_demand(self.market, self.town, self.step)
         for side in self.sides:
             _decay_plants(side.farm, side.step)
 
         if (self.step + 1) % TURNS_PER_DAY == 0:
             for side in self.sides:
+                side._stamp_daily_deltas()
                 side._end_of_day()  # per-farm only - shares_market=True skips the shop-unlock
             _maybe_unlock_shop(self.town, self.day + 1, self.rng)
 
@@ -1484,6 +1577,11 @@ def _path_c_defaults():
         # off/None so run_path_c() with no overrides is still the broken core.
         "pin_wheat_valve": PATH_C_PIN_WHEAT_VALVE,
         "scale_wheat_buffer": PATH_C_SCALE_WHEAT_BUFFER,
+        # Composite arm (2026-08-26, user-designed sequence - day-0 WHEAT
+        # front-load before the STRAWBERRY carpet). Defaults off so every
+        # pre-existing arm stays byte-reproducible.
+        "wheat_frontload_tiles": PATH_C_WHEAT_FRONTLOAD_TILES,
+        "wheat_frontload_end_day": PATH_C_WHEAT_FRONTLOAD_END_DAY,
     }
 
 
@@ -1524,6 +1622,8 @@ def _path_c_wheat_buffer_met(private, owned, cfg):
     the herd by one animal always leaves one reserve-worth of buffer behind.
     """
     req = cfg.get("scale_wheat_buffer")
+    if req == "off":
+        return True
     stock = _path_c_wheat_stock(private)
     if req is None:
         return stock > 0
@@ -1538,11 +1638,16 @@ def _path_c_animal_cap(farm, private, day, cfg):
     the STRAW carpet reaches `scale_straw_done` tiles or day reaches
     `scale_day`; then a ceiling of `scale_max` - unless the wheat-buffer gate
     (`_path_c_wheat_buffer_met`) fails, in which case the freeze holds.
+    `scale_wheat_buffer="off"` skips that gate (F8 Option A): once unlocked,
+    the cap is `scale_max` regardless of shed wheat. Beach-head + pause stay.
     """
     owned = agent_main.count_owned_animals(farm, private, BOARD_SIZE)
     straw_tiles = _path_c_straw_tile_count(farm)
     scale_unlocked = straw_tiles >= cfg["scale_straw_done"] or day >= cfg["scale_day"]
-    if scale_unlocked and _path_c_wheat_buffer_met(private, owned, cfg):
+    if scale_unlocked and (
+        cfg.get("scale_wheat_buffer") == "off"
+        or _path_c_wheat_buffer_met(private, owned, cfg)
+    ):
         return cfg["scale_max"]
     if day <= cfg["early_day_limit"]:
         return max(cfg["early_animals"], owned)
@@ -1575,6 +1680,25 @@ def _path_c_straw_pin_active(farm, private, day, cfg):
         if stock < agent_main.MIN_WHEAT_RESERVE_FOR_FEEDING * (owned + 1):
             return False
     return _path_c_straw_tile_count(farm) < cfg["straw_cap"]
+
+
+def _path_c_wheat_frontload_active(farm, day, cfg):
+    """Composite arm (2026-08-26, user-designed sequence): day-0 WHEAT
+    front-load before the STRAWBERRY carpet. Active iff the lever is on
+    (tiles > 0), the day window is open, and the live WHEAT tile count is
+    still under the bound. Bounded twice over (tile count AND day window) so
+    it cannot reproduce the F7 unbounded force-wheat flood (200+ WHEAT
+    plantings; recorded in PATH_C_RESEARCH_LOG.md); it also releases before
+    STRAWBERRY's planting window opens, so the filler phase and carpet phase
+    never overlap. No `private` arg - the frontload only bounds tile counts
+    and the day window, not the feed subsystem.
+    """
+    tiles_bound = cfg.get("wheat_frontload_tiles", 0)
+    if tiles_bound <= 0:
+        return False
+    if day > cfg.get("wheat_frontload_end_day", 0):
+        return False
+    return _path_c_wheat_tile_count(farm) < tiles_bound
 
 
 def _path_c_any_straw_wants_fertilizer(farm, day):
@@ -1645,6 +1769,12 @@ def path_c_overrides(**cfg_overrides):
         farm, market_state, private, day, unlocked_shops=(), start_step=None,
         opponent_pipeline=None, require_held_seed=False,
     ):
+        # Phase 0: front-load WHEAT tiles before the carpet begins. The
+        # require_held_seed guard mirrors the STRAW pin's: if choose_crop is being
+        # called as a fallback (require_held_seed=True), the frontload must not
+        # force a PLANT the shed can't fund.
+        if not require_held_seed and _path_c_wheat_frontload_active(farm, day, cfg):
+            return "WHEAT"
         if not require_held_seed and _path_c_straw_pin_active(farm, private, day, cfg):
             return "STRAWBERRY"
         return original_crop(
@@ -1714,12 +1844,25 @@ def _episode_mechanism_stats(result):
     - final filled animals stays above the beach-head of 3 (an F8-stuck herd -
       herd frozen at beach-head because a hard buffer never accumulates - is
       the fix failing in the opposite direction).
+
+    F11/F4 fields (buy_w_d18, harvest_w_d18, unserved_straw_d18, money_d15/d18)
+    are additive diagnostics - they do not change any policy branch.
     """
     log = result.get("daily_log") or []
     shed = [d.get("shed", {}).get("WHEAT", 0) for d in log if 15 <= d["day"] <= 25]
     animals = [d.get("animals", 0) for d in log]
+    counters = result["counters"]
+
+    def _money(day):
+        row = next((d for d in log if d["day"] == day), None)
+        return None if row is None else row.get("money")
+
+    wheat_tiles = [
+        d.get("tiles", {}).get("PLANT:WHEAT", 0) for d in log if 18 <= d["day"] <= 25
+    ]
     return {
-        "buy_product_wheat": result["counters"].get("BUY_PRODUCT_WHEAT", 0),
+        "escapes": 0,  # bptk model doesn't simulate animal escape; real-engine measured 17-20/12ep
+        "buy_product_wheat": counters.get("BUY_PRODUCT_WHEAT", 0),
         "shed_wheat_d15_25_mean": (sum(shed) / len(shed)) if shed else None,
         "shed_wheat_d15_25_min": min(shed) if shed else None,
         "straw_tiles_peak": max(
@@ -1729,6 +1872,23 @@ def _episode_mechanism_stats(result):
         "animals_min_post_day15": min((a for a, d in zip(animals, log) if d["day"] >= 15), default=0)
         if log
         else 0,
+        "buy_w_d18": counters.get("BUY_PRODUCT_WHEAT_d18plus", 0),
+        "harvest_w_d18": counters.get("HARVEST_WHEAT_d18plus", 0),
+        "harvest_w_season": counters.get("HARVEST_WHEAT", 0),
+        "feed_d18": counters.get("FEED_d18plus", 0),
+        "wheat_tiles_d18_25_mean": (
+            (sum(wheat_tiles) / len(wheat_tiles)) if wheat_tiles else None
+        ),
+        "unserved_straw_d18": counters.get("unserved_straw_harvest_d18plus", 0),
+        "unserved_water_d18": counters.get("unserved_water_d18plus", 0),
+        "crew_idle_d18": counters.get("crew_idle_d18plus", 0),
+        "sell_straw": counters.get("SELL_STRAWBERRY", 0),
+        "sell_melon": counters.get("SELL_MELON", 0),
+        "plant_straw": counters.get("crop_planted_STRAWBERRY", 0),
+        "plant_melon": counters.get("crop_planted_MELON", 0),
+        "plant_wheat": counters.get("crop_planted_WHEAT", 0),
+        "money_d15": _money(15),
+        "money_d18": _money(18),
     }
 
 
@@ -1808,12 +1968,93 @@ def compare_path_c(seeds=range(12), days=SEASON_DAYS, verbose=True, **cfg_overri
     return {"rows": rows, "mean_delta": mean_delta, "wins": wins, "n": len(rows)}
 
 
-def compare_path_c_ladder(seeds=range(6), days=SEASON_DAYS, verbose=True):
+def _fmt_n(value, digits=0):
+    if value is None:
+        return "na"
+    if digits == 0:
+        return f"{value:.0f}"
+    return f"{value:.{digits}f}"
+
+
+def _print_f11_seed_table(seeds, results, mechs):
+    """Per-seed F11/F4 columns. Read before bank: d18 BUY_W vs self-grown
+    wheat, unserved STRAW, money d15/d18. Path A is the control when present.
+    """
+    if "path_a" not in results:
+        return
+    cand_names = [n for n in results if n != "path_a"]
+    if not cand_names:
+        return
+    print("F11 per-seed (read mechanism before bank):")
+    for name in cand_names:
+        print(f"  arm {name}")
+        for i, seed in enumerate(seeds):
+            a_m = mechs["path_a"][i]
+            c_m = mechs[name][i]
+            dlt = results[name][i] - results["path_a"][i]
+            print(
+                f"    seed {seed:>2}: dlt={dlt:+.0f}  "
+                f"animals A/C={a_m['animals_final']}/{c_m['animals_final']}  "
+                f"buyW={a_m['buy_product_wheat']}/{c_m['buy_product_wheat']}  "
+                f"buyW_d18={a_m['buy_w_d18']}/{c_m['buy_w_d18']}  "
+                f"harvW_d18={a_m['harvest_w_d18']}/{c_m['harvest_w_d18']}  "
+                f"feed_d18={a_m['feed_d18']}/{c_m['feed_d18']}  "
+                f"unserved_straw_d18={a_m['unserved_straw_d18']}/{c_m['unserved_straw_d18']}  "
+                f"crew_idle_d18={a_m['crew_idle_d18']}/{c_m['crew_idle_d18']}  "
+                f"money_d15={_fmt_n(a_m['money_d15'])}/{_fmt_n(c_m['money_d15'])}  "
+                f"money_d18={_fmt_n(a_m['money_d18'])}/{_fmt_n(c_m['money_d18'])}  "
+                f"sell_straw={a_m['sell_straw']}/{c_m['sell_straw']}  "
+                f"sell_melon={a_m['sell_melon']}/{c_m['sell_melon']}  "
+                f"plant_W={a_m['plant_wheat']}/{c_m['plant_wheat']}"
+            )
+
+
+def _print_f11_day_strips(seeds, reports, strip_seeds):
+    """d12-29 day strip for the named seeds on every arm that ran."""
+    wanted = [s for s in strip_seeds if s in seeds]
+    if not wanted:
+        return
+    seed_index = {s: i for i, s in enumerate(seeds)}
+    print("F11 day strips (d12-29):")
+    for name, arm_reports in reports.items():
+        for seed in wanted:
+            report = arm_reports[seed_index[seed]]
+            print(f"  {name} seed {seed}")
+            print(
+                "    day  money  animals  shedW  wTiles  sTiles  buyW  harvW  feed  "
+                "unserved_straw  idle"
+            )
+            for row in report.get("daily_log") or []:
+                if not (12 <= row["day"] <= 29):
+                    continue
+                print(
+                    f"    {row['day']:>3}  "
+                    f"{row.get('money', 0):>6.0f}  "
+                    f"{row.get('animals', 0):>7}  "
+                    f"{row.get('shed', {}).get('WHEAT', 0):>5}  "
+                    f"{row.get('tiles', {}).get('PLANT:WHEAT', 0):>6}  "
+                    f"{row.get('tiles', {}).get('PLANT:STRAWBERRY', 0):>6}  "
+                    f"{row.get('buy_w', 0):>4}  "
+                    f"{row.get('harvest_w', 0):>5}  "
+                    f"{row.get('feed', 0):>4}  "
+                    f"{row.get('unserved_straw', 0):>14}  "
+                    f"{row.get('crew_idle', 0):>4}"
+                )
+
+
+def compare_path_c_ladder(
+    seeds=range(6), days=SEASON_DAYS, verbose=True, only=None, strip_seeds=()
+):
     """Clean ablation: Path A vs full Path C vs Path C with one lever
     disabled at a time, so a win or loss can be attributed to a specific
     policy piece rather than the whole bundle. No STRAW/MELON-encroach arms
     (those are PATH_C_CORE.md's own already-parked experiments, not part of
     core) - see that doc's "Explicitly parked / rejected" table.
+
+    `only`: optional iterable of arm names. When set, only those arms run
+    (still need `path_a` in the list for win-count). `--ladder` with no
+    `only` still means the full ablation.
+    `strip_seeds`: seeds to print d12-29 F11 day strips for (empty = skip).
     """
     seeds = list(seeds)
     arms = collections.OrderedDict()
@@ -1863,6 +2104,20 @@ def compare_path_c_ladder(seeds=range(6), days=SEASON_DAYS, verbose=True):
     fix12_owned["scale_wheat_buffer"] = "owned"
     arms["path_c_fix12_buf_owned"] = fix12_owned
 
+    # F8 Option A: same repaired-feed base as fix12_owned (valve on), but
+    # skip the rising wheat-buffer gate. Beach-head 3 + pause unchanged.
+    option_a = dict(fix12_owned)
+    option_a["scale_wheat_buffer"] = "off"
+    arms["path_c_option_a"] = option_a
+
+    # Seed-10 valve look: Option A with the pin-yield off (STRAW pin stays
+    # inviolable even when wheat stock is under reserve*(owned+1)). Causal
+    # test for d12-14 wheat carpet / late STRAW conversion — not a buffer,
+    # not force-wheat (F7).
+    option_a_no_valve = dict(option_a)
+    option_a_no_valve["pin_wheat_valve"] = False
+    arms["path_c_option_a_no_valve"] = option_a_no_valve
+
     fix123 = dict(fix12_owned)
     fix123["scale_straw_done"] = 42  # traced straw-tile peak was 49 vs threshold 50
     arms["path_c_fix123_straw42"] = fix123
@@ -1871,11 +2126,51 @@ def compare_path_c_ladder(seeds=range(6), days=SEASON_DAYS, verbose=True):
     fix123_no_l2["level2_crew"] = False  # fix #4 ablated separately, not bundled
     arms["path_c_fix123_no_l2"] = fix123_no_l2
 
+    # Composite arms (2026-08-26, user-designed sequence). Pre-agreed bar:
+    # ≥9/12 wins vs path_a → escalate to real-engine leg; ≤5/12 → permanent
+    # close-out; 6-8/12 → extend to 20 seeds. Four arms in priority order:
+    # composite_full (the recipe), then three ablations that answer specific
+    # mechanism questions without stacking knobs (F13 discipline).
+    composite_base = dict(fix12_owned)  # pin_wheat_valve=True, scale_wheat_buffer="owned"
+    composite_base["wheat_frontload_tiles"] = 8
+    composite_base["wheat_frontload_end_day"] = 4
+    arms["path_c_composite_full"] = composite_base
+
+    composite_no_frontload = dict(fix12_owned)  # same base, no frontload - cross-check
+    arms["path_c_composite_no_frontload"] = composite_no_frontload
+
+    composite_no_pin = dict(composite_base)
+    composite_no_pin["straw_cap"] = 0  # no STRAW pin - carpet or wheat?
+    arms["path_c_composite_no_pin"] = composite_no_pin
+
+    composite_no_valve = dict(composite_base)
+    composite_no_valve["pin_wheat_valve"] = False  # no feed-system connector - frontload alone sufficient?
+    arms["path_c_composite_no_valve"] = composite_no_valve
+
+    # Tangent (2026-08-30): push STRAWBERRY pin to day 10, plant WHEAT+MELON
+    # on all 50 tiles days 0-9, then lay 50-tile carpet days 10-14 and scale
+    # at day 15. The hypothesis: NE tiles (unlocked day 6) are harvest-ready
+    # by day 10, slotting perfectly into the carpet window — so the
+    # F8-stranding comes from the STRAWBERRY pin starving the early days
+    # of wheat, not from the buffer mechanism itself.
+    wavelength_base = dict(fix12_owned)  # pin_wheat_valve=True, scale_wheat_buffer="owned"
+    wavelength_base["straw_cap"] = 0     # no STRAW pin at all
+    arms["path_c_wavelength"] = wavelength_base
+
+    if only is not None:
+        wanted = list(only)
+        missing = [name for name in wanted if name not in arms]
+        if missing:
+            raise KeyError(f"unknown ladder arm(s): {missing}")
+        arms = collections.OrderedDict((name, arms[name]) for name in wanted)
+
     results = collections.OrderedDict()
     mechs = collections.OrderedDict()
+    reports = collections.OrderedDict()
     for name, cfg in arms.items():
         rows = []
         arm_mechs = []
+        arm_reports = []
         for seed in seeds:
             if cfg is None:
                 report = run_episode(seed=seed, days=days)
@@ -1886,11 +2181,17 @@ def compare_path_c_ladder(seeds=range(6), days=SEASON_DAYS, verbose=True):
                 )
             rows.append(report["final_money"])
             arm_mechs.append(_episode_mechanism_stats(report))
+            arm_reports.append(report)
         results[name] = rows
         mechs[name] = arm_mechs
+        reports[name] = arm_reports
 
-    path_a_rows = results["path_a"]
+    path_a_rows = results.get("path_a")
     if verbose:
+
+        def _arm_avg(m, key):
+            vals = [x[key] for x in m if x.get(key) is not None]
+            return (sum(vals) / len(vals)) if vals else float("nan")
 
         def _arm_mech_line(name):
             m = mechs[name]
@@ -1904,18 +2205,28 @@ def compare_path_c_ladder(seeds=range(6), days=SEASON_DAYS, verbose=True):
                 f"shedW d15-25={sum(shed) / len(shed) if shed else float('nan'):.1f}  "
                 f"final_animals={sum(x['animals_final'] for x in m) / n:.1f}  "
                 f"F8-stuck seeds={sum(1 for x in m if x['animals_min_post_day15'] <= 3)}  "
-                f"straw_peak(max)={max(x['straw_tiles_peak'] for x in m)}"
+                f"straw_peak(max)={max(x['straw_tiles_peak'] for x in m)}  "
+                f"buyW_d18={_arm_avg(m, 'buy_w_d18'):.0f}  "
+                f"harvW_d18={_arm_avg(m, 'harvest_w_d18'):.0f}  "
+                f"feed_d18={_arm_avg(m, 'feed_d18'):.0f}  "
+                f"unserved_straw_d18={_arm_avg(m, 'unserved_straw_d18'):.0f}  "
+                f"crew_idle_d18={_arm_avg(m, 'crew_idle_d18'):.0f}"
             )
 
         print(f"Path C ablation ladder, {len(seeds)} seeds")
         for name, rows in results.items():
             mean = sum(rows) / len(rows)
-            if name == "path_a":
+            if name == "path_a" or path_a_rows is None:
                 print(f"  {name:<26} mean={mean:>9.0f}")
             else:
                 wins = sum(1 for a, b in zip(rows, path_a_rows) if a > b)
                 print(f"  {name:<26} mean={mean:>9.0f}  wins vs path_a: {wins}/{len(seeds)}")
             print(f"    {_arm_mech_line(name)}")
+        _print_f11_seed_table(seeds, results, mechs)
+        # Day strips are for the focused F11 run (`--ladder-only`), not the
+        # full ablation (18 arms × 18 days would bury the table).
+        if strip_seeds and only is not None:
+            _print_f11_day_strips(seeds, reports, list(strip_seeds))
     return results
 
 
@@ -1990,6 +2301,18 @@ if __name__ == "__main__":
         "--ladder", action="store_true",
         help="Path C ablation ladder: Path A vs full Path C vs each lever disabled once (see compare_path_c_ladder)",
     )
+    parser.add_argument(
+        "--ladder-only",
+        type=str,
+        default=None,
+        help="comma-separated ladder arm names (include path_a for win-count)",
+    )
+    parser.add_argument(
+        "--f11-strip-seeds",
+        type=str,
+        default="7,9,10",
+        help="seeds to print d12-29 F11 day strips for (default: 7,9,10)",
+    )
     parser.add_argument("--path-c-seeds", type=int, default=12)
     args = parser.parse_args()
 
@@ -2012,7 +2335,18 @@ if __name__ == "__main__":
     elif args.compare_path_c:
         compare_path_c(seeds=range(args.path_c_seeds), days=args.days)
     elif args.ladder:
-        compare_path_c_ladder(seeds=range(args.path_c_seeds), days=args.days)
+        only = None
+        if args.ladder_only:
+            only = [s.strip() for s in args.ladder_only.split(",") if s.strip()]
+        strip_seeds = [
+            int(s) for s in (args.f11_strip_seeds or "").split(",") if s.strip()
+        ]
+        compare_path_c_ladder(
+            seeds=range(args.path_c_seeds),
+            days=args.days,
+            only=only,
+            strip_seeds=strip_seeds,
+        )
     elif args.contested:
         side_a, side_b = run_contested_episode(seed=args.seed, seed_b=args.seed_b, days=args.days)
         print("=== side A ===")
