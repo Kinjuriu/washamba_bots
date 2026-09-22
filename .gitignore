@@ -23,3 +23,5 @@ experiments/.v20_agent.py
 experiments/.v20_kernel/
 experiments/.decoded/
 experiments/.kernel_cache/
+experiments/field_research/public_agents/
+experiments/field_research/data/
