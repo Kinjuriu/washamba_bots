@@ -1,0 +1,1022 @@
+[
+ {
+  "episode": 110996585,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 1,
+  "recorded": 99362,
+  "opp_recorded": 98248,
+  "opp_submission": 56176210,
+  "opp_rating": 1439.2265360211686,
+  "end_time": "2026-09-19T22:59:21.503087400Z",
+  "win": true,
+  "seed": 1510410391,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 242.0
+  },
+  "day12": {
+   "structures": 18,
+   "filled": 16,
+   "money": 14122.0
+  },
+  "end": {
+   "structures": 18,
+   "filled": 16,
+   "money": 99362.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111003172,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 1,
+  "recorded": 93320,
+  "opp_recorded": 90046,
+  "opp_submission": 55966957,
+  "opp_rating": 1284.8465059717157,
+  "end_time": "2026-09-19T23:21:20.958609200Z",
+  "win": true,
+  "seed": 113578973,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 257.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 14150.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 93320.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111123163,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 1,
+  "recorded": 110506,
+  "opp_recorded": 89710,
+  "opp_submission": 56052220,
+  "opp_rating": 1282.001126661693,
+  "end_time": "2026-09-20T06:37:28.051148800Z",
+  "win": true,
+  "seed": 586250190,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 270.0
+  },
+  "day12": {
+   "structures": 18,
+   "filled": 17,
+   "money": 12195.0
+  },
+  "end": {
+   "structures": 18,
+   "filled": 17,
+   "money": 110506.0
+  },
+  "empty_structure_at_end": 1
+ },
+ {
+  "episode": 111130830,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 0,
+  "recorded": 53131,
+  "opp_recorded": 48630,
+  "opp_submission": 56029055,
+  "opp_rating": 1278.8776210794633,
+  "end_time": "2026-09-20T07:03:24.342282900Z",
+  "win": true,
+  "seed": 2106803030,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 256.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 13987.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 53131.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111171646,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 0,
+  "recorded": 90527,
+  "opp_recorded": 88781,
+  "opp_submission": 56031191,
+  "opp_rating": 1262.7326645471435,
+  "end_time": "2026-09-20T09:35:10.830424300Z",
+  "win": true,
+  "seed": 1743031640,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 252.0
+  },
+  "day12": {
+   "structures": 18,
+   "filled": 17,
+   "money": 13863.0
+  },
+  "end": {
+   "structures": 18,
+   "filled": 17,
+   "money": 90527.0
+  },
+  "empty_structure_at_end": 1
+ },
+ {
+  "episode": 111204048,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 1,
+  "recorded": 103589,
+  "opp_recorded": 90216,
+  "opp_submission": 56362982,
+  "opp_rating": 1277.4675954000672,
+  "end_time": "2026-09-20T11:29:52.848007Z",
+  "win": true,
+  "seed": 1453577271,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 251.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 14262.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 103589.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111206985,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 1,
+  "recorded": 110619,
+  "opp_recorded": 92762,
+  "opp_submission": 56263809,
+  "opp_rating": 1211.054986494722,
+  "end_time": "2026-09-20T11:41:17.814976800Z",
+  "win": true,
+  "seed": 1520736151,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 270.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 16151.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 110619.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111333851,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 1,
+  "recorded": 141860,
+  "opp_recorded": 139058,
+  "opp_submission": 56402470,
+  "opp_rating": 1270.1008521779588,
+  "end_time": "2026-09-20T19:21:59.252879500Z",
+  "win": true,
+  "seed": 605483202,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 237.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 15203.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 141860.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111348987,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 1,
+  "recorded": 88278,
+  "opp_recorded": 100384,
+  "opp_submission": 56404605,
+  "opp_rating": 1309.165190175203,
+  "end_time": "2026-09-20T20:15:25.902164400Z",
+  "win": false,
+  "seed": 140347009,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 338.0
+  },
+  "day12": {
+   "structures": 18,
+   "filled": 17,
+   "money": 12661.0
+  },
+  "end": {
+   "structures": 18,
+   "filled": 17,
+   "money": 88278.0
+  },
+  "empty_structure_at_end": 1
+ },
+ {
+  "episode": 111373751,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 0,
+  "recorded": 127487,
+  "opp_recorded": 126021,
+  "opp_submission": 56337254,
+  "opp_rating": 1228.5574521476924,
+  "end_time": "2026-09-20T21:45:50.500721500Z",
+  "win": true,
+  "seed": 1514305575,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 252.0
+  },
+  "day12": {
+   "structures": 18,
+   "filled": 17,
+   "money": 13164.0
+  },
+  "end": {
+   "structures": 18,
+   "filled": 17,
+   "money": 127487.0
+  },
+  "empty_structure_at_end": 1
+ },
+ {
+  "episode": 111375573,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 0,
+  "recorded": 88089,
+  "opp_recorded": 94747,
+  "opp_submission": 56405969,
+  "opp_rating": 1277.9893163789868,
+  "end_time": "2026-09-20T21:52:02.868579300Z",
+  "win": false,
+  "seed": 1760789429,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 225.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 12,
+   "money": 15343.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 13,
+   "money": 88089.0
+  },
+  "empty_structure_at_end": 3
+ },
+ {
+  "episode": 111386927,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 0,
+  "recorded": 100584,
+  "opp_recorded": 87680,
+  "opp_submission": 56218317,
+  "opp_rating": 1334.7505185798639,
+  "end_time": "2026-09-20T22:35:00.252755800Z",
+  "win": true,
+  "seed": 1218691032,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 241.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 13707.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 100584.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111394601,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 1,
+  "recorded": 118086,
+  "opp_recorded": 122967,
+  "opp_submission": 56088748,
+  "opp_rating": 1336.719571852681,
+  "end_time": "2026-09-20T22:59:37.648629700Z",
+  "win": false,
+  "seed": 889854809,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 243.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 15235.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 118086.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111407785,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 1,
+  "recorded": 122777,
+  "opp_recorded": 106645,
+  "opp_submission": 56405285,
+  "opp_rating": 1338.9941476533058,
+  "end_time": "2026-09-20T23:50:44.933849700Z",
+  "win": true,
+  "seed": 95126202,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 337.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 15498.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 122777.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111421353,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 1,
+  "recorded": 93025,
+  "opp_recorded": 92433,
+  "opp_submission": 56258039,
+  "opp_rating": 1306.8622059892373,
+  "end_time": "2026-09-21T00:36:03.165196200Z",
+  "win": true,
+  "seed": 964837676,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 246.0
+  },
+  "day12": {
+   "structures": 18,
+   "filled": 16,
+   "money": 14023.0
+  },
+  "end": {
+   "structures": 18,
+   "filled": 16,
+   "money": 93025.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111425309,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 0,
+  "recorded": 48827,
+  "opp_recorded": 89355,
+  "opp_submission": 56408620,
+  "opp_rating": 1540.3976490879309,
+  "end_time": "2026-09-21T00:51:35.520256200Z",
+  "win": false,
+  "seed": 735168140,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 338.0
+  },
+  "day12": {
+   "structures": 18,
+   "filled": 16,
+   "money": 12702.0
+  },
+  "end": {
+   "structures": 18,
+   "filled": 16,
+   "money": 48827.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111425762,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 0,
+  "recorded": 101553,
+  "opp_recorded": 98251,
+  "opp_submission": 56324955,
+  "opp_rating": 1258.3982836125874,
+  "end_time": "2026-09-21T00:53:22.337413800Z",
+  "win": true,
+  "seed": 167371723,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 244.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 13686.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 101553.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111433063,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 0,
+  "recorded": 93133,
+  "opp_recorded": 111757,
+  "opp_submission": 56409479,
+  "opp_rating": 1369.5533699799412,
+  "end_time": "2026-09-21T01:19:39.157381200Z",
+  "win": false,
+  "seed": 817761539,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 337.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 14024.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 93133.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111450117,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 1,
+  "recorded": 96560,
+  "opp_recorded": 109708,
+  "opp_submission": 56407439,
+  "opp_rating": 1410.259334973236,
+  "end_time": "2026-09-21T02:22:51.714304200Z",
+  "win": false,
+  "seed": 127483718,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 281.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 13609.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 96560.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111465222,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 1,
+  "recorded": 39488,
+  "opp_recorded": 60518,
+  "opp_submission": 56413066,
+  "opp_rating": 1246.1380271742933,
+  "end_time": "2026-09-21T03:18:20.316157900Z",
+  "win": false,
+  "seed": 656535240,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 238.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 12,
+   "money": 12288.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 13,
+   "money": 39488.0
+  },
+  "empty_structure_at_end": 3
+ },
+ {
+  "episode": 111468533,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 1,
+  "recorded": 89741,
+  "opp_recorded": 100792,
+  "opp_submission": 56413154,
+  "opp_rating": 1408.0081810206736,
+  "end_time": "2026-09-21T03:28:01.784031900Z",
+  "win": false,
+  "seed": 1206285870,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 337.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 14229.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 89741.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111474079,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 1,
+  "recorded": 104830,
+  "opp_recorded": 118947,
+  "opp_submission": 56413809,
+  "opp_rating": 1464.799542702692,
+  "end_time": "2026-09-21T03:48:21.018559100Z",
+  "win": false,
+  "seed": 112916447,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 5,
+   "filled": 5,
+   "money": 253.0
+  },
+  "day12": {
+   "structures": 14,
+   "filled": 12,
+   "money": 11844.0
+  },
+  "end": {
+   "structures": 15,
+   "filled": 13,
+   "money": 104830.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111478570,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 1,
+  "recorded": 96502,
+  "opp_recorded": 122941,
+  "opp_submission": 56414742,
+  "opp_rating": 1349.072249229411,
+  "end_time": "2026-09-21T04:06:28.945084Z",
+  "win": false,
+  "seed": 339150682,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 338.0
+  },
+  "day12": {
+   "structures": 18,
+   "filled": 16,
+   "money": 13866.0
+  },
+  "end": {
+   "structures": 18,
+   "filled": 16,
+   "money": 96502.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111490728,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 0,
+  "recorded": 91142,
+  "opp_recorded": 101198,
+  "opp_submission": 56415885,
+  "opp_rating": 1308.6309085641958,
+  "end_time": "2026-09-21T04:49:15.679176800Z",
+  "win": false,
+  "seed": 1200979484,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 239.0
+  },
+  "day12": {
+   "structures": 18,
+   "filled": 17,
+   "money": 14176.0
+  },
+  "end": {
+   "structures": 18,
+   "filled": 17,
+   "money": 91142.0
+  },
+  "empty_structure_at_end": 1
+ },
+ {
+  "episode": 111499902,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 1,
+  "recorded": 134764,
+  "opp_recorded": 84238,
+  "opp_submission": 56413207,
+  "opp_rating": 1234.6520618090583,
+  "end_time": "2026-09-21T05:25:19.923811100Z",
+  "win": true,
+  "seed": 1570037562,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 243.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 13,
+   "money": 14577.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 14,
+   "money": 134764.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111514681,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 1,
+  "recorded": 123608,
+  "opp_recorded": 110329,
+  "opp_submission": 56088763,
+  "opp_rating": 1269.151331265564,
+  "end_time": "2026-09-21T06:12:25.829424200Z",
+  "win": true,
+  "seed": 1935863529,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 264.0
+  },
+  "day12": {
+   "structures": 18,
+   "filled": 16,
+   "money": 11423.0
+  },
+  "end": {
+   "structures": 18,
+   "filled": 16,
+   "money": 123608.0
+  },
+  "empty_structure_at_end": 2
+ },
+ {
+  "episode": 111531881,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 0,
+  "recorded": 86616,
+  "opp_recorded": 104327,
+  "opp_submission": 56419524,
+  "opp_rating": 1193.08488950842,
+  "end_time": "2026-09-21T07:18:44.555098100Z",
+  "win": false,
+  "seed": 857556051,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 242.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 12,
+   "money": 13357.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 13,
+   "money": 86616.0
+  },
+  "empty_structure_at_end": 3
+ },
+ {
+  "episode": 111554692,
+  "submission": 56202213,
+  "agent_file": "agents/router_yuan_nf.py",
+  "seat": 1,
+  "recorded": 79221,
+  "opp_recorded": 117353,
+  "opp_submission": 56125698,
+  "opp_rating": 1255.8166793194252,
+  "end_time": "2026-09-21T08:37:47.087873700Z",
+  "win": false,
+  "seed": 1690307195,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 4,
+   "money": 137.0
+  },
+  "day12": {
+   "structures": 17,
+   "filled": 10,
+   "money": 5222.0
+  },
+  "end": {
+   "structures": 18,
+   "filled": 10,
+   "money": 79221.0
+  },
+  "empty_structure_at_end": 8
+ },
+ {
+  "episode": 111566342,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 0,
+  "recorded": 102003,
+  "opp_recorded": 112306,
+  "opp_submission": 56423450,
+  "opp_rating": 1387.5211182242165,
+  "end_time": "2026-09-21T09:21:27.717690600Z",
+  "win": false,
+  "seed": 262077888,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 245.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 12,
+   "money": 14535.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 13,
+   "money": 102003.0
+  },
+  "empty_structure_at_end": 3
+ },
+ {
+  "episode": 111577671,
+  "submission": 56202203,
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "seat": 1,
+  "recorded": 72514,
+  "opp_recorded": 92819,
+  "opp_submission": 56424092,
+  "opp_rating": 1174.851590735249,
+  "end_time": "2026-09-21T10:01:35.854237Z",
+  "win": false,
+  "seed": 116495659,
+  "seed_source": "info.seed",
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "day6": {
+   "structures": 6,
+   "filled": 6,
+   "money": 238.0
+  },
+  "day12": {
+   "structures": 15,
+   "filled": 12,
+   "money": 12279.0
+  },
+  "end": {
+   "structures": 16,
+   "filled": 13,
+   "money": 72514.0
+  },
+  "empty_structure_at_end": 3
+ }
+]
