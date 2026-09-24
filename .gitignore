@@ -21,3 +21,34 @@ experiments/.meta_kernel/
 # Fetched on demand by experiments/route_v20.py - never committed.
 experiments/.v20_agent.py
 experiments/.v20_kernel/
+
+# Session-scratch agent variants (sweeps). Same convention as experiments/.v20_agent.py.
+agents/.*.py
+
+# Endgame campaign caches - replays, pulled kernels, panel tapes. Never committed.
+experiments/endgame/rep/
+experiments/endgame/kernels/
+experiments/endgame/panel/
+experiments/endgame/*.csv
+experiments/endgame/episodes_*.json
+
+# Multi-file public candidates pulled by the endgame panel (dirs, not flat files)
+agents/.pub_*/
+experiments/field_research/public_agents/
+experiments/endgame/kaggle_ds/
+experiments/endgame/extracts/
+experiments/endgame/episode_agents_index.json
+experiments/endgame/*.log
+experiments/endgame/*.err
+experiments/endgame/*_log*.txt
+experiments/endgame/pull_meta.txt
+
+# Harness scratch output (experiments/tapes/run_agents.py default) and one-off probes
+fam/
+probe*.json
+
+# Public V56 verbatim (submitted as 56483595). Licence not yet human-verified; reproduce with
+# experiments/field_research/fetch_public_v56.py (SHA-256 verified) rather than committing it.
+agents/washamba_base_v2.py
+agents/washamba_base_v3.py
+agents/washamba_reactive_v1.py

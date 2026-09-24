@@ -1,0 +1,7 @@
+{
+  "THIRD_FARM_CLUB": {"old_sub": 56279316, "new_sub": 56372014, "ag_0_71": 1.0, "verdict": "same lineage - old-sub analysis transfers"},
+  "SpaTaro": {"old_sub": 56263693, "new_sub": 56384319, "ag_0_71": 0.0278, "verdict": "rebuilt - old-sub analysis does NOT transfer"},
+  "ymg_aq": {"old_sub": 56265958, "new_sub": 56393666, "ag_0_71": 0.0, "verdict": "rebuilt - old-sub analysis does NOT transfer"},
+  "UnknownMotherGoose": {"old_sub": 56266758, "new_sub": 56417993, "ag_0_71": 0.0, "verdict": "rebuilt - old-sub analysis does NOT transfer"},
+  "OtterVibe": {"old_sub": 56218366, "new_sub": 56328447, "ag_0_71": 0.0139, "verdict": "rebuilt - old-sub analysis does NOT transfer"}
+}

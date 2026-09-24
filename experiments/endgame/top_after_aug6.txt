@@ -1,0 +1,50 @@
+ 314  2026-08-12  boatlee/v16-rc5-high-score-8c-4s-premium-market-lead  -- V16-RC5 | High-Score 8C/4S Premium Market Lead
+ 206  2026-08-10  kaitofukami/25-27-strict-future-v27-midgame-meta-reset  -- 25/27 Strict-Future | v27 Midgame Meta Reset
+ 192  2026-08-11  raykkretzschmar/kaggriculture-findings-from-zero-to-top-meta  -- Kaggriculture: Findings from Zero to Top Meta
+ 179  2026-08-08  boatlee/84-84-base-public-holdout-v14-clone-preemption  -- 84/84 Base+Public Holdout | V14 Clone Preemption
+ 143  2026-08-19  tetsutani/adaptive-farming-strategy-for-kaggriculture  -- 🌾Adaptive Farming Strategy for Kaggriculture
+ 142  2026-09-19  thomastschinkel/the-2945-farm-96-vs-the-top-10-public-bots  -- The 2945 Farm: 96% vs the Top-10 Public Bots
+ 137  2026-09-13  raykkretzschmar/kaggriculture-rank-your-agent  -- Kaggriculture Rank Your Agent
+ 134  2026-09-09  yhay81/shop-router-0909  -- Shop Router 0909
+ 133  2026-08-24  kaitofukami/40-40-early-floor-39-46-top-10-v48-fast-routes  -- 40/40 Early Floor | 39/46 Top-10 | v48 Fast Routes
+ 131  2026-09-02  yhay81/six-day-public-state-fieldbook  -- Six-Day Public-State Fieldbook
+ 126  2026-09-06  tetsutani/shape-the-shop-work-the-pasture-kaggriculture  -- 🌾 Shape the Shop Work the Pasture | Kaggriculture
+ 123  2026-09-03  yhay81/three-day-shop-router  -- Three-Day Shop Router
+ 108  2026-09-12  pilkwang/kaggriculture-structured-economic-policy  -- Kaggriculture: Structured Economic Policy
+ 107  2026-09-12  ahmedberatozer/more-yield-smarter-labor  -- More Yield, Smarter Labor
+ 104  2026-09-15  georgymamarin/kaggriculture-visualized-what-every-crop-pays  -- Kaggriculture, Visualized: What Every Crop Pays
+ 104  2026-08-06  kaitofukami/177-180-fresh-top-30-v21-1-conditional-memory  -- 177/180 Fresh Top-30 | v21.1 Conditional Memory
+ 103  2026-09-20  prvsiyan/kaggriculture-frontier-the-soil-remembers-rain  -- Kaggriculture Frontier | The Soil Remembers Rain
+ 103  2026-09-17  tetsutani/market-smart-farming-kaggriculture  -- 🌾 Market-Smart Farming | Kaggriculture
+  99  2026-09-05  thomastschinkel/kaggriculture-public-state-router-74-5-win-rate  -- Kaggriculture: Public State Router (74.5% Win Rate
+  94  2026-09-20  prvsiyan/kaggriculture-frontier-the-moon-counts-melons  -- Kaggriculture Frontier | The Moon Counts Melons
+  94  2026-09-12  ahmedberatozer/kaggriculture-v38-smarter-feed-stronger-margins  -- Kaggriculture V38 Smarter Feed, Stronger Margins
+  94  2026-08-29  indarkarhana/shape-the-shop-work-the-pasture-top-10  -- Shape the Shop Work the Pasture (TOP 10)
+  93  2026-09-16  flexonafft/kaggriculture-multi-route-farming-agent  -- Kaggriculture | Multi-Route Farming Agent
+  93  2026-09-14  aurax7/kaggriculture-shop-router-reactive-v5  -- Kaggriculture_shop_router_reactive_v5
+  90  2026-09-08  yhay81/shop-router-0908  -- Shop Router 0908
+  89  2026-09-14  ahmedberatozer/kaggriculture-v43-recovering-lost-harvests  -- Kaggriculture V43: Recovering Lost Harvests
+  87  2026-09-20  thomastschinkel/the-metav4-farm-submission-v13  -- The Metav4 Farm: Submission v13
+  87  2026-09-15  ahmedberatozer/kaggriculture-v45-first-turn-wheat-round-trip  -- Kaggriculture V45: First-Turn Wheat Round Trip
+  85  2026-09-16  reyhanksatria/kaggriculture-dynamic-route-agent  -- Kaggriculture: Dynamic Route Agent
+  84  2026-09-07  thomastschinkel/kaggriculture-93-8-win-rate-public-state-router  -- Kaggriculture: 93.8% Win Rate Public State Router 
+  83  2026-09-20  guruprasaathas111/kaggriculture-master-engine-v3  -- Kaggriculture Master Engine V3
+  82  2026-09-17  ahmedberatozer/kaggriculture-v48-clear-the-queue  -- Kaggriculture V48 — Clear the Queue
+  81  2026-08-10  boatlee/v16-rc2-high-score-near-mirror-market-relay  -- V16-RC2 | High-Score Near-Mirror Market Relay
+  80  2026-09-13  ahmedberatozer/kaggriculture-v41-review-candidate  -- Kaggriculture V41 — Review Candidate
+  78  2026-08-23  kaitofukami/103-128-fresh-public-v43-sparse-shop-hybrid  -- 103/128 Fresh Public | v43 Sparse Shop Hybrid
+  77  2026-09-20  tetsutani/demand-preserving-turn-sale-timing  -- 🌾 Demand-Preserving Turn Sale Timing
+  77  2026-09-17  salemali7/kaggriculture-2900  -- Kaggriculture | 2900+ 
+  75  2026-09-11  flexonafft/kaggriculture-most-powerfull-route  -- 🌾 Kaggriculture | Most Powerfull Route
+  75  2026-08-12  cjlcjlcjl/kaggriculture-what-the-top-farms-do-a-live-meta  -- Kaggriculture: What the Top Farms Do — a Live Meta
+  74  2026-09-03  lynnsakurai/farming-score-v3-replay-revised  -- Farming Score V3: Replay Revised
+  73  2026-08-23  andrewsokolovsky/kaggriculture-breaking-the-tie  -- Kaggriculture: Breaking the Tie 
+  71  2026-09-08  aurax7/kaggriculture-reactive-router  -- Kaggriculture_reactive_router
+  70  2026-09-17  jaxa623/2802-two-identical-agents-90-points-apart  -- [2802] Two Identical Agents, 90 Points Apart
+  70  2026-09-16  ahmedberatozer/kaggriculture-v46-first-turn-microstructure-and-s  -- Kaggriculture V46: First-Turn Microstructure and S
+  70  2026-09-01  yhay81/fieldbook-commit-for-three-days  -- Fieldbook: Commit for Three Days
+  69  2026-09-02  boatlee/v29-r1-adaptive-market-hysteresis  -- V29-R1 | Adaptive Market Hysteresis
+  69  2026-08-22  salemali7/harvest-kaggriculture  -- Harvest| Kaggriculture 
+  69  2026-08-13  indarkarhana/rank-top10-read-the-market-choose-the-farm  -- 🌾 (Rank Top10)Read the Market, Choose the Farm 📈
+  66  2026-08-21  boatlee/v21-r1-public-state-route-portfolio  -- V21-R1 | Public-State Route Portfolio
+  66  2026-08-17  boatlee/v20-adaptive-r1-multi-route-agent  -- V20-Adaptive-R1 | Multi-Route Agent
