@@ -969,3 +969,629 @@ pays for. Floor: min bank 37,272 vs 40,492 over the 320 games.
 Ship decision: it goes to the ladder in the slot `55891517` occupies (the Moon
 deficit build at 1,626, kept only as a control), alongside `55891543`, so the
 two can be read at equal episode count against a shared field.
+
+### The ladder answer, and the second cut: the family's own wool branch
+
+`router_fam_yarn.py` went in as `55908478` at 05:56 UTC. Four hours later:
+**2,732.2, rank 16 of 7,045** (from 115 at 2,471), with #1 at 2,915.7. The
+per-episode endpoint has been 429 all day, so win rate and opponent field are
+unread and n is at most ~20 - by yesterday's measurement of two identical
+agents, that is still inside the noise. The rank move is large enough to
+believe; the exact number is not yet.
+
+The one weakness the first cut left was the YARN_STORE-*first* draw (7 of 32
+fresh seeds), where it hands over to yhay tape 1 on a foreign opening and
+loses 0.3k-3.5k. The harvest holds the answer: `103391169_1`, the family's own
+YARN_STORE-first branch, recorded by Lucien de Rubempre **against our router**
+(105,851 to 92,407 under YARN_STORE -> PET_CAFE), opening **100% identical to
+the base schedule over turns 0-71**. The step-72 handover to it is between
+two recordings of one plan, not a splice across families.
+
+Sixteen YARN_STORE-first seeds (census 2, 25, 28, 38, 42, 55, 61, 96, 118 plus
+fresh 200, 206, 214, 217, 222, 226, 227), both seats, vs `router_yhay.py`:
+
+| YARN_STORE-first handling | W-L of 32 | mean | median |
+|---|---|---|---|
+| yhay tape 1 (first cut, `55908478`) | 0-32 | -1,754 | -1,641 |
+| **family wool branch, whole season** (`agents/router_fam_yarn2.py`) | **28-4** | **+8,527** | **+10,805** |
+| family wool branch to 144, then yhay pair tape | 0-32 | -2,642 | -2,515 |
+
+The tape had been screened on seeds 2, 25, 28, 38; on the twelve it had never
+seen it is 10-2 (losses 118 -1,947 and 226 -4,417). Handing it to a yhay tape
+at step 144 kills it again - the family's wool line has to be played whole,
+which is the same lesson as the first cut read the other way round.
+
+Three checks before it goes out. Off YARN_STORE-first seeds the two cuts are
+the same policy: six non-wool seeds vs the router reproduce the first cut's
+margins **to the dollar** (201 +15,069, 203 +2,001, 204 +6,702, 208 +13,002,
+209 +25,957, 213 +13,860). Head-to-head, second cut vs first, seeds 200-231:
+**14-4 of 64, +1,551**, every non-wool seed an exact tie and six of the seven
+wool seeds won (226 lost -2,388). Mirror: +0 mean. Gate `['DONE','DONE']`.
+
+It replaces `55891543` (the plain router, 2,461 - the slot is dead weight now
+that the team score is the max) so `55908478` and the second cut can be read
+against each other at equal episode count.
+
+### Correction: the second cut is not worse, and the change was unmeasurable before it shipped
+
+`55916283` (cut 2) read **2,575 against cut 1's 2,727 at n=64** and that looked
+like a clean regression. All 137 ladder replays of the two submissions were
+downloaded and split by the shop draw. The two agents differ on **exactly one**
+branch - episodes where YARN_STORE unlocks first - so the split is the whole
+experiment:
+
+| submission | YARN first? | n | wins | our bank | margin | opp rating | min bank |
+|---|---|---|---|---|---|---|---|
+| cut 1 (yhay tape 1) | **yes** | 6 | **6/6** | 97,861 | +20,527 | 1,976 | 83,460 |
+| cut 1 | no | 66 | 48/66 | 90,221 | +8,496 | 2,342 | 43,854 |
+| **cut 1 all** | | 72 | 54/72 | 90,858 | **+9,498** | 2,311 | 43,854 |
+| cut 2 (family wool branch) | **yes** | 5 | **3/5** | 105,773 | +9,212 | 2,212 | 85,672 |
+| cut 2 | no | 60 | 43/60 | 83,942 | +9,503 | 2,184 | 32,587 |
+| **cut 2 all** | | 65 | 46/65 | 85,622 | **+9,481** | 2,186 | 32,587 |
+
+Read the `no` rows first, because there the two agents **are the same
+program**. They post the same win rate (72.7% vs 71.7%) and cut 2 posts the
+*larger* margin (+9,503 vs +8,496) - yet their mean banks differ by **6,279**
+and their opponent fields by 158 points. That is the size of pure draw
+variance on 60-odd episodes of identical code, measured here for free.
+
+Season margins land within **17 dollars of each other**: +9,498 and +9,481.
+The 152-point score gap is the opponent field (2,311 against 2,186 - cut 1
+beat a field 125 points harder at the same rate), not the wool branch. On the
+cell where the two actually differ the counts are 6 and 5; cut 1 went 6/6 and
+cut 2 3/5, which leans cut 1 and settles nothing at n=11.
+
+**The number that should have stopped this before it was submitted: a
+YARN_STORE-first draw is 8-9% of ladder episodes** (6 of 72, 5 of 65), and the
+local census agrees at 7.5% (9 seeds of 120). It was written up here as "~22%"
+- that was a conflation of *YARN_STORE first* with *YARN_STORE anywhere in the
+first two*, and it is the error that made the change look worth a slot. At the
+true rate, the local wool-seed result (+8,527 on 28-4) has an expected
+aggregate effect of **0.08 x 8,527 = ~680 bank** - below the ~903 that
+byte-identical agents differ by. The change was **unmeasurable on the ladder
+by construction**, and no per-episode reading was ever going to resolve it.
+
+Generalises, and it is cheap to apply: **before spending a submission slot,
+multiply the measured local effect by the fraction of games the change can
+touch, and compare that to the noise floor.** A large margin on a rare branch
+is a small number. This repo already had the rule for judging a change
+(win count first, both harnesses); it did not have one for deciding whether
+the ladder *can* see it at all.
+
+Both cuts stay live. They are the same agent for 91% of games, so the pair is
+now a second natural experiment on the noise floor rather than a comparison of
+two strategies.
+
+### And the season aggregate is inflated: exclude the opening burst before reading anything
+
+The same 137-replay split, cut again by opponent rating, exposes a second
+error that affects every number in this file, not just this comparison.
+
+**The first 16-18 episodes of a submission are played against provisional-rated
+opponents around 1,200, and we beat them by about +30,000.** After that the
+matchmaking converges on a steady state of 2,550-2,700. So a season mean folds
+two different games together. Excluding everything under an opponent rating of
+2,000:
+
+| | n | win rate | margin | opp rating |
+|---|---|---|---|---|
+| cut 1, all episodes | 72 | 75.0% | **+9,498** | 2,344 |
+| cut 1, opponents 2000+ | 54 | 66.7% | **+2,244** | 2,630 |
+| cut 2, all episodes | 65 | 70.8% | **+9,481** | 2,220 |
+| cut 2, opponents 2000+ | 45 | 62.2% | **+1,584** | 2,521 |
+
+The season margin overstates the steady-state margin by roughly **4x**. Our
+real standing against the field we now draw is a **~65% win rate at about
++2,000 bank** - a genuine edge, and a much narrower one than +9,498 suggests.
+It is also self-consistent: 65% against a 2,630 field implies a rating near
+2,730, which is what the board says.
+
+Two consequences. **Any future ladder comparison must drop the burst before
+computing anything** - it is 25% of a submission's episodes carrying 4x the
+margin, and two submissions with different burst lengths are not comparable at
+all. And it re-prices the target: closing the 195 points to #1 means going from
+~65% to roughly ~78% against a 2,650 field, which is a base-quality change, not
+a branch fix.
+
+On the original question the refined cut says the same thing as the crude one.
+Cut 2's ten worst episodes: **nine of the ten sit in the shared cell**, where
+the two agents are the same program, all against opponents rated 2,493-2,620.
+In the divergent cell above the burst it is cut 1 3-0 and cut 2 1-2, on three
+episodes each. Not settled, not worth a slot to settle, and both stay live.
+
+## The field's schedule map, and why "find a better base" has run out of room (2026-09-01)
+
+The episode endpoint unblocked overnight, so all 40 top teams' current
+submissions were resolved and their recent episodes harvested: **376 tapes**,
+both seats, clustered at 90% action agreement over turns 0-399. The map is
+more decision-relevant than any single candidate in it.
+
+| cluster | tapes | teams | anchored by | what it is to us |
+|---|---|---|---|---|
+| 0 | **72** | 29 | **#2 MtN** | the family screened on 2026-08-31 and **rejected** - 10 of 50 beat our router |
+| 1 | 62 | 17 | #3 Driz Lo | matches yhay `ref:0` - **we already carry it** |
+| **2** | **45** | **15** | **#4 islet** | **our live schedule** (islet, gogogo, boatlee, yarneo, us) |
+| 4 | 19 | 9 | #3 Driz Lo | matches yhay `ref:1` - we carry it |
+| 5 | 18 | 3 | #8 QQ Farming | novel, small |
+| - | 3 | 1 | **#1 tetsuya** | singleton, matches nothing at all |
+
+Three readings follow, and together they close a line of work.
+
+**We already run a top-tier base.** Cluster 2 is the schedule behind #4, and we
+are in it. Cluster 1 is the schedule behind #3, and it is `ref:0`, which the
+router has carried since 2026-08-30. The single largest family in the field -
+29 teams, anchoring **#2** - is the one our own screen measured as *worse* than
+ours in direct play. So the teams sitting 90-100 points above us are not there
+because of a recording we lack.
+
+**And #1 cannot be copied, which is measurable rather than a guess.** Tetsuya's
+three harvested games agree with each other **100% over turns 0-71**, then
+0.36 and 1.00 over 72-143 (a real branch on the shop draw), 0.02-0.38 over
+144-399, and **0.00 over 400-718 for every pair**. Zero self-agreement in the
+last third of the season is not a route table; it is state-dependent decision
+making. There is no fixed plan in there to take, which is exactly what the
+public field guide predicted when it measured source-team rating as a
+*negative* predictor of tape transfer.
+
+What tetsuya's tapes do give is an economic profile, and two gaps are large:
+
+| | our base | tetsuya |
+|---|---|---|
+| HIRE, turns 0-71 | 13 | **19** |
+| WHEAT bought / sold, turns 0-71 | 23 / 11 | **59 / 48** |
+| FERTILIZER bought / sold, turns 144-719 | 62 / 305 | **274 / 524** |
+
+Those are quantities, not schedules, so they are testable without copying
+anything - but note that each is a *purchase*, and this file already records
+what inserting purchases into a recorded cash-flow schedule does.
+
+**The gap we can name is the rim, not the tape.** Our agent replays a tape,
+pads the hands list, and returns PASS on exception. That is the entire rim.
+Every agent in the published survey of sixteen ships repair machinery on top -
+retry what the tape asked for and could not have - and that survey calls it
+"most of the value the rim adds". Six overlays failed here on 2026-08-31, two
+of them repair-class, but all six were measured on the *yhay router* base, and
+the reason recorded for their failure was specific to it: a blind replay of a
+foreign schedule has no state worth repairing. The current base is a different
+lineage. That makes repair a live hypothesis again rather than a settled dead
+end - and it needs its own measurement, not an assumption in either direction.
+
+One repair class is already closed by measurement: terminal liquidation is
+monotone by construction, but end-of-season shed value is **65 for us against
+21 for top-20 teams** - both effectively zero. There is nothing stranded to
+collect.
+
+### The 80-tape screen: #1's recording is worse than ours, and a tape cannot be spliced across openings
+
+Every novel tape from a top-20 team was replayed whole against
+`agents/router_fam_yarn.py` (our live agent, rank 18) on the census seeds
+matching its own route key, both seats. 79 candidates, 594 games.
+
+**Tetsuya's three tapes, from the #1 team, lose: 4-4, 4-4 and 0-8 (-13,773).**
+The published field guide predicted this - source-team rating is a *negative*
+predictor of tape transfer - and it is now measured on our own harness rather
+than taken on faith. The strength of the leading agent is in machinery that
+does not travel with the recording. **"Copy #1" is closed.**
+
+24 of 79 candidates beat our live agent, and they concentrate hard: seven of
+the top eight are YARN_STORE route keys, at +3,957 to +11,743, mostly 8-0.
+Our wool handling is the weak spot in the current build.
+
+**But assembling the winners into a router loses**, and the failure is the most
+transferable thing in this entry. A 20-tape key-router scored **18-12, -834**
+switching at step 144 and **20-22, -4,104** switching at 72 (worst game
+-35,073) on fresh seeds 240-271. Per-seed, most seeds tie exactly (no tape for
+that key) while the seeds that do switch produce both +9,555 and -16,699.
+
+The cause is visible without any further games. **13 of the 20 winners share
+only 6-53% of our opening over turns 0-71.** A tape is a plan timed against
+the state its own opening produced; entering it at step 144 hands it a farm,
+a bank and a shed it was never written for. It wins as a whole season and
+loses as a continuation. The seven that *do* share our opening (>=0.90) are
+not foreign at all - they are **islet (#4), xi luo (#16) and gogogo (#11),
+our own cluster 2** - and five of the seven are the high-margin YARN keys.
+
+Generalises: **before splicing a harvested tape behind a branch point, check
+its agreement with the opening it will inherit.** Route selection is only safe
+between recordings of the same plan; between plans it is a state mismatch with
+a recording pasted over it. This is the same wall the six overlays hit on
+2026-08-31, reached from the opposite direction - there the layer was foreign
+to the tape, here the tape is foreign to the opening.
+
+### The ladder pays for WINS, not for bank margin - and this file has been quoting the wrong number
+
+Measured on our own 135 rated episodes, using each episode's `initialScore` and
+`updatedScore`, restricted to steady state (both ratings >= 2,000, which drops
+the opening burst):
+
+| | n | mean rating change |
+|---|---|---|
+| wins | 68 | **+23.63** |
+| losses | 37 | **-11.83** |
+| wins, small-margin half (+119 .. +2,529) | 34 | +18.51 |
+| wins, large-margin half (+2,709 .. +34,128) | 34 | +28.75 |
+| losses, big-loss half (-11,791 .. -2,091) | 18 | -12.91 |
+| losses, small-loss half (-1,696 .. -205) | 19 | -10.80 |
+
+**`corr(rating change, margin | steady-state wins) = +0.002`.** Zero. Winning
+by 34,000 is worth the same rating as winning by 119, and losing by 11,791 costs
+the same as losing by 205. The apparent margin effect over the full record
+(+0.584) is entirely the opening burst, where huge margins and huge rating gains
+co-occur because the rating is converging up from 600 - not because the margin
+earned it.
+
+This matters immediately, because it inverts a live decision. The
+Semyon Epanov schedule, replayed whole against `agents/router_fam_yarn.py` on
+fresh seeds 400-431, both seats:
+
+| | win-loss | mean margin | median margin |
+|---|---|---|---|
+| Semyon Epanov (#20) | **54-10 of 64** | **-795** | +2,096 |
+| cygn (#14) | **52-12 of 64** | -907 | +1,784 |
+
+By mean margin both look like losses. By the metric the ladder actually pays
+they beat our live agent in **84%** and **81%** of games - it wins small and
+often, and loses rarely and hugely (5 seeds at -7,700 to -24,500). A negative
+mean bought with an 84% win rate is a **good** trade here, and this repo's own
+"read the win count before any t-value" rule was right for a reason it had not
+yet measured.
+
+Both are pure blind replayers: one fixed 719-step schedule, byte-identical
+across four and six different shop draws respectively, with **no routing at
+all**. They beat a router.
+
+Correction to earlier entries in this file: every "+X mean bank" claim used to
+justify or reject a change was measuring a quantity the ladder does not score.
+The win counts quoted alongside them were the load-bearing numbers all along.
+Rankings by margin should be re-read as rankings by win count wherever the two
+disagree - and they disagree here, on the largest candidate of the day.
+
+### The population check, and what it rejected
+
+Three candidates went to the same ten-opponent panel - eight tapes of opponents
+`55908478` actually drew on the ladder (rated 583-2,529) plus kaito v48 and
+indarkarhana - on seeds 200-215, both seats, 320 games each. Win count, since
+that is what the rating pays:
+
+| agent | panel record | vs `router_fam_yarn.py` head to head |
+|---|---|---|
+| `agents/router_fam_keys.py` (V4) | **280-40 (87.5%)** | 46-20 of 320 decided |
+| `agents/router_fam_yarn.py` (live, rank 18) | 278-42 (86.9%) | - |
+| Semyon Epanov's schedule | **262-58 (81.9%)** | **54-10 of 64** |
+
+**Semyon Epanov's schedule is rejected, and it is the sharpest counter-example
+this repo has recorded.** It beats our live agent in 84% of head-to-head games
+- decisive by every rule in this file - and is 5 points *worse* against the
+field. It is a counter to our specific schedule, not a better agent, and the
+ladder matches us against the field. Shipping on the head-to-head number alone
+would have traded 86.9% for 81.9% while every local reading said we had
+improved. cygn's schedule (52-12 head to head) has the same shape.
+
+This is the documented "head to head can bless a change that only works because
+the opponent is a copy of us", in its sharper form: the opponent need not be a
+copy, only a specific counter. **A head-to-head win against the incumbent is
+not evidence of a field improvement. Only the panel is.**
+
+V4 ships on a weaker claim than the ones this file usually makes, and the claim
+is stated as it is: **+2 games in 320 against the base is inside noise.** It is
+the base agent by construction on every draw outside its six route keys, it
+wins more than it loses on the rest (46-20), its worst single game against the
+base is -6,579 against an identical minimum bank, and the slot it occupies was
+otherwise holding `55916283`, which is the same program as the base on 91% of
+games. Weakly dominant, in a slot that was doing nothing.
+
+## The eviction, the wave, and the sell-advance rim (2026-09-02)
+
+### First, a correction: `55928263` evicted the best agent, not the duplicate
+
+The entry above says `55928263` "replaces the near-duplicate slot". It did
+not. The latest-2 rule evicts the **oldest** active submission, and the oldest
+was `55908478` - the 2,722 agent. `55916283` (the yarn2 cut) stayed active. By
+the 2026-09-01 19:55 UTC snapshot the team read **2,435.9, rank 186 of 7,216**,
+because that is the better of the two submissions that were actually active.
+The record of the evicted agent is frozen at 77 episodes; nothing about it is
+lost except its slot.
+
+### The field resubmitted on 2026-09-01, and our lineage stopped winning mirrors
+
+`55916283`, in steady state (opponent rated 2,000+), before and after the wave:
+
+| window | record | opponent rating |
+|---|---|---|
+| all 111 rated episodes | 45-66 (41%) | 2,519 |
+| **last 30** | **4-26 (13%)** | 2,490 |
+
+Not a rating artefact - 4 of 30 is p < 0.0001 against a coin. Every
+top-20 team's last submission date on the leaderboard is 2026-09-01.
+
+Replays of the last 24 episodes, our seat against the opponent's, action
+agreement by window:
+
+| group | n | agreement 0-71 / 144-399 / 400-718 | typical margin |
+|---|---|---|---|
+| **mirror: our schedule with a market rim** | 11 | 1.00 / 0.94-0.99 / 0.7-0.9 | **-96 to -2,311** |
+| a related opening variant | 3 | 0.83 / 0.86 / 0.61 | -790 to +247 |
+| our wool branch vs a different wool branch | 3 | 1.00 / 0.35 / 0.5 | -4,669 to -7,248 |
+| unrelated agents | 2 | 0.12-0.14 | -1,147, -14,893 |
+
+The mirror group is the story. Eleven different teams play our farm schedule
+**action for action** (first divergence at step 120, and that one is an
+order-of-orders change), and their per-product season SELL totals are ours to
+within 3 fertilizer and 2 strawberries. The whole difference is **timing**:
+
+| their SELL order relative to ours | count |
+|---|---|
+| same step | 1,969 |
+| 1 step earlier | 114 |
+| 2 steps earlier | 48 |
+| 3 steps earlier | 16 |
+| 5-6 steps earlier | 4 |
+| later | 8 |
+
+In a mirror match both agents hold the same goods on the same hour. Whoever
+sells first takes the quoted price; the other sells into the crash their order
+just made. That is the whole margin, a few hundred dollars out of ~100,000,
+and the ladder pays for the win regardless of its size. Front-running a copy
+of yourself by one hour is worth +23.6 rating per game.
+
+### The rim: pull the tape's own SELL orders forward, never change them
+
+`agents/router_fam_lead.py` = `router_fam_keys.py` plus: at step >= 144, look
+`LEAD_K` steps ahead in the currently selected tape; any SELL of a product
+other than WHEAT or FERTILIZER whose quantity the shed already holds is placed
+now and skipped at its original step. Tape orders first, cap 10. Quantities
+are untouched (verified: identical per-product season totals in a mirror
+game). WHEAT and FERTILIZER stay on schedule because the tape feeds and
+fertilizes out of them.
+
+Measured, `fam/run_agents.py`, both seats:
+
+| test | K=1 | K=3 | K=6 | K=12 |
+|---|---|---|---|---|
+| mirror vs `router_fam_keys`, seeds 200-215 (32 games) | 32-0, +1,907 | 32-0, +2,213 | 32-0, +1,854 | 32-0, +1,051 |
+| vs the 9 recorded front-runners as tapes, seeds 200-207 (144 games) | 84-58 | - | **144-0** | - |
+| base `router_fam_keys` on the same 9 | 64-80 | | | |
+
+The base loses to the recorded front-runners locally the way it does on the
+ladder (64-80). A one-step lead beats the one-step opponents and ties the
+rest; K=6 beats every observed lead (max 6) in every game. K=12 is already
+paying for the extra hours in lost recovery time (+1,051 against +2,213), so
+the lead is the smallest one that clears the field, not the largest one that
+still wins a mirror.
+
+Non-mirror panel (8 drawn-opponent tapes, seeds 200-215): K=6 **230-26 (89.8%)** against the base's **222-34 (86.7%)** on the same eight opponents, and never worse on any single one:
+
+| opponent | base | K=6 |
+|---|---|---|
+| 103310582_0 | 32-0 | 32-0 |
+| 103330604_1 | 32-0 | 32-0 |
+| 103366436_0 | 28-4 | **32-0** |
+| 103391169_1 | 22-10 | **26-6** |
+| 103395570_0 | 18-14 | 18-14 |
+| 103397845_0 | 28-4 | 28-4 |
+| 103404555_0 | 32-0 | 32-0 |
+| 103415744_1 | 30-2 | 30-2 |
+
+Selling an hour or two earlier is free against a non-mirror, and against the
+two panel opponents that share our late-season sells it is a win. No slot
+is being spent on a head-to-head-only claim this time: mirror, front-runners
+and panel all point the same way.
+
+**Size it honestly.** Mirrors were 11 of the last 24 draws and we lost 10 of
+them. Flipping those returns the lineage to roughly its pre-wave standing -
+rank ~20 - and it is only good until the field advances its own sells again.
+It is a repair, not the 195-point lever to #1. What it does establish is the
+class of lever that lever will come from: the recording underneath is now the
+field's commons, so the remaining edge is in the rim, and the rim's first job
+is the market.
+
+## Route generation six: the field moved again, and the answer is a whole plan (2026-09-03)
+
+### The rim did its job and it was not enough
+
+`55948802` (the sell-advance rim) read **93-59 (61%)** in steady state after
+168 episodes against a 2,504 field, and every mirror match in its replays that
+the base used to lose by a few hundred was a win by 200-1,600. By 2026-09-03
+02:00 UTC it read **8-30 over its last 30** and the team sat at **rank 323**.
+The field's top ten resubmit daily; the family schedule is now a floor, not an
+edge.
+
+### What is beating us now, from 24 replays
+
+| opponent class | games | agreement with us 144-400 | margin |
+|---|---|---|---|
+| wool-route lineage (dong & shen, kaggle Osaka, Zyy7390, Gaiar) on YARN_STORE-first draws | 5 | 0.03 | -8k to -18k |
+| ActiveMusyoku (#28), Renoir Vieira (#24), Yuan800 (#2) | 5 | 0.03-0.04 | -8k to -32k, one game **-124,133** |
+| mirrors of our schedule | 6 | 0.94-0.99 | now +200 to +1,600 |
+
+**The -124,133 game is a collapse, not a loss.** Our agent acted every turn,
+banked 9,798, held under $500 through day 10, and let half the farm weed.
+A blind tape kept issuing its recorded purchases into a market the opponent
+had already crashed. This is the documented "a tape has no state to repair"
+failure, costing a full game.
+
+**The wool lineage is not a new plan - it is ours.** Action histograms of
+their tapes against the family schedule over 144-400 are identical to the
+unit (72 MELON sold, 56 PLACE, 112 HIRE...). Their edge on wool draws is that
+they stay on the family schedule and branch at 72 into a *better wool branch*
+than the yhay tapes we hand over to. `gen6_c` (family + their per-key
+branches, 24 keys, wool-first medoid at 72) is **42-10 of 64 vs the rim
+(+2,059)**, beats every recorded wool-lineage tape (10-6, 14-2, 16-0, 16-0,
+10-6, 16-0), and reads **238-18** on the panel against the rim's 230-26.
+Real, and worth maybe +8 win-rate points. Not the gap.
+
+### The whole-plan router, and a 35,000 head-to-head margin
+
+ActiveMusyoku's 47 harvested tapes share one opening (35 at >= 0.95 over
+0-71) and are route-keyed at 144 (same key 0.98, cross key 0.48). Structurally
+the plan is ours with a heavier late animal operation: **212 wool sold after
+step 400 against our 90**, FEED/CARE up a quarter. `experiments/tapes/make_whole.py`
+rebuilds it as a router: opening medoid, first-shop medoid at 72, exact key at
+144 only when it agrees >= 0.95 with the 72-143 segment already played.
+
+| test (both seats) | result |
+|---|---|
+| vs the live rim agent, seeds 200-231 | **64-0, mean +35,027, worst +7,963** |
+| vs its own source game as a tape, seeds 200-207 | 16-0, +4,790 (the splice is sound) |
+| vs dong & shen / Osaka / Zyy7390 / Gaiar tapes | 16-0 each, +30k to +53k |
+| vs Yuan800 (#2) tape | 2-14, -12,058 (the rim: 0-16, -27,022) |
+| vs Renoir Vieira (#24) tape | 2-14, -9,919 (the rim: 0-16, -17,748) |
+| 8-opponent panel | five of eight read before a pool hang: 32-0, 32-0, 32-0, 32-0 and **11-21** against `opp_103395570_0` (a yhay-clade tape from a rank-1,097 team, where every family-based agent reads 18-14). That one is a flag, not a blocker: it is one off-route tape, and the check that matters - am_a against the real `router_yhay.py` - is running. Read afterwards: the last two panel opponents are 32-0 and 32-0 (one was
+lost to a pool hang), am_a beats the real `router_yhay.py` **32-0, +31,802**
+on seeds 200-215, so the 11-21 was one off-route tape. And the rim earns its
+keep on this base too: the same router with `LEAD_K = 0` loses to it
+**0-32, -1,707**. Submitted 2026-09-03 03:14 UTC as `55973335`. |
+
+This is the largest single jump this file has recorded, three times the Aug
+30 router adoption. It ships as `agents/router_am.py`. Yuan800's and Renoir's
+whole-plan routers (63 and 57 compatible tapes each) are built and under the
+same tests; whichever beats this one replaces it.
+
+### Two harness notes, so nobody repeats them
+
+- **A Windows path after a comma in `run_agents.py`'s candidate list is
+  mangled by MSYS** (`C:/Users/...` became `C;C:\Program Files\Git\Users\...`).
+  The env then loads nothing and the candidate plays **inert at $3,000 with
+  status DONE and no error**. 128 rows of one chain were that. Relative paths
+  only in comma lists; the INERT flag the harness prints is the tell.
+- Two multiprocessing pool runs hung with no output for over an hour. Every
+  stage now runs under `timeout`.
+
+### Second cut: Yuan800's plan, and it beats the first cut 64-0
+
+The same builder on Yuan800 (#2, 2,925)'s 63 harvested tapes - all 63 share
+one opening, 8 first shops covered. `agents/router_yuan.py`, both seats,
+seeds 200-231 unless noted:
+
+| test | Yuan800 router | (Renoir's router, same tests) |
+|---|---|---|
+| vs `router_am.py` (gen six, live) | **64-0, +17,792, worst +496** | 63-1, +14,995 |
+| vs `router_fam_lead.py` | 32-0, +29,472 | 32-0, +19,436 |
+| vs its own source tape | 16-0, +10,185 | - |
+| vs ActiveMusyoku / Osaka / Zyy / dong & shen tapes | 16-0 each, +18k to +60k | 16-0 each |
+| vs Renoir Vieira's tape | 14-2, +8,695 | 12-4 |
+| vs Renoir's router, head to head | **28-4, +6,832** | - |
+| rim K=6 vs K=0 on this base | K=0 loses **0-32, -1,946** | - |
+| panel, all 8 | **241-15**: 32-0, 29-3, 32-0, 32-0, **20-12**, 32-0, 32-0, 32-0 | 234-22 |
+
+The 20-12 is the same yhay-clade tape that read 11-21 against the first cut
+and 18-14 against every family agent; this is the first of ours to beat it.
+The rim earns +1,946
+a game on this base as it did on the last two: **the market layer transfers
+across recordings, the recordings do not.**
+
+Order of the field as we can now measure it locally: Yuan800 > Renoir >
+ActiveMusyoku > wool lineage > family + rim > family. Each step is 10-30k a
+game. We were at the bottom of that ladder yesterday morning.
+
+### The flip: Yuan800's opening collapses against anyone who does not copy it exactly
+
+Within ten hours of shipping the Yuan800 router, its copies were on the
+ladder (GURU Prasaatha S, Khanh, Bx LLLLLLLL - 0.93 opening agreement) and
+beat `router_am` by 20-30k a game. Replayed locally against our Yuan800
+router they do worse than that: **0-16, -148,269**. Our bank in those games
+is **342**.
+
+Mechanism, traced step by step. Yuan800's recorded opening buys 53 WHEAT at
+step 0 and sells 48 at step 1 (~$300 net loss), then buys two cows, two
+sheep, five hands and 19 seeds and lands on **exactly $0**. Orders process in
+index lockstep against the opponent's list, so any opponent whose wheat
+orders shift our sale by a few dollars leaves us short at the last orders.
+The mirror leaves $29 and survives. The copies buy 13 and sell 8 - same held
+wheat, $300 more cash - and against them we land on $0, the day-1 hires fail
+for want of $1, 12 fresh melons go unwatered, 16 tiles are weeds by day 3.
+
+Guards were the wrong fix and the numbers say why. HIRE-first ordering
+prevents the collapse (5-11 from 0-16) but loses the mirror **4-28**: an
+order moved later in the list sells later in the lockstep, and that is the
+whole sell-first war again. PLANT-only-what-you-hold changes nothing here.
+
+The right fix is the copies' fix. `agents/router_yuan_nf.py` = the Yuan800
+router with step 0 BUY 53 -> 13 and step 1 SELL 48 -> 8. Everything else
+identical.
+
+| test (both seats) | no-flip router |
+|---|---|
+| vs `router_yuan.py` (our live agent), 32 games | **32-0, +150,363** |
+| vs Yuan800's own source tape | 16-0, +157,763 |
+| vs Renoir Vieira's tape | 16-0, +94,681 |
+| vs the GURU copy that collapsed us | 8-8, +3,512 |
+| vs the Khanh copy | 16-0, +14,135 |
+| vs the two other new winners | 16-0 +35,723, 16-0 +163,545 |
+| vs `router_am.py` | 14-2, +20,551 |
+| vs `router_fam_lead.py` | 16-0, +5,340 (the flip router: 32-0, +29,472) |
+| vs `router_yhay.py` | 8-8, +14,419 |
+| vs the yhay-clade panel tape | 10-6, +11,091 |
+
+Read it straight: **every agent still running the recorded flip - Yuan800,
+Renoir, our own live submission - collapses against this one.** The cost is
+a thinner margin against the family lineage (still 16-0) and a coin flip
+against the yhay lineage. Yuan-lineage agents were 6 of `router_am`'s last
+24 opponents and rising; family 7; the rest scattered.
+
+Generalises, and it is the sharpest form yet of "a tape has no state to
+repair": **a recorded plan that lands on $0 is a plan that only works
+against its own recording.** Check the cash floor of any harvested opening
+before shipping it, and if it touches zero, look at what its copies changed.
+
+## Route coverage: the router's own missing keys were worth ~16,600 bank a season
+
+`router_yuan_nf` held 38 of the 64 possible `first__second` shop keys. The other 26
+fell back to `W_SIB[first]` - a route recorded for a *different* second shop. That
+fallback is not free, and it is the largest single lever measured on this base.
+
+Probed over 64 seeds in self-play (`cov/probe.py`), reading the key at step 144:
+
+| | seeds | mean bank |
+|---|---|---|
+| exact key | 34 | 92,628 |
+| fallback to sibling | 30 | 76,038 |
+
+**47% of seasons fell back, each costing about 16,600 bank.** That maps onto the
+ladder record directly. Over `55992408`'s first 194 rated episodes our own bank -
+not the opponent's - predicts the result:
+
+| our bank | n | win rate |
+|---|---|---|
+| 60-80k | 37 | 54% |
+| 80-100k | 46 | 72% |
+| 100-120k | 44 | 68% |
+| 120-140k | 29 | 90% |
+| 140k+ | 23 | 100% |
+
+The 52 losses in those 194 episodes are spread across ~48 *different* teams, the
+worst is only -27k, and in most of them our own bank collapses rather than the
+opponent playing well. **This is a within-plan variance problem, not a lineage
+problem** - which is why the fix is coverage on the existing base rather than
+cloning the tier above.
+
+Filling the keys needed 343 more Yuan800 replays (`top/harvest_par.py`, six
+threads; ~1 episode/min, bandwidth-bound at ~31 MB each). All 26 missing keys
+found a tape at ag143 = 1.00 against their first-shop medoid: **64 of 64 keys**.
+
+`experiments/tapes/augment_keys.py` *adds* keys only - it never rebuilds a medoid.
+That matters: re-running `make_whole.py` on the larger manifest would regenerate
+the opening medoid and bring the wheat flip back. The script asserts the opening
+tape is unchanged and prints `open[0]`/`open[1]` for eyeballing.
+
+Result vs the live `router_yuan_nf`, 64 seeds x 2 seats:
+
+| seeds | games | record | mean |
+|---|---|---|---|
+| exact-key (already covered) | 68 | 5-5, 58 exact ties | +0 |
+| fallback (the fix applies) | 60 | **38-12** | **+1,847** |
+
+Nothing that already worked moved; all the gain is where the gap was. The 58 exact
+ties are the evidence that no medoid shifted.
+
+**A reward floor on the added tapes is worse, and the reason is worth keeping.**
+The losses cluster on keys whose only tape came from a weak Yuan800 season (seed 57's
+tape banked 70k and lost -11,603). Gating on reward >= 80k drops 11 keys and does
+remove that tail - min bank barely moves, 40,960 -> 41,469 - but it costs more in
+forgone wins than it saves: 25-9 / +84,940 against full coverage's 38-12 / +110,799.
+Since the ladder pays for wins, full coverage wins on both counts. Tuning the floor
+further would be fitting a hyperparameter to 64 seeds; not done.
+
+Panel: 62-2 (+5,488) vs `router_fam_lead`, gate `['DONE','DONE']`. Cash floor is
+unchanged by construction - the added tapes only act from step 144 and the season
+minimum lands at step 101.
