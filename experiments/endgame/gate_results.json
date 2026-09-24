@@ -1,0 +1,992 @@
+[
+ {
+  "episode": 111577671,
+  "seed": 116495659,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 72514,
+  "replayed_bank": 72514.0,
+  "opp_recorded_bank": 92819.0,
+  "opp_replayed_bank": 92819.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111566342,
+  "seed": 262077888,
+  "seed_source": "info.seed",
+  "seat": 0,
+  "seat_checks": {
+   "listing_index": 0,
+   "by_reward": [
+    0
+   ],
+   "by_team": [
+    0
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 102003,
+  "replayed_bank": 102003.0,
+  "opp_recorded_bank": 112306.0,
+  "opp_replayed_bank": 112306.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111554692,
+  "seed": 1690307195,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 79221,
+  "replayed_bank": 79221.0,
+  "opp_recorded_bank": 117353.0,
+  "opp_replayed_bank": 117353.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111531881,
+  "seed": 857556051,
+  "seed_source": "info.seed",
+  "seat": 0,
+  "seat_checks": {
+   "listing_index": 0,
+   "by_reward": [
+    0
+   ],
+   "by_team": [
+    0
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 86616,
+  "replayed_bank": 86616.0,
+  "opp_recorded_bank": 104327.0,
+  "opp_replayed_bank": 104327.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111514681,
+  "seed": 1935863529,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 123608,
+  "replayed_bank": 123608.0,
+  "opp_recorded_bank": 110329.0,
+  "opp_replayed_bank": 110329.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111499902,
+  "seed": 1570037562,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 134764,
+  "replayed_bank": 134764.0,
+  "opp_recorded_bank": 84238.0,
+  "opp_replayed_bank": 84238.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111490728,
+  "seed": 1200979484,
+  "seed_source": "info.seed",
+  "seat": 0,
+  "seat_checks": {
+   "listing_index": 0,
+   "by_reward": [
+    0
+   ],
+   "by_team": [
+    0
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 91142,
+  "replayed_bank": 91142.0,
+  "opp_recorded_bank": 101198.0,
+  "opp_replayed_bank": 101198.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111478570,
+  "seed": 339150682,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 96502,
+  "replayed_bank": 96502.0,
+  "opp_recorded_bank": 122941.0,
+  "opp_replayed_bank": 122941.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111474079,
+  "seed": 112916447,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 104830,
+  "replayed_bank": 104830.0,
+  "opp_recorded_bank": 118947.0,
+  "opp_replayed_bank": 118947.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111468533,
+  "seed": 1206285870,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 89741,
+  "replayed_bank": 89741.0,
+  "opp_recorded_bank": 100792.0,
+  "opp_replayed_bank": 100792.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111465222,
+  "seed": 656535240,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 39488,
+  "replayed_bank": 39488.0,
+  "opp_recorded_bank": 60518.0,
+  "opp_replayed_bank": 60518.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111450117,
+  "seed": 127483718,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 96560,
+  "replayed_bank": 96560.0,
+  "opp_recorded_bank": 109708.0,
+  "opp_replayed_bank": 109708.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111433063,
+  "seed": 817761539,
+  "seed_source": "info.seed",
+  "seat": 0,
+  "seat_checks": {
+   "listing_index": 0,
+   "by_reward": [
+    0
+   ],
+   "by_team": [
+    0
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 93133,
+  "replayed_bank": 93133.0,
+  "opp_recorded_bank": 111757.0,
+  "opp_replayed_bank": 111757.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111425762,
+  "seed": 167371723,
+  "seed_source": "info.seed",
+  "seat": 0,
+  "seat_checks": {
+   "listing_index": 0,
+   "by_reward": [
+    0
+   ],
+   "by_team": [
+    0
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 101553,
+  "replayed_bank": 101553.0,
+  "opp_recorded_bank": 98251.0,
+  "opp_replayed_bank": 98251.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111425309,
+  "seed": 735168140,
+  "seed_source": "info.seed",
+  "seat": 0,
+  "seat_checks": {
+   "listing_index": 0,
+   "by_reward": [
+    0
+   ],
+   "by_team": [
+    0
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 48827,
+  "replayed_bank": 48827.0,
+  "opp_recorded_bank": 89355.0,
+  "opp_replayed_bank": 89355.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111421353,
+  "seed": 964837676,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 93025,
+  "replayed_bank": 93025.0,
+  "opp_recorded_bank": 92433.0,
+  "opp_replayed_bank": 92433.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111407785,
+  "seed": 95126202,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 122777,
+  "replayed_bank": 122777.0,
+  "opp_recorded_bank": 106645.0,
+  "opp_replayed_bank": 106645.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111394601,
+  "seed": 889854809,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 118086,
+  "replayed_bank": 118086.0,
+  "opp_recorded_bank": 122967.0,
+  "opp_replayed_bank": 122967.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111386927,
+  "seed": 1218691032,
+  "seed_source": "info.seed",
+  "seat": 0,
+  "seat_checks": {
+   "listing_index": 0,
+   "by_reward": [
+    0
+   ],
+   "by_team": [
+    0
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 100584,
+  "replayed_bank": 100584.0,
+  "opp_recorded_bank": 87680.0,
+  "opp_replayed_bank": 87680.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111375573,
+  "seed": 1760789429,
+  "seed_source": "info.seed",
+  "seat": 0,
+  "seat_checks": {
+   "listing_index": 0,
+   "by_reward": [
+    0
+   ],
+   "by_team": [
+    0
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 88089,
+  "replayed_bank": 88089.0,
+  "opp_recorded_bank": 94747.0,
+  "opp_replayed_bank": 94747.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111373751,
+  "seed": 1514305575,
+  "seed_source": "info.seed",
+  "seat": 0,
+  "seat_checks": {
+   "listing_index": 0,
+   "by_reward": [
+    0
+   ],
+   "by_team": [
+    0
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 127487,
+  "replayed_bank": 127487.0,
+  "opp_recorded_bank": 126021.0,
+  "opp_replayed_bank": 126021.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111348987,
+  "seed": 140347009,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 88278,
+  "replayed_bank": 88278.0,
+  "opp_recorded_bank": 100384.0,
+  "opp_replayed_bank": 100384.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": false,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111333851,
+  "seed": 605483202,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 141860,
+  "replayed_bank": 141860.0,
+  "opp_recorded_bank": 139058.0,
+  "opp_replayed_bank": 139058.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111206985,
+  "seed": 1520736151,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 110619,
+  "replayed_bank": 110619.0,
+  "opp_recorded_bank": 92762.0,
+  "opp_replayed_bank": 92762.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111204048,
+  "seed": 1453577271,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 103589,
+  "replayed_bank": 103589.0,
+  "opp_recorded_bank": 90216.0,
+  "opp_replayed_bank": 90216.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111171646,
+  "seed": 1743031640,
+  "seed_source": "info.seed",
+  "seat": 0,
+  "seat_checks": {
+   "listing_index": 0,
+   "by_reward": [
+    0
+   ],
+   "by_team": [
+    0
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 90527,
+  "replayed_bank": 90527.0,
+  "opp_recorded_bank": 88781.0,
+  "opp_replayed_bank": 88781.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111130830,
+  "seed": 2106803030,
+  "seed_source": "info.seed",
+  "seat": 0,
+  "seat_checks": {
+   "listing_index": 0,
+   "by_reward": [
+    0
+   ],
+   "by_team": [
+    0
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 53131,
+  "replayed_bank": 53131.0,
+  "opp_recorded_bank": 48630.0,
+  "opp_replayed_bank": 48630.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111123163,
+  "seed": 586250190,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 110506,
+  "replayed_bank": 110506.0,
+  "opp_recorded_bank": 89710.0,
+  "opp_replayed_bank": 89710.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 111003172,
+  "seed": 113578973,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf.py",
+  "recorded_bank": 93320,
+  "replayed_bank": 93320.0,
+  "opp_recorded_bank": 90046.0,
+  "opp_replayed_bank": 90046.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ },
+ {
+  "episode": 110996585,
+  "seed": 1510410391,
+  "seed_source": "info.seed",
+  "seat": 1,
+  "seat_checks": {
+   "listing_index": 1,
+   "by_reward": [
+    1
+   ],
+   "by_team": [
+    1
+   ]
+  },
+  "agent_file": "agents/router_yuan_nf_trim.py",
+  "recorded_bank": 99362,
+  "replayed_bank": 99362.0,
+  "opp_recorded_bank": 98248.0,
+  "opp_replayed_bank": 98248.0,
+  "delta": 0.0,
+  "opp_delta": 0.0,
+  "statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "recorded_statuses": [
+   "DONE",
+   "DONE"
+  ],
+  "ok": true,
+  "win": true,
+  "module_version": "1.32.7"
+ }
+]
