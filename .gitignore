@@ -50,3 +50,5 @@ probe*.json
 # Public V56 verbatim (submitted as 56483595). Licence not yet human-verified; reproduce with
 # experiments/field_research/fetch_public_v56.py (SHA-256 verified) rather than committing it.
 agents/washamba_base_v2.py
+agents/washamba_base_v3.py
+agents/washamba_reactive_v1.py
