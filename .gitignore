@@ -23,3 +23,26 @@ experiments/.v20_agent.py
 experiments/.v20_kernel/
 experiments/.decoded/
 experiments/.kernel_cache/
+
+# destbreso's recorded-matchup benchmark dataset, pulled on demand by
+# experiments/gate.py's `benchmark` mode - never committed (third-party
+# Kaggle dataset, and large). Download with:
+#   kaggle datasets download -d destbreso/kaggriculture-benchmark-matchups \
+#       -p data/benchmark --unzip
+data/benchmark/
+
+# pull_episodes.py output. --out is required and refuses to resolve inside
+# this repo, but these patterns stay as a defensive backstop - the real
+# dataset belongs in ~/KagricultureLocalData/episodes, outside iCloud sync.
+data/episodes/
+KagricultureLocalData/
+*.json.gz
+*.part
+manifest.csv
+teams.json
+
+# Credentials - never committed, regardless of how they got here.
+.env
+.env.*
+*.cookie
+KAGGLE_COOKIE*
