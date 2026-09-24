@@ -1,0 +1,5619 @@
+[
+ {
+  "eid": 111656821,
+  "seed": 1391149232,
+  "us": 0,
+  "rew": [
+   93269.0,
+   93202.0
+  ],
+  "recorded": [
+   93269.0,
+   93202.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 344,
+    "rev": 13908.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 327,
+    "rev": 13071.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 337,
+    "rev": 15576.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 336,
+    "rev": 15531.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 96,
+    "rev": 5466.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 96,
+    "rev": 5499.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 121,
+    "rev": 7415.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 121,
+    "rev": 7440.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 233,
+    "rev": 10055.0,
+    "first": 264
+   },
+   "1|EGG": {
+    "units": 232,
+    "rev": 10028.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 41255.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 41044.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 170,
+    "rev": 11507.0,
+    "first": 505
+   },
+   "1|CARROT": {
+    "units": 189,
+    "rev": 12695.0,
+    "first": 505
+   }
+  },
+  "cls": "mirror",
+  "margin": 67
+ },
+ {
+  "eid": 111657969,
+  "seed": 561153846,
+  "us": 1,
+  "rew": [
+   111744.0,
+   114012.0
+  ],
+  "recorded": [
+   111744.0,
+   114012.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 410,
+    "rev": 16133.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 345,
+    "rev": 13671.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 335,
+    "rev": 15392.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 327,
+    "rev": 15297.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 99,
+    "rev": 5504.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 99,
+    "rev": 5451.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 173,
+    "rev": 13036.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 173,
+    "rev": 13053.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 146,
+    "rev": 6237.0,
+    "first": 264
+   },
+   "1|EGG": {
+    "units": 159,
+    "rev": 6709.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 42537.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 42799.0,
+    "first": 382
+   },
+   "1|CARROT": {
+    "units": 159,
+    "rev": 13292.0,
+    "first": 457
+   },
+   "0|TOMATO": {
+    "units": 80,
+    "rev": 23917.0,
+    "first": 638
+   },
+   "1|TOMATO": {
+    "units": 78,
+    "rev": 23355.0,
+    "first": 638
+   },
+   "0|CARROT": {
+    "units": 91,
+    "rev": 8100.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 2268
+ },
+ {
+  "eid": 111658982,
+  "seed": 1070091029,
+  "us": 0,
+  "rew": [
+   74196.0,
+   74196.0
+  ],
+  "recorded": [
+   74196.0,
+   74196.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 336,
+    "rev": 11251.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 336,
+    "rev": 11251.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 343,
+    "rev": 15270.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 343,
+    "rev": 15270.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 212,
+    "rev": 21600.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 212,
+    "rev": 21600.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 203,
+    "rev": 12025.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 203,
+    "rev": 12025.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 11236.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 11236.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 171,
+    "rev": 15129.0,
+    "first": 457
+   },
+   "1|CARROT": {
+    "units": 171,
+    "rev": 15129.0,
+    "first": 457
+   }
+  },
+  "cls": "mirror",
+  "margin": 0
+ },
+ {
+  "eid": 111660231,
+  "seed": 441072009,
+  "us": 1,
+  "rew": [
+   83091.0,
+   82775.0
+  ],
+  "recorded": [
+   83091.0,
+   82775.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 388,
+    "rev": 15676.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 388,
+    "rev": 15678.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 330,
+    "rev": 15301.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 330,
+    "rev": 15320.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 161,
+    "rev": 30082.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 161,
+    "rev": 29960.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 179,
+    "rev": 13263.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 179,
+    "rev": 13274.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 164,
+    "rev": 8978.0,
+    "first": 264
+   },
+   "1|EGG": {
+    "units": 164,
+    "rev": 8971.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 7049.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 245,
+    "rev": 6840.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 3852.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 97,
+    "rev": 3842.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -316
+ },
+ {
+  "eid": 111661185,
+  "seed": 1047815977,
+  "us": 0,
+  "rew": [
+   139327.0,
+   139443.0
+  ],
+  "recorded": [
+   139327.0,
+   139443.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 393,
+    "rev": 14248.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 396,
+    "rev": 14364.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 343,
+    "rev": 15143.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 343,
+    "rev": 15143.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 87,
+    "rev": 5474.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 87,
+    "rev": 5474.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 323,
+    "rev": 58558.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 323,
+    "rev": 58558.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 53099.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 53099.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 3712.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 97,
+    "rev": 3712.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -116
+ },
+ {
+  "eid": 111661624,
+  "seed": 633939918,
+  "us": 0,
+  "rew": [
+   92543.0,
+   94921.0
+  ],
+  "recorded": [
+   92543.0,
+   94921.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 326,
+    "rev": 9438.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 243,
+    "rev": 7388.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 336,
+    "rev": 15053.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 340,
+    "rev": 15256.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 106,
+    "rev": 5491.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 106,
+    "rev": 5499.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 244,
+    "rev": 25759.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 244,
+    "rev": 26139.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 92,
+    "rev": 4035.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 86,
+    "rev": 3774.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 33343.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 33483.0,
+    "first": 382
+   },
+   "1|CARROT": {
+    "units": 220,
+    "rev": 14711.0,
+    "first": 433
+   },
+   "0|CARROT": {
+    "units": 162,
+    "rev": 10723.0,
+    "first": 457
+   }
+  },
+  "cls": "near-copy",
+  "margin": -2378
+ },
+ {
+  "eid": 111662480,
+  "seed": 1347925853,
+  "us": 0,
+  "rew": [
+   104025.0,
+   104025.0
+  ],
+  "recorded": [
+   104025.0,
+   104025.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 396,
+    "rev": 15258.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 396,
+    "rev": 15258.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 381,
+    "rev": 13137.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 381,
+    "rev": 13137.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 402,
+    "rev": 64224.0,
+    "first": 150
+   },
+   "1|WOOL": {
+    "units": 402,
+    "rev": 64224.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 160,
+    "rev": 6691.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 160,
+    "rev": 6691.0,
+    "first": 195
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 28374.0,
+    "first": 385
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 28374.0,
+    "first": 385
+   },
+   "0|CARROT": {
+    "units": 83,
+    "rev": 4130.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 83,
+    "rev": 4130.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 0
+ },
+ {
+  "eid": 111663214,
+  "seed": 2085232073,
+  "us": 0,
+  "rew": [
+   100345.0,
+   100395.0
+  ],
+  "recorded": [
+   100345.0,
+   100395.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 370,
+    "rev": 13038.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 339,
+    "rev": 15266.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 339,
+    "rev": 15266.0,
+    "first": 30
+   },
+   "1|WHEAT": {
+    "units": 356,
+    "rev": 12631.0,
+    "first": 49
+   },
+   "0|WOOL": {
+    "units": 136,
+    "rev": 12045.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 136,
+    "rev": 12045.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 207,
+    "rev": 16035.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 207,
+    "rev": 16035.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 93,
+    "rev": 5061.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 93,
+    "rev": 5061.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 43406.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 43406.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 130,
+    "rev": 6837.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 130,
+    "rev": 6837.0,
+    "first": 673
+   }
+  },
+  "cls": "near-copy",
+  "margin": -50
+ },
+ {
+  "eid": 111663604,
+  "seed": 1239871650,
+  "us": 0,
+  "rew": [
+   59070.0,
+   61292.0
+  ],
+  "recorded": [
+   59070.0,
+   61292.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 304,
+    "rev": 11416.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 261,
+    "rev": 9701.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 339,
+    "rev": 15135.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 339,
+    "rev": 15328.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 102,
+    "rev": 5475.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 102,
+    "rev": 5479.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 165,
+    "rev": 8322.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 165,
+    "rev": 8640.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14079.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14425.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 155,
+    "rev": 7016.0,
+    "first": 264
+   },
+   "1|EGG": {
+    "units": 157,
+    "rev": 7100.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 5384.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 245,
+    "rev": 6153.0,
+    "first": 382
+   },
+   "1|CARROT": {
+    "units": 239,
+    "rev": 21456.0,
+    "first": 433
+   },
+   "0|CARROT": {
+    "units": 206,
+    "rev": 19135.0,
+    "first": 457
+   }
+  },
+  "cls": "near-copy",
+  "margin": -2222
+ },
+ {
+  "eid": 111664727,
+  "seed": 318683624,
+  "us": 1,
+  "rew": [
+   104740.0,
+   106270.0
+  ],
+  "recorded": [
+   104740.0,
+   106270.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 423,
+    "rev": 16646.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 392,
+    "rev": 15830.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 337,
+    "rev": 15609.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 331,
+    "rev": 15411.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 107,
+    "rev": 10763.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 107,
+    "rev": 10638.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 228,
+    "rev": 20087.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 228,
+    "rev": 20036.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 82,
+    "rev": 3808.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 89,
+    "rev": 4110.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 248,
+    "rev": 42874.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 43715.0,
+    "first": 382
+   },
+   "0|TOMATO": {
+    "units": 80,
+    "rev": 9110.0,
+    "first": 638
+   },
+   "1|TOMATO": {
+    "units": 80,
+    "rev": 9107.0,
+    "first": 638
+   },
+   "0|CARROT": {
+    "units": 91,
+    "rev": 5605.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 118,
+    "rev": 7238.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 1530
+ },
+ {
+  "eid": 111665990,
+  "seed": 763160088,
+  "us": 1,
+  "rew": [
+   124621.0,
+   124621.0
+  ],
+  "recorded": [
+   124621.0,
+   124621.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 382,
+    "rev": 15636.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 382,
+    "rev": 15636.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 322,
+    "rev": 13650.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 322,
+    "rev": 13650.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 273,
+    "rev": 34416.0,
+    "first": 150
+   },
+   "1|WOOL": {
+    "units": 273,
+    "rev": 34416.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 191,
+    "rev": 25409.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 191,
+    "rev": 25409.0,
+    "first": 195
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 46113.0,
+    "first": 385
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 46113.0,
+    "first": 385
+   },
+   "0|CARROT": {
+    "units": 83,
+    "rev": 2319.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 83,
+    "rev": 2319.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 0
+ },
+ {
+  "eid": 111666994,
+  "seed": 1332092203,
+  "us": 0,
+  "rew": [
+   117924.0,
+   116679.0
+  ],
+  "recorded": [
+   117924.0,
+   116679.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 407,
+    "rev": 17287.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 415,
+    "rev": 17384.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 337,
+    "rev": 15809.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 342,
+    "rev": 15876.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 107,
+    "rev": 11470.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 107,
+    "rev": 11422.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 266,
+    "rev": 38727.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 266,
+    "rev": 39028.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 90,
+    "rev": 5019.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 81,
+    "rev": 4529.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 38847.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 248,
+    "rev": 38036.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 2607.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 94,
+    "rev": 2549.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 1245
+ },
+ {
+  "eid": 111669663,
+  "seed": 20076312,
+  "us": 0,
+  "rew": [
+   88858.0,
+   87144.0
+  ],
+  "recorded": [
+   88858.0,
+   87144.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 403,
+    "rev": 15951.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 411,
+    "rev": 15999.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 342,
+    "rev": 15746.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 344,
+    "rev": 15742.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 202,
+    "rev": 21059.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 203,
+    "rev": 21167.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 245,
+    "rev": 32337.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 245,
+    "rev": 31526.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|STRAWBERRY": {
+    "units": 249,
+    "rev": 13584.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 249,
+    "rev": 12861.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 2605.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 94,
+    "rev": 2550.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 1714
+ },
+ {
+  "eid": 111670385,
+  "seed": 1928721783,
+  "us": 1,
+  "rew": [
+   63648.0,
+   66527.0
+  ],
+  "recorded": [
+   63648.0,
+   66527.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 429,
+    "rev": 16851.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 443,
+    "rev": 17804.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 357,
+    "rev": 15196.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 322,
+    "rev": 13730.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 249,
+    "rev": 27662.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 250,
+    "rev": 31200.0,
+    "first": 150
+   },
+   "1|MILK": {
+    "units": 155,
+    "rev": 6685.0,
+    "first": 195
+   },
+   "0|MILK": {
+    "units": 156,
+    "rev": 6734.0,
+    "first": 196
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14231.0,
+    "first": 248
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14278.0,
+    "first": 249
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 7394.0,
+    "first": 381
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 7438.0,
+    "first": 385
+   },
+   "1|CARROT": {
+    "units": 82,
+    "rev": 2779.0,
+    "first": 673
+   },
+   "0|CARROT": {
+    "units": 87,
+    "rev": 3077.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 2879
+ },
+ {
+  "eid": 111671516,
+  "seed": 341734209,
+  "us": 0,
+  "rew": [
+   82365.0,
+   82358.0
+  ],
+  "recorded": [
+   82365.0,
+   82358.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 368,
+    "rev": 14436.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 368,
+    "rev": 14438.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 337,
+    "rev": 15138.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 337,
+    "rev": 15119.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 99,
+    "rev": 5466.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 99,
+    "rev": 5500.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 163,
+    "rev": 8066.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 163,
+    "rev": 8116.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 156,
+    "rev": 8688.0,
+    "first": 264
+   },
+   "1|EGG": {
+    "units": 156,
+    "rev": 8683.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 33240.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 33169.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 152,
+    "rev": 8283.0,
+    "first": 625
+   },
+   "1|CARROT": {
+    "units": 152,
+    "rev": 8283.0,
+    "first": 625
+   }
+  },
+  "cls": "mirror",
+  "margin": 7
+ },
+ {
+  "eid": 111673167,
+  "seed": 1298100494,
+  "us": 1,
+  "rew": [
+   75424.0,
+   72763.0
+  ],
+  "recorded": [
+   75424.0,
+   72763.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 313,
+    "rev": 12090.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 352,
+    "rev": 13621.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 335,
+    "rev": 15466.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 334,
+    "rev": 15266.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 160,
+    "rev": 17858.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 160,
+    "rev": 17434.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 147,
+    "rev": 4509.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 147,
+    "rev": 4357.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14425.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14079.0,
+    "first": 249
+   },
+   "1|EGG": {
+    "units": 165,
+    "rev": 8236.0,
+    "first": 264
+   },
+   "0|EGG": {
+    "units": 162,
+    "rev": 8036.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 17594.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 245,
+    "rev": 16223.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 180,
+    "rev": 11027.0,
+    "first": 577
+   },
+   "1|CARROT": {
+    "units": 155,
+    "rev": 9269.0,
+    "first": 600
+   }
+  },
+  "cls": "near-copy",
+  "margin": -2661
+ },
+ {
+  "eid": 111674389,
+  "seed": 909044638,
+  "us": 0,
+  "rew": [
+   124377.0,
+   124427.0
+  ],
+  "recorded": [
+   124377.0,
+   124427.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 336,
+    "rev": 11424.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 337,
+    "rev": 11455.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 338,
+    "rev": 15264.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 338,
+    "rev": 15264.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 111,
+    "rev": 10304.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 111,
+    "rev": 10304.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 266,
+    "rev": 36914.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 266,
+    "rev": 36914.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 93,
+    "rev": 4516.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 93,
+    "rev": 4516.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 50428.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 50428.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 140,
+    "rev": 6731.0,
+    "first": 625
+   },
+   "1|CARROT": {
+    "units": 140,
+    "rev": 6731.0,
+    "first": 625
+   }
+  },
+  "cls": "near-copy",
+  "margin": -50
+ },
+ {
+  "eid": 111674777,
+  "seed": 193195655,
+  "us": 0,
+  "rew": [
+   108559.0,
+   108559.0
+  ],
+  "recorded": [
+   108559.0,
+   108559.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 398,
+    "rev": 16329.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 398,
+    "rev": 16329.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 323,
+    "rev": 15477.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 323,
+    "rev": 15477.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 87,
+    "rev": 5482.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 87,
+    "rev": 5482.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 266,
+    "rev": 46266.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 266,
+    "rev": 46266.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 91,
+    "rev": 4642.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 91,
+    "rev": 4642.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 26592.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 245,
+    "rev": 26592.0,
+    "first": 382
+   },
+   "0|TOMATO": {
+    "units": 80,
+    "rev": 9155.0,
+    "first": 642
+   },
+   "1|TOMATO": {
+    "units": 80,
+    "rev": 9155.0,
+    "first": 642
+   },
+   "0|CARROT": {
+    "units": 89,
+    "rev": 4361.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 89,
+    "rev": 4361.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 0
+ },
+ {
+  "eid": 111676006,
+  "seed": 728420296,
+  "us": 1,
+  "rew": [
+   117672.0,
+   117672.0
+  ],
+  "recorded": [
+   117672.0,
+   117672.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 365,
+    "rev": 12057.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 365,
+    "rev": 12057.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 338,
+    "rev": 15202.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 338,
+    "rev": 15202.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 97,
+    "rev": 8611.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 97,
+    "rev": 8611.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 266,
+    "rev": 55626.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 266,
+    "rev": 55626.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 91,
+    "rev": 4518.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 91,
+    "rev": 4518.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 27699.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 27699.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 118,
+    "rev": 5029.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 118,
+    "rev": 5029.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 0
+ },
+ {
+  "eid": 111677802,
+  "seed": 1053563432,
+  "us": 0,
+  "rew": [
+   128008.0,
+   127489.0
+  ],
+  "recorded": [
+   128008.0,
+   127489.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 374,
+    "rev": 12596.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 377,
+    "rev": 12715.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 380,
+    "rev": 12972.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 379,
+    "rev": 13264.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 410,
+    "rev": 100058.0,
+    "first": 150
+   },
+   "1|WOOL": {
+    "units": 410,
+    "rev": 100070.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 172,
+    "rev": 13955.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 172,
+    "rev": 13548.0,
+    "first": 195
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 12985.0,
+    "first": 385
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 12403.0,
+    "first": 385
+   },
+   "1|CARROT": {
+    "units": 80,
+    "rev": 2252.0,
+    "first": 673
+   },
+   "0|CARROT": {
+    "units": 80,
+    "rev": 2254.0,
+    "first": 673
+   }
+  },
+  "cls": "near-copy",
+  "margin": 519
+ },
+ {
+  "eid": 111677162,
+  "seed": 499594349,
+  "us": 0,
+  "rew": [
+   90567.0,
+   90701.0
+  ],
+  "recorded": [
+   90567.0,
+   90701.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 317,
+    "rev": 10911.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 317,
+    "rev": 10873.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 378,
+    "rev": 13111.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 378,
+    "rev": 13160.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 386,
+    "rev": 60176.0,
+    "first": 150
+   },
+   "1|WOOL": {
+    "units": 386,
+    "rev": 59984.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 177,
+    "rev": 13516.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 177,
+    "rev": 13535.0,
+    "first": 195
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 12587.0,
+    "first": 385
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 12835.0,
+    "first": 385
+   },
+   "0|CARROT": {
+    "units": 123,
+    "rev": 6327.0,
+    "first": 600
+   },
+   "1|CARROT": {
+    "units": 123,
+    "rev": 6384.0,
+    "first": 600
+   }
+  },
+  "cls": "mirror",
+  "margin": -134
+ },
+ {
+  "eid": 111678199,
+  "seed": 1334389667,
+  "us": 0,
+  "rew": [
+   69342.0,
+   69790.0
+  ],
+  "recorded": [
+   69342.0,
+   69790.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 824,
+    "rev": 34420.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 825,
+    "rev": 34487.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 328,
+    "rev": 14937.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 327,
+    "rev": 15072.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 210,
+    "rev": 20739.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 210,
+    "rev": 21055.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 160,
+    "rev": 8530.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 160,
+    "rev": 8413.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 75,
+    "rev": 4281.0,
+    "first": 264
+   },
+   "1|EGG": {
+    "units": 75,
+    "rev": 4282.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 11682.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 245,
+    "rev": 11580.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 94,
+    "rev": 3830.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 94,
+    "rev": 3832.0,
+    "first": 673
+   }
+  },
+  "cls": "near-copy",
+  "margin": -448
+ },
+ {
+  "eid": 111679497,
+  "seed": 2043638967,
+  "us": 0,
+  "rew": [
+   86322.0,
+   87502.0
+  ],
+  "recorded": [
+   86322.0,
+   87502.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 432,
+    "rev": 17660.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 457,
+    "rev": 18577.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 339,
+    "rev": 15855.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 340,
+    "rev": 16003.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 99,
+    "rev": 5544.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 72,
+    "rev": 5374.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 219,
+    "rev": 17692.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 212,
+    "rev": 16404.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14079.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14425.0,
+    "first": 249
+   },
+   "1|EGG": {
+    "units": 151,
+    "rev": 8971.0,
+    "first": 336
+   },
+   "0|EGG": {
+    "units": 86,
+    "rev": 5125.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 33267.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 252,
+    "rev": 32388.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 3068.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 88,
+    "rev": 2829.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -1180
+ },
+ {
+  "eid": 111680531,
+  "seed": 775500636,
+  "us": 0,
+  "rew": [
+   101193.0,
+   101212.0
+  ],
+  "recorded": [
+   101193.0,
+   101212.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 365,
+    "rev": 14581.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 377,
+    "rev": 14830.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 331,
+    "rev": 15550.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 332,
+    "rev": 15502.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 110,
+    "rev": 8026.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 110,
+    "rev": 8164.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 245,
+    "rev": 47718.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 245,
+    "rev": 47836.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 91,
+    "rev": 3957.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 86,
+    "rev": 3802.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 10161.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 10136.0,
+    "first": 382
+   },
+   "0|TOMATO": {
+    "units": 80,
+    "rev": 14119.0,
+    "first": 638
+   },
+   "1|TOMATO": {
+    "units": 80,
+    "rev": 14119.0,
+    "first": 638
+   },
+   "0|CARROT": {
+    "units": 118,
+    "rev": 6845.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 118,
+    "rev": 6845.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -19
+ },
+ {
+  "eid": 111681688,
+  "seed": 1347285875,
+  "us": 0,
+  "rew": [
+   117751.0,
+   106595.0
+  ],
+  "recorded": [
+   117751.0,
+   106595.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 379,
+    "rev": 15603.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 292,
+    "rev": 11568.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 380,
+    "rev": 12894.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 444,
+    "rev": 13848.0,
+    "first": 30
+   },
+   "1|WOOL": {
+    "units": 377,
+    "rev": 61451.0,
+    "first": 149
+   },
+   "0|WOOL": {
+    "units": 403,
+    "rev": 68217.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 191,
+    "rev": 34706.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 191,
+    "rev": 34399.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14231.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14278.0,
+    "first": 249
+   },
+   "1|STRAWBERRY": {
+    "units": 249,
+    "rev": 10860.0,
+    "first": 381
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 11390.0,
+    "first": 385
+   },
+   "0|CARROT": {
+    "units": 83,
+    "rev": 3095.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 84,
+    "rev": 3273.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 11156
+ },
+ {
+  "eid": 111682951,
+  "seed": 1706596943,
+  "us": 1,
+  "rew": [
+   120027.0,
+   124748.0
+  ],
+  "recorded": [
+   120027.0,
+   124748.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 370,
+    "rev": 13799.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 401,
+    "rev": 15431.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 349,
+    "rev": 14443.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 321,
+    "rev": 13389.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 258,
+    "rev": 30352.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 258,
+    "rev": 34568.0,
+    "first": 150
+   },
+   "1|MILK": {
+    "units": 191,
+    "rev": 41637.0,
+    "first": 195
+   },
+   "0|MILK": {
+    "units": 191,
+    "rev": 41055.0,
+    "first": 196
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14231.0,
+    "first": 248
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14278.0,
+    "first": 249
+   },
+   "0|STRAWBERRY": {
+    "units": 248,
+    "rev": 29482.0,
+    "first": 381
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 29819.0,
+    "first": 385
+   },
+   "1|CARROT": {
+    "units": 83,
+    "rev": 2644.0,
+    "first": 673
+   },
+   "0|CARROT": {
+    "units": 87,
+    "rev": 2907.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 4721
+ },
+ {
+  "eid": 111683893,
+  "seed": 1092338536,
+  "us": 1,
+  "rew": [
+   134933.0,
+   135841.0
+  ],
+  "recorded": [
+   134933.0,
+   135841.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 393,
+    "rev": 14707.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 381,
+    "rev": 14485.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 342,
+    "rev": 15275.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 342,
+    "rev": 15393.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 132,
+    "rev": 14058.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 132,
+    "rev": 13590.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 319,
+    "rev": 42962.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 319,
+    "rev": 43685.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 56041.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 56429.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 3531.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 97,
+    "rev": 3618.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 908
+ },
+ {
+  "eid": 111685073,
+  "seed": 967233571,
+  "us": 0,
+  "rew": [
+   105157.0,
+   105217.0
+  ],
+  "recorded": [
+   105157.0,
+   105217.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 369,
+    "rev": 14931.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 369,
+    "rev": 14931.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 335,
+    "rev": 15498.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 337,
+    "rev": 15513.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 210,
+    "rev": 21889.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 210,
+    "rev": 21889.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 245,
+    "rev": 32180.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 245,
+    "rev": 32180.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 15094.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 15094.0,
+    "first": 382
+   },
+   "0|TOMATO": {
+    "units": 80,
+    "rev": 20948.0,
+    "first": 638
+   },
+   "1|TOMATO": {
+    "units": 80,
+    "rev": 20948.0,
+    "first": 638
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 4965.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 98,
+    "rev": 5010.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -60
+ },
+ {
+  "eid": 111686053,
+  "seed": 1884715592,
+  "us": 1,
+  "rew": [
+   77175.0,
+   77137.0
+  ],
+  "recorded": [
+   77175.0,
+   77137.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 349,
+    "rev": 13060.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 349,
+    "rev": 13060.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 335,
+    "rev": 15181.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 335,
+    "rev": 15181.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 137,
+    "rev": 12263.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 137,
+    "rev": 12295.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 151,
+    "rev": 7533.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 151,
+    "rev": 7533.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 161,
+    "rev": 7627.0,
+    "first": 264
+   },
+   "1|EGG": {
+    "units": 161,
+    "rev": 7627.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 20270.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 20200.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 158,
+    "rev": 12540.0,
+    "first": 577
+   },
+   "1|CARROT": {
+    "units": 158,
+    "rev": 12540.0,
+    "first": 577
+   }
+  },
+  "cls": "mirror",
+  "margin": -38
+ },
+ {
+  "eid": 111686171,
+  "seed": 90732243,
+  "us": 1,
+  "rew": [
+   100689.0,
+   105445.0
+  ],
+  "recorded": [
+   100689.0,
+   105445.0
+  ],
+  "ok": true,
+  "agg": {
+   "1|WHEAT": {
+    "units": 379,
+    "rev": 15861.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 322,
+    "rev": 12784.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 374,
+    "rev": 14138.0,
+    "first": 30
+   },
+   "0|WHEAT": {
+    "units": 387,
+    "rev": 16430.0,
+    "first": 49
+   },
+   "0|WOOL": {
+    "units": 276,
+    "rev": 41442.0,
+    "first": 150
+   },
+   "1|WOOL": {
+    "units": 384,
+    "rev": 55769.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 190,
+    "rev": 19945.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 190,
+    "rev": 20220.0,
+    "first": 195
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "0|STRAWBERRY": {
+    "units": 231,
+    "rev": 24157.0,
+    "first": 385
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 24763.0,
+    "first": 385
+   },
+   "0|CARROT": {
+    "units": 81,
+    "rev": 2278.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 80,
+    "rev": 2251.0,
+    "first": 673
+   }
+  },
+  "cls": "near-copy",
+  "margin": 4756
+ },
+ {
+  "eid": 111687490,
+  "seed": 152283595,
+  "us": 1,
+  "rew": [
+   92435.0,
+   93169.0
+  ],
+  "recorded": [
+   92435.0,
+   93169.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 399,
+    "rev": 13704.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 397,
+    "rev": 13628.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 331,
+    "rev": 15508.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 331,
+    "rev": 15321.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 99,
+    "rev": 5486.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 99,
+    "rev": 5474.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 245,
+    "rev": 27159.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 245,
+    "rev": 27351.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 85,
+    "rev": 4514.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 85,
+    "rev": 4519.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 31747.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 245,
+    "rev": 32569.0,
+    "first": 382
+   },
+   "1|CARROT": {
+    "units": 113,
+    "rev": 5906.0,
+    "first": 673
+   },
+   "0|CARROT": {
+    "units": 113,
+    "rev": 5906.0,
+    "first": 673
+   }
+  },
+  "cls": "near-copy",
+  "margin": 734
+ },
+ {
+  "eid": 111687255,
+  "seed": 462407937,
+  "us": 1,
+  "rew": [
+   152945.0,
+   151776.0
+  ],
+  "recorded": [
+   152945.0,
+   151776.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 367,
+    "rev": 13374.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 365,
+    "rev": 13314.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 340,
+    "rev": 15234.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 342,
+    "rev": 15028.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 221,
+    "rev": 42807.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 221,
+    "rev": 42564.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 245,
+    "rev": 50788.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 245,
+    "rev": 50692.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 39583.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 39032.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 2609.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 97,
+    "rev": 2609.0,
+    "first": 673
+   }
+  },
+  "cls": "near-copy",
+  "margin": -1169
+ },
+ {
+  "eid": 111689016,
+  "seed": 2089858730,
+  "us": 0,
+  "rew": [
+   94015.0,
+   94833.0
+  ],
+  "recorded": [
+   94015.0,
+   94833.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 381,
+    "rev": 14563.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 332,
+    "rev": 16242.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 332,
+    "rev": 16184.0,
+    "first": 30
+   },
+   "1|WHEAT": {
+    "units": 367,
+    "rev": 14151.0,
+    "first": 49
+   },
+   "0|WOOL": {
+    "units": 100,
+    "rev": 15571.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 100,
+    "rev": 15630.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 177,
+    "rev": 12364.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 177,
+    "rev": 12576.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 225,
+    "rev": 10000.0,
+    "first": 264
+   },
+   "1|EGG": {
+    "units": 225,
+    "rev": 10014.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 249,
+    "rev": 31904.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 249,
+    "rev": 32438.0,
+    "first": 382
+   },
+   "1|CARROT": {
+    "units": 117,
+    "rev": 6473.0,
+    "first": 673
+   },
+   "0|CARROT": {
+    "units": 117,
+    "rev": 6460.0,
+    "first": 673
+   }
+  },
+  "cls": "near-copy",
+  "margin": -818
+ },
+ {
+  "eid": 111689572,
+  "seed": 1743692676,
+  "us": 0,
+  "rew": [
+   125275.0,
+   117798.0
+  ],
+  "recorded": [
+   125275.0,
+   117798.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 369,
+    "rev": 14046.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 376,
+    "rev": 14055.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 333,
+    "rev": 15268.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 333,
+    "rev": 15419.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 132,
+    "rev": 13626.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 132,
+    "rev": 13813.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 320,
+    "rev": 68794.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 266,
+    "rev": 57409.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|EGG": {
+    "units": 81,
+    "rev": 3737.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 19863.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 249,
+    "rev": 19686.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 110,
+    "rev": 5506.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 92,
+    "rev": 4650.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 7477
+ },
+ {
+  "eid": 111690678,
+  "seed": 1278881831,
+  "us": 1,
+  "rew": [
+   64276.0,
+   64201.0
+  ],
+  "recorded": [
+   64276.0,
+   64201.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 357,
+    "rev": 14198.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 364,
+    "rev": 14440.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 343,
+    "rev": 15724.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 343,
+    "rev": 15545.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 99,
+    "rev": 5488.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 99,
+    "rev": 5484.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 191,
+    "rev": 11333.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 191,
+    "rev": 11593.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 86,
+    "rev": 4522.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 82,
+    "rev": 4313.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 13567.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 13890.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 183,
+    "rev": 11512.0,
+    "first": 600
+   },
+   "1|CARROT": {
+    "units": 176,
+    "rev": 11088.0,
+    "first": 600
+   }
+  },
+  "cls": "near-copy",
+  "margin": -75
+ },
+ {
+  "eid": 111691809,
+  "seed": 197372230,
+  "us": 0,
+  "rew": [
+   122140.0,
+   122335.0
+  ],
+  "recorded": [
+   122140.0,
+   122335.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 419,
+    "rev": 17957.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 431,
+    "rev": 18216.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 337,
+    "rev": 15698.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 343,
+    "rev": 15976.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 87,
+    "rev": 5451.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 87,
+    "rev": 5474.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 266,
+    "rev": 57240.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 266,
+    "rev": 57278.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 93,
+    "rev": 4927.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 81,
+    "rev": 4292.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 243,
+    "rev": 30126.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 248,
+    "rev": 30652.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 2590.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 94,
+    "rev": 2564.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -195
+ },
+ {
+  "eid": 111693073,
+  "seed": 1958074022,
+  "us": 0,
+  "rew": [
+   89423.0,
+   91016.0
+  ],
+  "recorded": [
+   89423.0,
+   91016.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 420,
+    "rev": 15205.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 422,
+    "rev": 15263.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 336,
+    "rev": 15119.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 336,
+    "rev": 15261.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 138,
+    "rev": 21045.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 138,
+    "rev": 21173.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 177,
+    "rev": 11912.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 177,
+    "rev": 12081.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 92,
+    "rev": 5596.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 92,
+    "rev": 5591.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 28001.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 29086.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 3400.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 97,
+    "rev": 3400.0,
+    "first": 673
+   }
+  },
+  "cls": "near-copy",
+  "margin": -1593
+ },
+ {
+  "eid": 111694173,
+  "seed": 1244142468,
+  "us": 0,
+  "rew": [
+   84120.0,
+   86780.0
+  ],
+  "recorded": [
+   84120.0,
+   86780.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 340,
+    "rev": 11332.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 311,
+    "rev": 10504.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 339,
+    "rev": 15119.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 338,
+    "rev": 15198.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 212,
+    "rev": 21968.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 209,
+    "rev": 22493.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 163,
+    "rev": 5981.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 163,
+    "rev": 6165.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14079.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14425.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 74,
+    "rev": 4172.0,
+    "first": 264
+   },
+   "1|EGG": {
+    "units": 72,
+    "rev": 4062.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 28796.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 29892.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 162,
+    "rev": 8786.0,
+    "first": 600
+   },
+   "1|CARROT": {
+    "units": 186,
+    "rev": 10210.0,
+    "first": 600
+   }
+  },
+  "cls": "near-copy",
+  "margin": -2660
+ },
+ {
+  "eid": 111695274,
+  "seed": 1353310643,
+  "us": 0,
+  "rew": [
+   80806.0,
+   82237.0
+  ],
+  "recorded": [
+   80806.0,
+   82237.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 350,
+    "rev": 10966.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 385,
+    "rev": 11634.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 316,
+    "rev": 14729.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 342,
+    "rev": 15980.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 124,
+    "rev": 9645.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 124,
+    "rev": 9436.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 200,
+    "rev": 15896.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 232,
+    "rev": 19139.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 91,
+    "rev": 4617.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 82,
+    "rev": 4113.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 241,
+    "rev": 26768.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 249,
+    "rev": 27165.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 160,
+    "rev": 9444.0,
+    "first": 505
+   },
+   "1|CARROT": {
+    "units": 98,
+    "rev": 5798.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -1431
+ },
+ {
+  "eid": 111696777,
+  "seed": 789113773,
+  "us": 0,
+  "rew": [
+   113335.0,
+   109024.0
+  ],
+  "recorded": [
+   113335.0,
+   109024.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 430,
+    "rev": 17280.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 413,
+    "rev": 16190.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 322,
+    "rev": 13842.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 333,
+    "rev": 14234.0,
+    "first": 30
+   },
+   "1|WOOL": {
+    "units": 241,
+    "rev": 30471.0,
+    "first": 149
+   },
+   "0|WOOL": {
+    "units": 251,
+    "rev": 36418.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 148,
+    "rev": 4678.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 149,
+    "rev": 4160.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14231.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14278.0,
+    "first": 249
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 50431.0,
+    "first": 381
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 49734.0,
+    "first": 385
+   },
+   "0|CARROT": {
+    "units": 83,
+    "rev": 4273.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 96,
+    "rev": 5015.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 4311
+ },
+ {
+  "eid": 111696666,
+  "seed": 1310709278,
+  "us": 1,
+  "rew": [
+   91329.0,
+   97793.0
+  ],
+  "recorded": [
+   91329.0,
+   97793.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 374,
+    "rev": 15288.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 409,
+    "rev": 17119.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 424,
+    "rev": 13452.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 383,
+    "rev": 12782.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 372,
+    "rev": 57195.0,
+    "first": 150
+   },
+   "1|WOOL": {
+    "units": 396,
+    "rev": 59814.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 158,
+    "rev": 7883.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 158,
+    "rev": 7944.0,
+    "first": 195
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "0|STRAWBERRY": {
+    "units": 242,
+    "rev": 23610.0,
+    "first": 385
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 23618.0,
+    "first": 385
+   },
+   "0|CARROT": {
+    "units": 79,
+    "rev": 4178.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 83,
+    "rev": 4357.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 6464
+ },
+ {
+  "eid": 111697433,
+  "seed": 1575506073,
+  "us": 0,
+  "rew": [
+   84406.0,
+   84377.0
+  ],
+  "recorded": [
+   84406.0,
+   84377.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 420,
+    "rev": 17085.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 428,
+    "rev": 17316.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 322,
+    "rev": 13655.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 322,
+    "rev": 13655.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 246,
+    "rev": 24551.0,
+    "first": 150
+   },
+   "1|WOOL": {
+    "units": 246,
+    "rev": 24522.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 174,
+    "rev": 16758.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 174,
+    "rev": 16758.0,
+    "first": 195
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 21576.0,
+    "first": 385
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 21576.0,
+    "first": 385
+   },
+   "0|CARROT": {
+    "units": 83,
+    "rev": 3687.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 83,
+    "rev": 3687.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 29
+ },
+ {
+  "eid": 111698556,
+  "seed": 219790768,
+  "us": 0,
+  "rew": [
+   79418.0,
+   71985.0
+  ],
+  "recorded": [
+   79418.0,
+   71985.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 363,
+    "rev": 13527.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 407,
+    "rev": 14690.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 323,
+    "rev": 13541.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 355,
+    "rev": 14845.0,
+    "first": 30
+   },
+   "1|WOOL": {
+    "units": 267,
+    "rev": 37129.0,
+    "first": 149
+   },
+   "0|WOOL": {
+    "units": 269,
+    "rev": 42144.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 160,
+    "rev": 6448.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 158,
+    "rev": 6286.0,
+    "first": 195
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "1|STRAWBERRY": {
+    "units": 248,
+    "rev": 7162.0,
+    "first": 381
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 8609.0,
+    "first": 385
+   },
+   "0|CARROT": {
+    "units": 148,
+    "rev": 8428.0,
+    "first": 600
+   },
+   "1|CARROT": {
+    "units": 95,
+    "rev": 5443.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 7433
+ },
+ {
+  "eid": 111699696,
+  "seed": 1406557049,
+  "us": 1,
+  "rew": [
+   112990.0,
+   112475.0
+  ],
+  "recorded": [
+   112990.0,
+   112475.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 435,
+    "rev": 16820.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 433,
+    "rev": 16755.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 337,
+    "rev": 15573.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 337,
+    "rev": 15400.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 87,
+    "rev": 5470.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 87,
+    "rev": 5466.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 234,
+    "rev": 20773.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 234,
+    "rev": 20625.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 93,
+    "rev": 5227.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 93,
+    "rev": 5216.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 56434.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 56330.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 3886.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 97,
+    "rev": 3884.0,
+    "first": 673
+   }
+  },
+  "cls": "near-copy",
+  "margin": -515
+ },
+ {
+  "eid": 111700828,
+  "seed": 1878652074,
+  "us": 0,
+  "rew": [
+   72023.0,
+   71007.0
+  ],
+  "recorded": [
+   72023.0,
+   71007.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 429,
+    "rev": 16577.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 437,
+    "rev": 16632.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 339,
+    "rev": 15521.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 342,
+    "rev": 15539.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 99,
+    "rev": 5469.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 99,
+    "rev": 5502.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 229,
+    "rev": 18507.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 229,
+    "rev": 18385.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 91,
+    "rev": 5311.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 83,
+    "rev": 4844.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 17981.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 17770.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 4186.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 94,
+    "rev": 4072.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 1016
+ },
+ {
+  "eid": 111701305,
+  "seed": 1785154844,
+  "us": 1,
+  "rew": [
+   83638.0,
+   80716.0
+  ],
+  "recorded": [
+   83638.0,
+   80716.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 449,
+    "rev": 16720.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 389,
+    "rev": 14684.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 343,
+    "rev": 15512.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 342,
+    "rev": 15409.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 210,
+    "rev": 29218.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 213,
+    "rev": 27435.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 193,
+    "rev": 12127.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 192,
+    "rev": 11928.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|STRAWBERRY": {
+    "units": 249,
+    "rev": 17376.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 16405.0,
+    "first": 382
+   },
+   "1|CARROT": {
+    "units": 128,
+    "rev": 7082.0,
+    "first": 673
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 5435.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -2922
+ },
+ {
+  "eid": 111700427,
+  "seed": 1151936216,
+  "us": 1,
+  "rew": [
+   75517.0,
+   72423.0
+  ],
+  "recorded": [
+   75517.0,
+   72423.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 274,
+    "rev": 10139.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 325,
+    "rev": 12037.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 331,
+    "rev": 15185.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 336,
+    "rev": 15105.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 139,
+    "rev": 17263.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 135,
+    "rev": 16761.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 138,
+    "rev": 6818.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 138,
+    "rev": 6760.0,
+    "first": 196
+   },
+   "0|CARROT": {
+    "units": 235,
+    "rev": 14885.0,
+    "first": 241
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14425.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14079.0,
+    "first": 249
+   },
+   "1|EGG": {
+    "units": 163,
+    "rev": 7471.0,
+    "first": 264
+   },
+   "0|EGG": {
+    "units": 160,
+    "rev": 7454.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 245,
+    "rev": 15087.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 245,
+    "rev": 14669.0,
+    "first": 382
+   },
+   "1|CARROT": {
+    "units": 172,
+    "rev": 10931.0,
+    "first": 457
+   }
+  },
+  "cls": "near-copy",
+  "margin": -3094
+ },
+ {
+  "eid": 111701965,
+  "seed": 1988176628,
+  "us": 1,
+  "rew": [
+   55642.0,
+   55684.0
+  ],
+  "recorded": [
+   55642.0,
+   55684.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 431,
+    "rev": 17060.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 431,
+    "rev": 17060.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 323,
+    "rev": 13596.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 323,
+    "rev": 13596.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 249,
+    "rev": 24841.0,
+    "first": 150
+   },
+   "1|WOOL": {
+    "units": 249,
+    "rev": 24893.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 158,
+    "rev": 5909.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 158,
+    "rev": 5899.0,
+    "first": 195
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 248
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 4040.0,
+    "first": 384
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 4040.0,
+    "first": 384
+   },
+   "0|CARROT": {
+    "units": 82,
+    "rev": 2845.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 82,
+    "rev": 2845.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 42
+ },
+ {
+  "eid": 111703100,
+  "seed": 278021728,
+  "us": 0,
+  "rew": [
+   118214.0,
+   103960.0
+  ],
+  "recorded": [
+   118214.0,
+   103960.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 402,
+    "rev": 15958.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 359,
+    "rev": 13936.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 375,
+    "rev": 13126.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 427,
+    "rev": 13517.0,
+    "first": 30
+   },
+   "1|WOOL": {
+    "units": 359,
+    "rev": 82748.0,
+    "first": 149
+   },
+   "0|WOOL": {
+    "units": 410,
+    "rev": 94201.0,
+    "first": 150
+   },
+   "0|MILK": {
+    "units": 148,
+    "rev": 4546.0,
+    "first": 195
+   },
+   "1|MILK": {
+    "units": 149,
+    "rev": 3984.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14231.0,
+    "first": 248
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14278.0,
+    "first": 249
+   },
+   "1|STRAWBERRY": {
+    "units": 249,
+    "rev": 13585.0,
+    "first": 381
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 13719.0,
+    "first": 385
+   },
+   "0|CARROT": {
+    "units": 89,
+    "rev": 4676.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 88,
+    "rev": 4725.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 14254
+ },
+ {
+  "eid": 111703860,
+  "seed": 1597790340,
+  "us": 0,
+  "rew": [
+   87405.0,
+   87455.0
+  ],
+  "recorded": [
+   87405.0,
+   87455.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 442,
+    "rev": 16843.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 338,
+    "rev": 15456.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 338,
+    "rev": 15456.0,
+    "first": 30
+   },
+   "1|WHEAT": {
+    "units": 428,
+    "rev": 16436.0,
+    "first": 49
+   },
+   "0|WOOL": {
+    "units": 99,
+    "rev": 5482.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 99,
+    "rev": 5482.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 171,
+    "rev": 12025.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 171,
+    "rev": 12025.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 89,
+    "rev": 5395.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 89,
+    "rev": 5395.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 246,
+    "rev": 38440.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 38440.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 113,
+    "rev": 5301.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 113,
+    "rev": 5301.0,
+    "first": 673
+   }
+  },
+  "cls": "near-copy",
+  "margin": -50
+ },
+ {
+  "eid": 111705729,
+  "seed": 1110728038,
+  "us": 1,
+  "rew": [
+   114046.0,
+   117534.0
+  ],
+  "recorded": [
+   114046.0,
+   117534.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 385,
+    "rev": 13339.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 391,
+    "rev": 14166.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 349,
+    "rev": 14405.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 325,
+    "rev": 13479.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 238,
+    "rev": 23097.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 235,
+    "rev": 25704.0,
+    "first": 150
+   },
+   "1|MILK": {
+    "units": 191,
+    "rev": 36716.0,
+    "first": 195
+   },
+   "0|MILK": {
+    "units": 191,
+    "rev": 36883.0,
+    "first": 196
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14231.0,
+    "first": 248
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14278.0,
+    "first": 249
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 33418.0,
+    "first": 381
+   },
+   "1|STRAWBERRY": {
+    "units": 246,
+    "rev": 34804.0,
+    "first": 385
+   },
+   "1|CARROT": {
+    "units": 109,
+    "rev": 5779.0,
+    "first": 673
+   },
+   "0|CARROT": {
+    "units": 95,
+    "rev": 5194.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 3488
+ },
+ {
+  "eid": 111705366,
+  "seed": 751740651,
+  "us": 0,
+  "rew": [
+   133604.0,
+   133817.0
+  ],
+  "recorded": [
+   133604.0,
+   133817.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 419,
+    "rev": 17213.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 410,
+    "rev": 16777.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 339,
+    "rev": 15643.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 340,
+    "rev": 15828.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 87,
+    "rev": 5439.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 87,
+    "rev": 5494.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 263,
+    "rev": 53918.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 263,
+    "rev": 54138.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 88,
+    "rev": 3951.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 78,
+    "rev": 3540.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 244,
+    "rev": 45289.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 248,
+    "rev": 45680.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 97,
+    "rev": 3924.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 94,
+    "rev": 3828.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -213
+ },
+ {
+  "eid": 111706752,
+  "seed": 2035010163,
+  "us": 1,
+  "rew": [
+   84318.0,
+   84415.0
+  ],
+  "recorded": [
+   84318.0,
+   84415.0
+  ],
+  "ok": true,
+  "agg": {
+   "1|WHEAT": {
+    "units": 377,
+    "rev": 12237.0,
+    "first": 0
+   },
+   "0|WHEAT": {
+    "units": 392,
+    "rev": 11976.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 344,
+    "rev": 15158.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 343,
+    "rev": 15173.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 221,
+    "rev": 31358.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 220,
+    "rev": 29881.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 174,
+    "rev": 12028.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 174,
+    "rev": 11945.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|STRAWBERRY": {
+    "units": 249,
+    "rev": 19528.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 19981.0,
+    "first": 382
+   },
+   "1|CARROT": {
+    "units": 130,
+    "rev": 7103.0,
+    "first": 673
+   },
+   "0|CARROT": {
+    "units": 98,
+    "rev": 5414.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 97
+ },
+ {
+  "eid": 111707622,
+  "seed": 1023669349,
+  "us": 1,
+  "rew": [
+   118628.0,
+   118015.0
+  ],
+  "recorded": [
+   118628.0,
+   118015.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 407,
+    "rev": 17237.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 397,
+    "rev": 17049.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 339,
+    "rev": 15639.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 331,
+    "rev": 15416.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 87,
+    "rev": 5488.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 87,
+    "rev": 5443.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 260,
+    "rev": 32100.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 260,
+    "rev": 31463.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 82,
+    "rev": 4347.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 91,
+    "rev": 4827.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 251,
+    "rev": 52297.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 51862.0,
+    "first": 382
+   },
+   "0|TOMATO": {
+    "units": 80,
+    "rev": 7019.0,
+    "first": 638
+   },
+   "1|TOMATO": {
+    "units": 80,
+    "rev": 7031.0,
+    "first": 638
+   },
+   "1|CARROT": {
+    "units": 95,
+    "rev": 4447.0,
+    "first": 673
+   },
+   "0|CARROT": {
+    "units": 91,
+    "rev": 4279.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -613
+ },
+ {
+  "eid": 111708753,
+  "seed": 1063977434,
+  "us": 1,
+  "rew": [
+   138054.0,
+   138897.0
+  ],
+  "recorded": [
+   138054.0,
+   138897.0
+  ],
+  "ok": true,
+  "agg": {
+   "1|WHEAT": {
+    "units": 375,
+    "rev": 14415.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 338,
+    "rev": 15346.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 338,
+    "rev": 15144.0,
+    "first": 30
+   },
+   "0|WHEAT": {
+    "units": 364,
+    "rev": 14133.0,
+    "first": 50
+   },
+   "0|WOOL": {
+    "units": 87,
+    "rev": 5494.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 87,
+    "rev": 5454.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 266,
+    "rev": 51361.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 266,
+    "rev": 52265.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 93,
+    "rev": 4117.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 93,
+    "rev": 4128.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 52423.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 52481.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 124,
+    "rev": 6279.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 124,
+    "rev": 6277.0,
+    "first": 673
+   }
+  },
+  "cls": "near-copy",
+  "margin": 843
+ },
+ {
+  "eid": 111709877,
+  "seed": 1760475975,
+  "us": 0,
+  "rew": [
+   127680.0,
+   127771.0
+  ],
+  "recorded": [
+   127680.0,
+   127771.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 362,
+    "rev": 12303.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 378,
+    "rev": 12508.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 337,
+    "rev": 15036.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 343,
+    "rev": 15279.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 132,
+    "rev": 13718.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 132,
+    "rev": 14194.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 266,
+    "rev": 49539.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 266,
+    "rev": 50437.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 93,
+    "rev": 4703.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 82,
+    "rev": 4112.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 247,
+    "rev": 39232.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 251,
+    "rev": 38491.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 103,
+    "rev": 4088.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 94,
+    "rev": 3762.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -91
+ },
+ {
+  "eid": 111711000,
+  "seed": 61747343,
+  "us": 1,
+  "rew": [
+   90572.0,
+   91531.0
+  ],
+  "recorded": [
+   90572.0,
+   91531.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 405,
+    "rev": 13980.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 371,
+    "rev": 13392.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 342,
+    "rev": 15290.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 337,
+    "rev": 15081.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 158,
+    "rev": 16313.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 158,
+    "rev": 16802.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 186,
+    "rev": 12965.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 186,
+    "rev": 12656.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 81,
+    "rev": 4297.0,
+    "first": 360
+   },
+   "1|EGG": {
+    "units": 90,
+    "rev": 4791.0,
+    "first": 360
+   },
+   "0|STRAWBERRY": {
+    "units": 249,
+    "rev": 33637.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 247,
+    "rev": 33347.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 98,
+    "rev": 5224.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 130,
+    "rev": 6790.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 959
+ },
+ {
+  "eid": 111711083,
+  "seed": 511902674,
+  "us": 0,
+  "rew": [
+   134903.0,
+   134903.0
+  ],
+  "recorded": [
+   134903.0,
+   134903.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 405,
+    "rev": 15304.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 405,
+    "rev": 15304.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 332,
+    "rev": 16145.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 332,
+    "rev": 16145.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 222,
+    "rev": 45470.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 222,
+    "rev": 45470.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 171,
+    "rev": 13795.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 171,
+    "rev": 13795.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "0|EGG": {
+    "units": 72,
+    "rev": 3853.0,
+    "first": 264
+   },
+   "1|EGG": {
+    "units": 72,
+    "rev": 3853.0,
+    "first": 264
+   },
+   "0|STRAWBERRY": {
+    "units": 251,
+    "rev": 50190.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 251,
+    "rev": 50190.0,
+    "first": 382
+   },
+   "0|CARROT": {
+    "units": 90,
+    "rev": 3707.0,
+    "first": 673
+   },
+   "1|CARROT": {
+    "units": 90,
+    "rev": 3707.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": 0
+ },
+ {
+  "eid": 111712209,
+  "seed": 354743018,
+  "us": 1,
+  "rew": [
+   99221.0,
+   98289.0
+  ],
+  "recorded": [
+   99221.0,
+   98289.0
+  ],
+  "ok": true,
+  "agg": {
+   "0|WHEAT": {
+    "units": 416,
+    "rev": 16144.0,
+    "first": 0
+   },
+   "1|WHEAT": {
+    "units": 414,
+    "rev": 16257.0,
+    "first": 0
+   },
+   "0|FERTILIZER": {
+    "units": 342,
+    "rev": 16244.0,
+    "first": 30
+   },
+   "1|FERTILIZER": {
+    "units": 324,
+    "rev": 15558.0,
+    "first": 30
+   },
+   "0|WOOL": {
+    "units": 100,
+    "rev": 5493.0,
+    "first": 149
+   },
+   "1|WOOL": {
+    "units": 100,
+    "rev": 5470.0,
+    "first": 149
+   },
+   "0|MILK": {
+    "units": 199,
+    "rev": 32128.0,
+    "first": 196
+   },
+   "1|MILK": {
+    "units": 176,
+    "rev": 28550.0,
+    "first": 196
+   },
+   "0|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|MELON": {
+    "units": 72,
+    "rev": 14267.0,
+    "first": 249
+   },
+   "1|EGG": {
+    "units": 160,
+    "rev": 7546.0,
+    "first": 264
+   },
+   "0|EGG": {
+    "units": 114,
+    "rev": 5306.0,
+    "first": 269
+   },
+   "0|STRAWBERRY": {
+    "units": 249,
+    "rev": 30098.0,
+    "first": 382
+   },
+   "1|STRAWBERRY": {
+    "units": 249,
+    "rev": 30713.0,
+    "first": 382
+   },
+   "0|TOMATO": {
+    "units": 80,
+    "rev": 10314.0,
+    "first": 646
+   },
+   "1|TOMATO": {
+    "units": 80,
+    "rev": 10314.0,
+    "first": 646
+   },
+   "1|CARROT": {
+    "units": 87,
+    "rev": 3731.0,
+    "first": 673
+   },
+   "0|CARROT": {
+    "units": 84,
+    "rev": 3621.0,
+    "first": 673
+   }
+  },
+  "cls": "mirror",
+  "margin": -932
+ }
+]

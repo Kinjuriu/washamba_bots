@@ -1,0 +1,2 @@
+# One episode id per line. Comment lines start with #.
+# Fill from the leaderboard UI: click a top-10 team -> recent episodes -> copy 3 episode ids.

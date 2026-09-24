@@ -1,0 +1,98 @@
+[
+ {
+  "eid": 111701305,
+  "seed": 1785154844,
+  "seat": 1,
+  "rew": [
+   83638.0,
+   80716.0
+  ],
+  "recorded": [
+   83638.0,
+   80716.0
+  ],
+  "reproduces": true,
+  "lead_start": -12,
+  "lead_final": 16,
+  "hz_min": 40,
+  "hz_max": 40,
+  "hz_final": 40,
+  "n_bumps": 5,
+  "first_bump": [
+   167,
+   1,
+   40
+  ],
+  "telemetry": {
+   "rival_sales": 97,
+   "leads": 31,
+   "race_errors": 0
+  },
+  "hz_above_40": 0,
+  "hz_n": 719
+ },
+ {
+  "eid": 111695274,
+  "seed": 1353310643,
+  "seat": 0,
+  "rew": [
+   80806.0,
+   82237.0
+  ],
+  "recorded": [
+   80806.0,
+   82237.0
+  ],
+  "reproduces": true,
+  "lead_start": -12,
+  "lead_final": 21,
+  "hz_min": 40,
+  "hz_max": 40,
+  "hz_final": 40,
+  "n_bumps": 4,
+  "first_bump": [
+   165,
+   3,
+   40
+  ],
+  "telemetry": {
+   "rival_sales": 149,
+   "leads": 43,
+   "race_errors": 0
+  },
+  "hz_above_40": 0,
+  "hz_n": 719
+ },
+ {
+  "eid": 111679497,
+  "seed": 2043638967,
+  "seat": 0,
+  "rew": [
+   86322.0,
+   87502.0
+  ],
+  "recorded": [
+   86322.0,
+   87502.0
+  ],
+  "reproduces": true,
+  "lead_start": -12,
+  "lead_final": 22,
+  "hz_min": 40,
+  "hz_max": 40,
+  "hz_final": 40,
+  "n_bumps": 4,
+  "first_bump": [
+   164,
+   4,
+   40
+  ],
+  "telemetry": {
+   "rival_sales": 106,
+   "leads": 23,
+   "race_errors": 0
+  },
+  "hz_above_40": 0,
+  "hz_n": 719
+ }
+]
