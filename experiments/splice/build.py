@@ -77,7 +77,14 @@ DEFAULT_OUTPUT = os.path.join(AGENTS_DIR, "washamba_splice_v1.py")
 # when the others are broken).
 WB_HANDOVER_STEP = 192
 
-SPLICE_MODULES = ["price_model.py", "sell_engine.py", "controller.py"]
+SPLICE_MODULES = ["price_model.py", "sell_engine.py", "controller.py"]   # required
+# Concatenation order. value_model.py and dump_predictor.py are optional (included when
+# present); both depend only on price_model.py, and sell_engine/controller may use them.
+BUILD_ORDER = ["price_model.py", "value_model.py", "dump_predictor.py",
+               "sell_engine.py", "controller.py"]
+# Front-run tape opponents' premium dumps (docs/ENDGAME/splice_dump_predictor.md):
+# measured +683 to +978 per game vs W3, W0, W1 and the 2945 Farm, identical otherwise.
+WB_FRONT_RUN = True
 
 # Cross-splice imports that only matter for standalone-importing/testing a
 # module before the build exists (e.g. Builder A's sell_engine.py:
@@ -85,7 +92,7 @@ SPLICE_MODULES = ["price_model.py", "sell_engine.py", "controller.py"]
 # Once concatenated, the names they'd import are already defined earlier in
 # the same file. Not a blanket import-stripper: price_model.py's own
 # `import math as _wb_math` (stdlib) must survive.
-_STRIP_IMPORT_RE = re.compile(r"^\s*(from|import)\s+(price_model|sell_engine|controller)\b")
+_STRIP_IMPORT_RE = re.compile(r"^\s*(from|import)\s+(price_model|value_model|dump_predictor|sell_engine|controller)\b")
 
 
 def _git_hash():
@@ -134,14 +141,18 @@ def _dispatcher_source(all_three):
         "",
         "# ---- washamba splice: dispatcher (experiments/splice/build.py) ----",
         f"WB_HANDOVER_STEP = {WB_HANDOVER_STEP}",
+        "_wb_dp = None   # WB_DumpPredictor when front-running is on; fed every turn from step 0",
         "_WB_CONTROLLER = None",
         "_WB_CONTROLLER_ERROR = None",
     ]
     if all_three:
         lines += [
+            f"WB_FRONT_RUN = {WB_FRONT_RUN}",
             "try:",
             "    _wb_pm = WB_PriceModel()",
-            "    _wb_se = WB_SellEngine(_wb_pm)",
+            "    if WB_FRONT_RUN and 'WB_DumpPredictor' in globals():",
+            "        _wb_dp = WB_DumpPredictor(_wb_pm)",
+            "    _wb_se = WB_SellEngine(_wb_pm, predictor=_wb_dp)",
             "    _WB_CONTROLLER = WB_Controller(_wb_pm, _wb_se)",
             "except Exception as _wb_construct_exc:",
             "    _WB_CONTROLLER_ERROR = _wb_construct_exc",
@@ -192,6 +203,11 @@ def _dispatcher_source(all_three):
         "",
         "def washamba_agent(obs, config=None):",
         "    global _WB_WARNED_MISSING",
+        "    if _wb_dp is not None:",
+        "        try:",
+        "            _wb_dp.observe(obs)   # needs steps 1-2 to identify the opponent",
+        "        except Exception:",
+        "            pass",
         "    if _WB_CONTROLLER is None:",
         "        if not _WB_WARNED_MISSING:",
         '            print(f"washamba_splice_v1: controller not available '
@@ -227,7 +243,7 @@ def build(base_path, output_path):
     header_lines = _extract_header_lines(base_text_for_header)
 
     present = {}
-    for mod in SPLICE_MODULES:
+    for mod in BUILD_ORDER:
         p = os.path.join(THIS_DIR, mod)
         if os.path.exists(p):
             with open(p, "r", encoding="utf-8") as f:
@@ -275,7 +291,7 @@ def build(base_path, output_path):
     chunks = [header_text.encode("utf-8")]
     chunks.append(base_bytes if base_bytes.endswith(b"\n") else base_bytes + b"\n")
     chunks.append(glue_pre.encode("utf-8"))
-    for mod in SPLICE_MODULES:
+    for mod in BUILD_ORDER:
         if mod in present:
             chunks.append(f"\n# ---- washamba splice: {mod} (package imports stripped by build.py) ----\n".encode("utf-8"))
             chunks.append(present[mod].encode("utf-8"))

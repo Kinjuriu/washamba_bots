@@ -119,6 +119,7 @@ _WB_BASE = _wb_load_base_agent(os.path.join(_WB_REPO_ROOT, WB_BASE_RELPATH))
 
 _WB_CONTROLLER = None
 _WB_CONTROLLER_ERROR = None
+_wb_dp = None
 try:
     # Bare, top-level module names -- NOT `experiments.splice.*`. price_model.py
     # / sell_engine.py / controller.py import each other the same bare way
@@ -137,7 +138,12 @@ try:
     import controller as _wb_controller_mod
 
     _wb_pm = _wb_price_model_mod.WB_PriceModel()
-    _wb_se = _wb_sell_engine_mod.WB_SellEngine(_wb_pm)
+    try:  # optional: front-run tape opponents' premium dumps (same default as build.py)
+        import dump_predictor as _wb_dump_predictor_mod
+        _wb_dp = _wb_dump_predictor_mod.WB_DumpPredictor(_wb_pm)
+    except ImportError:
+        _wb_dp = None
+    _wb_se = _wb_sell_engine_mod.WB_SellEngine(_wb_pm, predictor=_wb_dp)
     _WB_CONTROLLER = _wb_controller_mod.WB_Controller(_wb_pm, _wb_se)
 except Exception as _wb_exc:  # ImportError before the builders land; anything else after
     _WB_CONTROLLER_ERROR = _wb_exc
@@ -171,6 +177,11 @@ def _wb_safe_action(obs):
 
 def washamba_dev_agent(obs, config=None):
     global _WB_WARNED_MISSING
+    if _wb_dp is not None:
+        try:
+            _wb_dp.observe(obs)  # needs steps 1-2 to identify the opponent
+        except Exception:
+            pass
     if _WB_CONTROLLER is None:
         if not _WB_WARNED_MISSING:
             print(
