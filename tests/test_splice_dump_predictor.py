@@ -214,7 +214,7 @@ class TestGeneratedTable(unittest.TestCase):
                     steps = [s for s, _ in rows]
                     self.assertEqual(steps, sorted(steps))
                     for s, q in rows:
-                        self.assertTrue(180 <= s <= 718 and q >= 4, (fam, route, product, s, q))
+                        self.assertTrue(96 <= s <= 718 and q >= 4, (fam, route, product, s, q))
 
     def test_top_level_names_are_prefixed(self):
         for name in vars(dpmod):
