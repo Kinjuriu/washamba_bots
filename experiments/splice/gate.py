@@ -155,6 +155,72 @@ ENVELOPE_GATES = {
     "care_duplicates": ("==", 0),
 }
 
+# --- exact opponent sell-revenue reconstruction (splice-b-controller's fix,
+# 2026-09-25 -- see _compute_envelope's "sold/price" docs above for the bug
+# this replaces). Every constant below is verified directly against the
+# installed kaggriculture.py; gate.py is local-only and never ships, so
+# depending on the engine's own fixed-cost tables (unlike price_model.py,
+# which must stay engine-import-free because it does ship) is fine.
+FARM_HAND_COST_MULT = 1  # engine default; _play_one never overrides farmHandCostMult
+LAND_ORDER = ["NE", "SW", "SE"]
+LAND_PRICES = [1000, 2000, 4000]
+SEED_COST = {"WHEAT": 10, "CARROT": 20, "TOMATO": 50, "STRAWBERRY": 100, "MELON": 80}
+ANIMAL_COST = {"GOOSE": 300, "COW": 400, "SHEEP": 500}
+
+
+def _fib(n):
+    """kaggriculture.py's _fib: indexed so _fib(0)=1, _fib(1)=1, _fib(2)=2..."""
+    a, b = 1, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+
+
+_PRICE_MODEL = None
+
+
+def _price_model():
+    """price_model.py lives next to this file; imported the same bare way
+    dev_agent.py does, reusing Builder A's already-tested, test-suite-checked
+    market_price port instead of reimplementing the price curve here."""
+    global _PRICE_MODEL
+    if _PRICE_MODEL is None:
+        if THIS_DIR not in sys.path:
+            sys.path.insert(0, THIS_DIR)
+        import price_model as _wb_price_model_mod
+        _PRICE_MODEL = _wb_price_model_mod.WB_PriceModel()
+    return _PRICE_MODEL
+
+
+def _invert_sell_revenue(item, inventory, target_revenue):
+    """The exact qty whose WB_PriceModel.sell_revenue(item, inventory, qty)
+    equals target_revenue. Both sides are sums of integer per-unit prices
+    (sell_revenue already matches the engine's own floor-price behavior --
+    price_model.py: "at the floor the inventory stops moving: the rest pay
+    $1 each"), so for a clean, single-seller curve-walk this is exact, not
+    approximate. Returns None if nothing in a generous range matches --
+    meaning the turn was not actually clean (e.g. a shed/order cap the money
+    accounting didn't predict) -- the caller falls back to the lower-bound
+    method for that turn instead of trusting a wrong exact-looking number."""
+    if target_revenue < 0:
+        return None
+    if target_revenue == 0:
+        return 0
+    pm = _price_model()
+    lo, hi = 0, 1
+    while pm.sell_revenue(item, inventory, hi) < target_revenue and hi < 5000:
+        hi *= 2
+    hi = min(hi, 5000)
+    if pm.sell_revenue(item, inventory, hi) < target_revenue:
+        return None
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if pm.sell_revenue(item, inventory, mid) < target_revenue:
+            lo = mid + 1
+        else:
+            hi = mid
+    return lo if pm.sell_revenue(item, inventory, lo) == target_revenue else None
+
 
 def _play_one(job):
     """Run one episode. Returns a small, jsonl-safe dict -- never env.steps
@@ -265,62 +331,128 @@ def _compute_envelope(steps, seat):
                     if isinstance(ct, dict) and ct.get("kind") in ("PASTURE", "COOP") and "animal" not in ct:
                         escapes += 1
 
-        # Sold qty/price: the DECLARED order quantity is not the transacted
-        # quantity. Tape-family agents (W3/W1/W0/reactive_v1/2945 Farm) issue
-        # "sell everything" liquidation orders that declare enormous
-        # quantities (997, 1000 seen directly in a real trace) regardless of
-        # what they actually hold; the engine silently sells only what's
-        # held and no-ops the rest (kaggriculture.py's per-unit lockstep,
-        # gated on the seller's own private shed). Verified against that
-        # same trace: market inventory did not move at all on a declared
-        # "SELL FERTILIZER 997" -- the true transacted amount was 0, not
-        # 997. Trusting the declared number inflated "opponent sold" by
-        # 7x+ in one measured case (Builder B, gate_splice_b0800).
-        #
-        # Fix: cap each declared quantity against a REAL, VERIFIABLE bound.
-        #   - Candidate's own orders: capped by the candidate's own visible
-        #     pre-turn shed stock (private.shed IS visible for our own seat)
-        #     -- exact, not an approximation.
-        #   - Opponent's orders: their shed is never visible (CLAUDE.md), so
-        #     bounded instead by this turn's own market-inventory increase,
-        #     net of whatever the candidate itself is already verified to
-        #     have sold of that item this same turn. SELL is the only action
-        #     that can raise market inventory (BUY_PRODUCT and town
-        #     consumption only lower it), so neither side can have sold more
-        #     units than the inventory actually rose net of the other side's
-        #     verified contribution -- a real physical upper bound from
-        #     public data alone, not a reconstruction of engine internals.
+        # Sold qty/price. See this function's docstring header (and the
+        # module docstring's "sold/price" section) for the full history:
+        # the original bug trusted each order's DECLARED quantity, which
+        # tape-family liquidation orders inflate arbitrarily; a first fix
+        # bounded it by market-inventory movement, which splice-b-controller
+        # then showed is a systematic UNDERcount (drain, BUY_PRODUCT netting
+        # and floor-price sales all move money without moving inventory the
+        # same way). This is their proposed fix: reconstruct the opponent's
+        # exact sell revenue from their PUBLIC money delta net of every
+        # other public, fixed-price spend category, then invert revenue to
+        # quantity via price_model.py's own tested curve-walker.
         prices = prev_obs["market"].get("prices", {})
         prev_inv = prev_obs["market"].get("inventory", {})
         curr_inv = curr_obs["market"].get("inventory", {})
         shed = prev_obs["private"].get("shed", {})
         candidate_sold_this_turn = Counter()
+        candidate_items_this_turn = set()
 
         for order in (action.get("market") or []):
             if order and order[0] == "SELL":
                 item = order[1]
+                candidate_items_this_turn.add(item)
                 declared = order[2] if len(order) > 2 else 1
+                # Candidate's own shed IS visible for our own seat -- exact,
+                # not an approximation (unlike the opponent case below).
                 qty = max(0, min(declared, shed.get(item, 0) - candidate_sold_this_turn[item]))
                 if qty <= 0:
                     continue
                 cand_sold_qty[item] += qty
-                cand_sold_value[item] += qty * prices.get(item, 0)
+                cand_sold_value[item] += _price_model().sell_revenue(item, prev_inv.get(item, 0), qty)
                 candidate_sold_this_turn[item] += qty
+            elif order and order[0] == "BUY_PRODUCT":
+                candidate_items_this_turn.add(order[1])
 
         opp_action = steps[i][opp_seat].get("action") or {}
-        opp_sold_this_turn = Counter()
-        for order in (opp_action.get("market") or []):
-            if order and order[0] == "SELL":
-                item = order[1]
+        opp_orders = opp_action.get("market") or []
+        opp_sell_items = {o[1] for o in opp_orders if o and o[0] == "SELL"}
+        opp_has_buy_product = any(o and o[0] == "BUY_PRODUCT" for o in opp_orders)
+
+        # Exact known spend on every category besides SELL/BUY_PRODUCT, all
+        # of which are public and fixed-price (HIRE: fib(hires_today), fully
+        # public; BUY_LAND: LAND_PRICES indexed off the public
+        # unlocked_quadrants count; BUY_SEED/BUY_ANIMAL: CROPS/ANIMALS'
+        # fixed per-unit cost -- unlike SELL/BUY_PRODUCT these don't share a
+        # market-moving curve with the other player, so a running-money
+        # simulation of just the opponent's own orders determines exactly
+        # which succeeded, kaggriculture.py's own all-or-nothing-per-unit
+        # affordability check). Not modeled: BUY_ANIMAL/BUY_PRODUCT can also
+        # silently fail on the opponent's OWN shed being full (never
+        # visible) -- rare, and caught safely by _invert_sell_revenue
+        # returning None (falls back) rather than emitting a wrong number.
+        opp_farm_prev = prev_obs["farms"][opp_seat]
+        opp_money_delta = curr_obs["farms"][opp_seat]["money"] - opp_farm_prev["money"]
+        hires_before = opp_farm_prev.get("hires_today", 0)
+        n_land_before = len(opp_farm_prev.get("unlocked_quadrants") or ["NW"]) - 1
+        running_money = opp_farm_prev["money"]
+        known_spend = 0.0
+        hire_n = land_n = 0
+        for order in opp_orders:
+            if not order:
+                continue
+            op = order[0]
+            if op == "HIRE":
+                cost = FARM_HAND_COST_MULT * _fib(hires_before + hire_n)
+                if running_money >= cost:
+                    known_spend += cost
+                    running_money -= cost
+                    hire_n += 1
+            elif op == "BUY_LAND":
+                idx = n_land_before + land_n
+                if 0 <= idx < len(LAND_PRICES) and running_money >= LAND_PRICES[idx]:
+                    known_spend += LAND_PRICES[idx]
+                    running_money -= LAND_PRICES[idx]
+                    land_n += 1
+            elif op in ("BUY_SEED", "BUY_ANIMAL"):
+                item = order[1] if len(order) > 1 else None
                 declared = order[2] if len(order) > 2 else 1
-                inv_rise = curr_inv.get(item, 0) - prev_inv.get(item, 0)
-                room = max(0, inv_rise - candidate_sold_this_turn.get(item, 0) - opp_sold_this_turn[item])
-                qty = max(0, min(declared, room))
-                if qty <= 0:
-                    continue
-                opp_sold_this_turn[item] += qty
-                opp_sold_qty[item] += qty
-                opp_sold_value[item] += qty * prices.get(item, 0)
+                unit_cost = (SEED_COST if op == "BUY_SEED" else ANIMAL_COST).get(item)
+                if unit_cost:
+                    filled = min(declared, int(running_money // unit_cost))
+                    known_spend += filled * unit_cost
+                    running_money -= filled * unit_cost
+
+        # "Clean": exactly one item sold, no same-turn BUY_PRODUCT (a second,
+        # unmodeled market-moving order for the same or another item), and
+        # the candidate didn't ALSO trade that item this turn -- a shared
+        # price curve between two sellers in the same slot can't be split
+        # from money alone (price_model.sell_revenue's own docstring:
+        # "with no competing same-slot seller").
+        clean = (
+            len(opp_sell_items) == 1
+            and not opp_has_buy_product
+            and not (opp_sell_items & candidate_items_this_turn)
+        )
+        exact_qty = None
+        if clean:
+            exact_item = next(iter(opp_sell_items))
+            target_revenue = opp_money_delta + known_spend
+            exact_qty = _invert_sell_revenue(exact_item, prev_inv.get(exact_item, 0), target_revenue)
+
+        if clean and exact_qty is not None:
+            if exact_qty > 0:
+                opp_sold_qty[exact_item] += exact_qty
+                opp_sold_value[exact_item] += target_revenue
+        else:
+            # Fallback for anything not clean: the same market-inventory
+            # lower bound as before (still a real, if pessimistic, physical
+            # bound -- SELL is the only action that raises market
+            # inventory).
+            opp_sold_this_turn = Counter()
+            for order in opp_orders:
+                if order and order[0] == "SELL":
+                    item = order[1]
+                    declared = order[2] if len(order) > 2 else 1
+                    inv_rise = curr_inv.get(item, 0) - prev_inv.get(item, 0)
+                    room = max(0, inv_rise - candidate_sold_this_turn.get(item, 0) - opp_sold_this_turn[item])
+                    qty = max(0, min(declared, room))
+                    if qty <= 0:
+                        continue
+                    opp_sold_this_turn[item] += qty
+                    opp_sold_qty[item] += qty
+                    opp_sold_value[item] += qty * prices.get(item, 0)
 
     final_tiles = steps[-1][seat].observation["farms"][seat]["tiles"]
     weeds_at_end = sum(1 for row in final_tiles for t in row if isinstance(t, dict) and t.get("kind") == "WEED")
