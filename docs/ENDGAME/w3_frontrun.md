@@ -28,7 +28,13 @@ The entrypoint is captured as W3's **last callable** right after the base text: 
    - q = the units whose quote now beats the price right after the dump, net of the drain in between;
    - P is one of MELON, STRAWBERRY, MILK, WOOL, TOMATO, CARROT, never WHEAT or FERTILIZER;
    - never more than 10 orders in total; if W3 already uses 10, nothing is added;
-   - W3's orders are never removed or reordered; they follow the added ones, in their order.
+   - W3's orders are never removed, and their relative order is kept; they follow the added ones.
+     **They do move, though.** Market orders settle in index lockstep with the opponent's, so
+     every added slot-0 order pushes each W3 order one index later, and W3's own sells then
+     price after the opponent's order at the earlier index. This is the same mechanism
+     `docs/MARGIN_LEVERS.md` documents for the seed trim's per-seat swings, and it probably
+     explains the coin-flip margins against the 2945 Farm (16 of 32 games slightly worse,
+     win count unchanged). The gates measured the add-on including this shift.
 4. `WB_FRONTRUN_ON = False` at the top of the overlay makes every action W3's own. The test replays a 240-step episode and compares every action; both flag-off seats of the seed-900 mirror bank W3's 70,559 exactly.
 
 The predictor's dump table was regenerated to start at step 96 (it was 180 for the splice), so it now covers W3's pre-handover dumps: wool at 149/150, milk at 196. Held-out accuracy is unchanged: precision 0.74-0.75, recall 0.68-0.69.
