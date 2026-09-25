@@ -11,6 +11,50 @@ later step; `dev:<module>` = an older controller snapshot (`_dev_b_ctrl_*.py`). 
 modules are frozen in `experiments/splice/_dev_b_frozen/` for stable A/B comparisons (set
 `WB_LIVE_A=1` to use the live ones).
 
+## 2026-09-25 07:20 UTC: official gate 0-32 vs W3 (-17.4k); dev-seed reads all ~-20k
+
+**Official gate** (`gate.py`, 16 dev seeds x both seats, build of 05:20 = "drop" build):
+
+| opponent | result | mean margin |
+|---|---|---|
+| W3 | **0-32** | -17,356 |
+| W1 | 0-32 | -17,115 |
+| W0 | 0-32 | -17,144 |
+| reactive v7 | 2-30 | -14,601 |
+| 2945 Farm | 0-32 | -16,151 |
+| self-play mean | 99,942 | vs W3 self-play 104,348 |
+
+Envelope: idle 1.8% (pass), waters 37.7/day (FAIL, need 40), care 0.81 (pass), 0 duplicate CARE,
+7 escapes (all on day 28 by design, since fixed), max turn 347 ms in the build check.
+Seeds 0-2 flattered us (-8.4k): tomato-rich seed 1 was +11.7k.
+
+**Everything since, on the 16 dev seeds, one seat per seed (seat = seed parity), vs W3:**
+
+| variant | mean | note |
+|---|---|---|
+| drop build (baseline) | -20.4k | |
+| + top-six schedule floors | -21.0k | noise |
+| + strawberry floor 33 from day 10 | -21.9k | +2k strawberry, lost carrot/tomato |
+| mirror opponent's crops and herd | -23.6k | |
+| tomato cap 6, carrots from day 23 | -23.4k | |
+| zone-local feeding (late rescue) | **-21.9k** (median -19.3k) | adopted: waters 38.1, 0 escapes |
+| handover step 72 (day 3), schedule plan | -28.7k | earlier handover is worse |
+| handover step 144 (day 6) | -25.3k | |
+| handover step 336 (day 14) | -15.0k | identical boards at day 14, still lose |
+
+**The day-14 handover isolates execution + late plan: from an identical board we lose 15k in
+days 14-29.** Seed 900 detail:
+- wheat: W3 harvests 428 after day 14 and sells 271 (keeps 24-38 wheat tiles, then carrots from
+  day 26); we harvest 343 and sell 195 (tomato and extra geese take wheat land).
+- fertilizer: W3 sells 218 and buys 73 cheap late units to apply; we apply 149 and sell 96.
+- strawberry: identical plants, we produce 235 vs 247 (fertilizer timing on production days).
+- carrots: W3 runs 18-31 carrot tiles on days 26-28; we run 9-13.
+
+**Executor vs W3 (seed 900, days 10-27, per day):** we make 83 tile visits with 156 moves and 136
+actions; W3 makes 75 visits with 110 moves and 144 actions. W3 does more per visit (1.91 vs 1.64
+actions) and walks less between visits (1.46 vs 1.88 moves). Roughly 30 unit-turns a day of
+throughput are lost to routing.
+
 ## 2026-09-25 05:15 UTC: -8.4k mean vs W3 on seeds 0-2, 2 of 6 won
 
 | build | vs W3 (seeds 0-2, both seats) | mean | note |

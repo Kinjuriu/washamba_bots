@@ -79,6 +79,7 @@ WB_W_WATER_MAINT = 12.0        # optional: resets the counter a day early
 WB_W_HARVEST_DUE = 95.0        # done growing, capping tonight, or decaying
 WB_W_HARVEST_OPT = 22.0
 WB_FEED_MARGIN = 1.2            # feed when its payout beats this many wheat
+WB_FEED_RESCUE_HOUR = 15        # from here any wheat carrier feeds anywhere
 WB_W_HARVEST_ONGOING = 70.0     # ongoing crop holding 2+: the tile caps at 4
 WB_W_HARVEST_RACE = 600.0      # premium one-shot crop the opponent is about to dump too
 WB_W_PLANT = 82.0
@@ -113,15 +114,34 @@ WB_PLANT_CROPS = ("WHEAT", "CARROT", "TOMATO", "STRAWBERRY")
 # at what the crew can service.
 _WB_TILE_LOAD = {"WHEAT": 1.6, "CARROT": 1.7, "TOMATO": 0.9, "STRAWBERRY": 0.9, "MELON": 1.0}
 WB_WHEAT_PER_ANIMAL = 1.2      # wheat tiles per animal: feed self-sufficiency plus sales
+# Top-six medians at dawn by day vs tape opponents (docs/ENDGAME/top6_targets.md, 27 seats):
+# tiles planted per crop and head count per species. Used as floors for the day's targets.
+_WB_T6 = {
+    "STRAWBERRY": [0, 0, 0, 3, 8, 9, 9, 18, 21, 21, 24, 27, 28, 31, 32, 32, 32, 32, 32, 30,
+                   26, 24, 24, 16, 13, 12, 10, 7, 6, 5],
+    "WHEAT": [0, 9, 9, 5, 1, 0, 0, 3, 4, 4, 16, 21, 22, 21, 18, 17, 15, 14, 13, 13,
+              16, 17, 17, 25, 27, 27, 25, 25, 26, 16],
+    "CARROT": [0] * 21 + [2, 3, 7, 9, 9, 15, 19, 17, 8],
+    "COW": [0, 2, 2, 2, 2, 2, 2, 6, 6, 7] + [9] * 19 + [8],
+    "SHEEP": [0] + [3] * 28 + [2],
+    "GOOSE": [0] * 7 + [1, 1, 1, 2, 2] + [3] * 18,
+    "HANDS": [4, 3, 6, 6, 6, 6, 8, 9, 9, 10] + [11] * 18 + [10, 10],
+}
 WB_HERD_CUTOFF = {"GOOSE": 17, "COW": 14, "SHEEP": 13}   # last purchase day per species
 WB_GOOSE_EXTRA = 2             # geese above the opponent's count (eggs are glut-proof)
 WB_TOMATO_FIRST_DAY = 13       # tomato scarcity builds all season: produce into the spike
 WB_TOMATO_LAST_DAY = 18        # a tomato planted later misses most of its 4 productions
 WB_STRAWBERRY_EXTRA = 2        # strawberry tiles above the opponent's count
-WB_TOMATO_MAX = 20
+WB_STRAWBERRY_FLOOR = 0        # measured: a 30-tile floor lost 9k a game (land taken from wheat and tomato)
+WB_TOMATO_MAX = 6               # top six: 5-7 tiles; 19 tiles cost 13k by day 24 (seed 900)
 WB_STRAWBERRY_LAST_DAY = 13    # productions at +9,+11,+13,+15 must land by day 28
 WB_STRAWBERRY_MAX = 36
 WB_CARROT_MAX = 18
+WB_CARROT_FILL_RATIO = 1.0      # fill free land with carrot when it out-prices wheat
+WB_CARROT_FIRST_DAY = 23        # tapes switch freed land to carrot from day ~24 (3-day cycle fits the end)
+WB_MIRROR_STRAWBERRY = 33      # the tape family's strawberry tiles from day 11
+WB_MIRROR_TOMATO_MAX = 10
+WB_MIRROR_CARROT_DAY = 19      # carrots come last (tapes and top six plant them from day ~20)
 _WB_ANIMAL_LOAD = 3.6
 _WB_TURNS_PER_ACTION = 1.85
 # Units one planting yields with fertilizer applied (max_yield caps), used when the day's
@@ -328,6 +348,8 @@ class WB_Controller:
     """Plays every unit and market order from the handover step on."""
 
     shadow = False     # dev switch: fixed W3-like plan, to measure the executor alone
+    schedule = True    # crop floors from the top-six day-by-day medians (_WB_T6)
+    mirror = False     # measured -23.6k vs -21.0k without it (16 dev seeds): off
 
     def __init__(self, price_model=None, sell_engine=None):
         self.pm = price_model
@@ -632,12 +654,15 @@ class WB_Controller:
                 want -= 1
                 left -= 1
         filler = "WHEAT" if day <= 27 else None
+        if filler and self._shop_wants(v, "CARROT") and v.price("CARROT") >= v.price("WHEAT") * WB_CARROT_FILL_RATIO                 and day >= WB_CARROT_FIRST_DAY:
+            filler = "CARROT"
+        plan["filler"] = filler
         while filler and left > 0 and load + _WB_TILE_LOAD[filler] <= cap:
             planned[filler] = planned.get(filler, 0) + 1
             load += _WB_TILE_LOAD[filler]
             left -= 1
         plan["quota"] = planned
-        order = [c for c, _t in targets] + ["WHEAT"]
+        order = [c for c, _t in targets] + [filler or "WHEAT"]
         plan["crop_order"] = [c for i, c in enumerate(order) if c in planned and c not in order[:i]] or ["WHEAT"]
         plan["targets"] = targets
         plan["last_plant_day"] = 27
@@ -646,12 +671,40 @@ class WB_Controller:
         work = load + sum(planned.values()) * 1.2 + len(v.weeds) + len(plan["build"]) * 2 + 4
         hands = int(work * _WB_TURNS_PER_ACTION / 23.0 + 0.5) - 1
         floor = WB_MIN_HANDS if day >= 10 else WB_MIN_HANDS - 2
+        if self.schedule:
+            floor = _WB_T6["HANDS"][min(29, day)]
         plan["hands"] = max(floor, min(WB_MAX_HANDS, hands))
         plan["work"] = round(work, 1)
         self._note(f"d{day} money={v.money:.0f} herd={herd} opp_herd={opp_herd} buy={plan['buy']} "
                    f"build={len(plan['build'])} quota={planned} hands={plan['hands']} work={work:.0f} "
                    f"land={plan['land']} shops={len(v.shops)}")
         return plan
+
+    @staticmethod
+    def _shop_wants(v, product):
+        for sname in v.shops:
+            if product in _WB_SHOP_TABLE.get(sname, ()):
+                return True
+        return False
+
+    def _mirror_targets(self, v, n_animals, opp, shop_prods):
+        """Mirror plan: match the opponent's backbone (strawberry and wheat) tile for tile,
+        anticipating the tape family's day-11 strawberry build to ~33, carrots late as it
+        does, and tomato only where a shop wants it and the opponent grows none."""
+        day = v.day
+        out = []
+        if day <= WB_STRAWBERRY_LAST_DAY:
+            want = opp["STRAWBERRY"] + 1
+            if day >= 9 and opp["STRAWBERRY"] >= 10:
+                want = max(want, WB_MIRROR_STRAWBERRY)
+            out.append(("STRAWBERRY", min(WB_STRAWBERRY_MAX, want)))
+        if WB_TOMATO_FIRST_DAY <= day <= WB_TOMATO_LAST_DAY and "TOMATO" in shop_prods and opp["TOMATO"] == 0:
+            drain = self._drain_day("TOMATO", v.shops)
+            out.append(("TOMATO", min(WB_MIRROR_TOMATO_MAX, int(drain / 1.5 + 0.5))))
+        out.append(("WHEAT", max(opp["WHEAT"], int(WB_WHEAT_PER_ANIMAL * n_animals + 0.999))))
+        if day >= WB_MIRROR_CARROT_DAY and "CARROT" in shop_prods:
+            out.append(("CARROT", max(opp["CARROT"], min(WB_CARROT_MAX, int(0.5 * self._drain_day("CARROT", v.shops))))))
+        return out
 
     def _crop_targets(self, v, n_animals):
         """Ordered (crop, target tile count) list for today's plantings.
@@ -670,9 +723,20 @@ class WB_Controller:
                 for t in row:
                     if isinstance(t, dict) and t.get("kind") == "PLANT":
                         opp[t["crop"]] += 1
+        if self.mirror:
+            shop_prods = set()
+            for sname in v.shops:
+                shop_prods.update(_WB_SHOP_TABLE.get(sname, ()))
+            return self._mirror_targets(v, n_animals, opp, shop_prods)
         out = []
+        t6 = min(29, day + 1) if self.schedule else None     # tomorrow's dawn target
         if day <= WB_STRAWBERRY_LAST_DAY:
-            out.append(("STRAWBERRY", min(WB_STRAWBERRY_MAX, opp["STRAWBERRY"] + WB_STRAWBERRY_EXTRA)))
+            want = opp["STRAWBERRY"] + WB_STRAWBERRY_EXTRA
+            if t6 is not None:
+                want = max(want, _WB_T6["STRAWBERRY"][t6])
+            if day >= 10 and opp["STRAWBERRY"] >= 10:
+                want = max(want, WB_STRAWBERRY_FLOOR)   # the tape family builds to ~33 by day 12
+            out.append(("STRAWBERRY", min(WB_STRAWBERRY_MAX, want)))
         shop_prods = set()
         for s in v.shops:
             shop_prods.update(_WB_SHOP_TABLE.get(s, ()))
@@ -680,10 +744,15 @@ class WB_Controller:
             drain = self._drain_day("TOMATO", v.shops) + _wb_expected_drain_growth("TOMATO", day) * 2
             want = int(0.8 * drain / 0.5 + 0.5)
             out.append(("TOMATO", max(opp["TOMATO"], min(WB_TOMATO_MAX, want))))
-        out.append(("WHEAT", int(WB_WHEAT_PER_ANIMAL * n_animals + 0.999)))
-        if "CARROT" in shop_prods:
+        wheat = int(WB_WHEAT_PER_ANIMAL * n_animals + 0.999)
+        if t6 is not None:
+            wheat = max(wheat, _WB_T6["WHEAT"][t6])
+        out.append(("WHEAT", wheat))
+        if "CARROT" in shop_prods and day >= WB_CARROT_FIRST_DAY:
             drain = self._drain_day("CARROT", v.shops)
             want = int(0.9 * drain + 0.5)
+            if t6 is not None:
+                want = max(want, _WB_T6["CARROT"][t6])
             out.append(("CARROT", max(0, min(WB_CARROT_MAX, want))))
         return out
 
@@ -714,9 +783,13 @@ class WB_Controller:
             shop_prods.update(_WB_SHOP_TABLE.get(s, ()))
         for a in ("SHEEP", "COW", "GOOSE"):
             prod = _WB_ANIMALS[a]["prod"]
-            if day > WB_HERD_CUTOFF[a] or not (prod == "EGG" or prod in shop_prods):
+            if day > WB_HERD_CUTOFF[a]:
                 continue
-            target = opp_herd[a] + (WB_GOOSE_EXTRA if a == "GOOSE" else 0)
+            target = 0
+            if prod == "EGG" or prod in shop_prods or self.mirror:
+                target = opp_herd[a] + (WB_GOOSE_EXTRA if a == "GOOSE" else 0)
+            if self.schedule:
+                target = max(target, _WB_T6[a][min(29, day + 1)])
             short = target - herd[a] - in_shed.get(a, 0)
             cost = _WB_ANIMALS[a]["cost"]
             while short > 0 and bought < budget_n and cost <= cash:
@@ -835,7 +908,7 @@ class WB_Controller:
                 w = 0.0
                 if int(t.get("consecutive_unwatered", 0)) >= 1 and day <= _WB_LAST_PROD_DAY:
                     w = WB_W_WATER_URGENT + late
-                if window_open and not (racing and yu >= c["mx"] - 1):
+                if window_open:
                     w = max(w, WB_W_HARVEST_RACE if racing else WB_W_WATER_WINDOW)
                 elif c["on"] and fert_active and day <= _WB_LAST_PROD_DAY and _wb_crop_prod_tonight(t, day):
                     w = max(w, WB_W_WATER_FERT)
@@ -849,7 +922,7 @@ class WB_Controller:
                     done = yu >= c["mx"] or age > c["my"] or (age == c["my"] and (t.get("watered_today") or hour >= 21))
                     if final_day:
                         done = not (window_open and not t.get("watered_today")) or hour >= 20
-                    if racing and (t.get("watered_today") or not window_open or yu >= c["mx"] - 1):
+                    if racing and (t.get("watered_today") or not window_open):
                         done = True
                     if done:
                         w = WB_W_HARVEST_RACE if racing else WB_W_HARVEST_DUE
@@ -1025,12 +1098,13 @@ class WB_Controller:
         carried_wheat = v.carried("WHEAT")
         wheat_uncovered = max(0, unfed - carried_wheat)
         shed_wheat = v.shed.get("WHEAT", 0)
-        zkey = (day, n_units, len(v.animals))
+        zkey = (day, n_units)
         if getattr(self, "zone_key", None) != zkey:
             self._zones(v)
             self.zone_key = zkey
         zone = self.unit_zone
-        herd_group = self.herd_group
+        animal_tiles = {(x, y) for (x, y, t) in v.animals}
+        herd_group = {i: (zone.get(i, set()) & animal_tiles) for i in range(n_units)}
         fert_tiles = [(x, y) for (key, kind, x, y, val, arg) in tasks if kind == "FERT"]
         shed_fert = v.shed.get("FERTILIZER", 0)
         # empty matching structures for animal placement
@@ -1074,7 +1148,8 @@ class WB_Controller:
                     if hour + d + 1 + _wb_dist((x, y), s) + 1 > 22:
                         continue
                 r = val / (d + 1.0)
-                if (x, y) not in myzone and val < WB_W_HARVEST_RACE and kind != "FEED":
+                if (x, y) not in myzone and val < WB_W_HARVEST_RACE and not (kind == "FEED" and (
+                        hour >= WB_FEED_RESCUE_HOUR or not herd_group.get(i) or task[4] >= WB_W_FEED + 20.0)):
                     r *= WB_ZONE_OUT
                 if self.prev.get(i) == (x, y):
                     r *= WB_STICKY
