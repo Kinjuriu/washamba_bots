@@ -66,16 +66,41 @@ each metric is derived from env.steps; the short version:
                         structure remains" -- DIG cannot remove a placed
                         animal, so this transition is unambiguous)
     weeds at end     = WEED tiles in the final observation
-    sold/price       = per product, the SELL quantity each seat's own action
-                        declared that turn, valued at that item's
-                        `market["prices"]` quote from the PRE-action
-                        observation (sell price is quoted pre-sell). This is
-                        an approximation when both seats sell the same item
-                        the same turn (their orders interleave unit-by-unit
-                        and the price drifts within the turn) -- it is a
-                        diagnostic, not one of the pass/fail gates, so this
-                        repo's usual "don't sink time into a fragile
-                        reconstruction" rule applies (CLAUDE.md/advisor).
+    sold/price       = per product, units actually transacted that turn
+                        (NOT the order's declared quantity -- see below),
+                        valued at that item's `market["prices"]` quote from
+                        the PRE-action observation (sell price is quoted
+                        pre-sell).
+
+                        The declared quantity in a SELL order is not the
+                        transacted quantity: tape-family agents (every
+                        opponent this harness uses) issue "sell everything"
+                        liquidation orders that declare huge, often
+                        round-number quantities (997, 1000 seen directly in
+                        a real trace) regardless of what they actually hold;
+                        the engine silently sells only what's held and
+                        no-ops the rest. Trusting the declared number
+                        inflated "opponent sold" by 7x+ in one measured case
+                        (splice-b-controller, gate_splice_b0800 -- W3
+                        FERTILIZER read ~1566/game against their own
+                        ~335/game ground truth from an instrumented
+                        _commit_unit log). Fixed by capping each declared
+                        quantity against a real, verifiable bound instead of
+                        trusting it: the candidate's own orders are capped
+                        by the candidate's own visible pre-turn shed stock
+                        (exact); the opponent's orders -- whose shed is
+                        never visible (CLAUDE.md) -- are capped by that
+                        turn's own market-inventory rise, net of whatever
+                        the candidate is already verified to have sold of
+                        that item the same turn (SELL is the only action
+                        that can raise market inventory, so this is a real
+                        physical upper bound from public data alone, not a
+                        reconstruction of engine internals). Still a
+                        diagnostic, not one of the pass/fail gates, but now
+                        bounded rather than fabricated -- verified against
+                        the same trace that exposed the bug: a declared
+                        "SELL FERTILIZER 997" against an unmoved market
+                        inventory now correctly counts as 0, not 997.
 
 Output: a summary block per opponent/bucket to stdout, then a PASS/FAIL
 verdict per gate, and one raw jsonl line per game under
@@ -240,19 +265,60 @@ def _compute_envelope(steps, seat):
                     if isinstance(ct, dict) and ct.get("kind") in ("PASTURE", "COOP") and "animal" not in ct:
                         escapes += 1
 
+        # Sold qty/price: the DECLARED order quantity is not the transacted
+        # quantity. Tape-family agents (W3/W1/W0/reactive_v1/2945 Farm) issue
+        # "sell everything" liquidation orders that declare enormous
+        # quantities (997, 1000 seen directly in a real trace) regardless of
+        # what they actually hold; the engine silently sells only what's
+        # held and no-ops the rest (kaggriculture.py's per-unit lockstep,
+        # gated on the seller's own private shed). Verified against that
+        # same trace: market inventory did not move at all on a declared
+        # "SELL FERTILIZER 997" -- the true transacted amount was 0, not
+        # 997. Trusting the declared number inflated "opponent sold" by
+        # 7x+ in one measured case (Builder B, gate_splice_b0800).
+        #
+        # Fix: cap each declared quantity against a REAL, VERIFIABLE bound.
+        #   - Candidate's own orders: capped by the candidate's own visible
+        #     pre-turn shed stock (private.shed IS visible for our own seat)
+        #     -- exact, not an approximation.
+        #   - Opponent's orders: their shed is never visible (CLAUDE.md), so
+        #     bounded instead by this turn's own market-inventory increase,
+        #     net of whatever the candidate itself is already verified to
+        #     have sold of that item this same turn. SELL is the only action
+        #     that can raise market inventory (BUY_PRODUCT and town
+        #     consumption only lower it), so neither side can have sold more
+        #     units than the inventory actually rose net of the other side's
+        #     verified contribution -- a real physical upper bound from
+        #     public data alone, not a reconstruction of engine internals.
         prices = prev_obs["market"].get("prices", {})
+        prev_inv = prev_obs["market"].get("inventory", {})
+        curr_inv = curr_obs["market"].get("inventory", {})
+        shed = prev_obs["private"].get("shed", {})
+        candidate_sold_this_turn = Counter()
+
         for order in (action.get("market") or []):
             if order and order[0] == "SELL":
                 item = order[1]
-                qty = order[2] if len(order) > 2 else 1
+                declared = order[2] if len(order) > 2 else 1
+                qty = max(0, min(declared, shed.get(item, 0) - candidate_sold_this_turn[item]))
+                if qty <= 0:
+                    continue
                 cand_sold_qty[item] += qty
                 cand_sold_value[item] += qty * prices.get(item, 0)
+                candidate_sold_this_turn[item] += qty
 
         opp_action = steps[i][opp_seat].get("action") or {}
+        opp_sold_this_turn = Counter()
         for order in (opp_action.get("market") or []):
             if order and order[0] == "SELL":
                 item = order[1]
-                qty = order[2] if len(order) > 2 else 1
+                declared = order[2] if len(order) > 2 else 1
+                inv_rise = curr_inv.get(item, 0) - prev_inv.get(item, 0)
+                room = max(0, inv_rise - candidate_sold_this_turn.get(item, 0) - opp_sold_this_turn[item])
+                qty = max(0, min(declared, room))
+                if qty <= 0:
+                    continue
+                opp_sold_this_turn[item] += qty
                 opp_sold_qty[item] += qty
                 opp_sold_value[item] += qty * prices.get(item, 0)
 
