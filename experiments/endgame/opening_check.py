@@ -6,9 +6,12 @@ Every public tape-family agent opens with 5 hires, 2 cows, 2 sheep on turn 2. Ru
 over the public agents we hold is how we checked whether any of them descends from the top
 family (none did, 2026-09-25 - see docs/ENDGAME/crosscheck_2026-09-25.md).
 
-Agents under agents/.pub_*.py and agents/.st_*.py are gitignored local copies; recreate them
-with `kaggle kernels pull` of the refs in docs/ENDGAME/frontier_screen_2026-09-24.md, and
-`git show origin/main:agents/<name>.py > agents/.st_<name>.py` for the team's own agents.
+The team's own agents (W0, W1, W3) and the 2945 Farm are read from their tracked paths.
+Public agents under agents/.pub_*.py are gitignored local copies; recreate them with
+`kaggle kernels pull` of the refs in docs/ENDGAME/frontier_screen_2026-09-24.md.
+
+Scope: one seat (0), one seed (0), against `pass`, first two turns only. A match rules an agent
+in; a mismatch only says this sampled opening differs.
 
     python experiments/endgame/opening_check.py
 """
@@ -16,8 +19,9 @@ import glob
 
 from kaggle_environments import make
 
-files = sorted(glob.glob("agents/.pub_*.py") + glob.glob("agents/.st_*.py")
-               + ["agents/washamba_base_v1.py", "agents/w3_herdsafe2700.py"])
+TRACKED = ["agents/washamba_base_v1.py", "agents/w0_v15stack_control.py",
+           "agents/w1_v15stack_race44.py", "agents/w3_herdsafe2700.py"]
+files = sorted(glob.glob("agents/.pub_*.py")) + TRACKED
 
 
 def market(action):
