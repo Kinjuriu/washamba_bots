@@ -82,6 +82,7 @@ class WB_Controller:
 | vs W3 (`agents/w3_herdsafe2700.py`) | **≥ 8 of 16**. This is the kill criterion. |
 | vs W1 (`agents/w1_v15stack_race44.py`) and W0 | ≥ 10 of 16 each |
 | vs reactive v7 (`agents/washamba_reactive_v1.py`) | ≥ 10 of 16 |
+| vs the 2945 Farm (`agents/washamba_base_v1.py`) | ≥ 10 of 16. The 2945 Farm and v15stack forks make up about half the band we must climb (`field_families_2026-09-25.md`). |
 | absolute self-play bank | ≥ W3's self-play mean |
 | seed-0 self-play | `['DONE','DONE']`, no reward of exactly 3000 |
 | timing | max per-turn < 500 ms, first call included |
