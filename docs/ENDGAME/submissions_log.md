@@ -7,3 +7,4 @@
 | 2026-09-22 05:41 | 56450651 | agents/washamba_base_v1.py | 56441221 (teammate atlas_profile, 464 - had evicted 56431632) | restore the base slot; active pair = fork 56442571 + this | equal n vs 56442571 |
 | 2026-09-23 08:16 | 56483603 | agents/washamba_base_v1_fork.py | teammate router | restore; pair = V56 + fork | equal n |
 | 2026-09-23 08:16 | 56483595 | agents/washamba_base_v2.py (public V56 verbatim) | teammate router | 16-0 vs base and fork locally; author live ~2,751 | n>=40, Sept 24 |
+| 2026-09-25 05:10 UTC | 56540669 | agents/w3_herdsafe2700.py (second W3 draw) | 56521297 (W1) | W1 adds nothing (W3 contains race44 and beats W1 52-28, PR #62); team score = the better of two W3 draws | active pair = W3 56532456 + W3 56540669 |
