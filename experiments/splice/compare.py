@@ -34,15 +34,20 @@ PANELS = [
                         "animals_GOOSE", "structures_empty", "tiles_planted"]),
     ("Crops at dawn (tiles)", ["planted_WHEAT", "planted_CARROT", "planted_TOMATO",
                                "planted_STRAWBERRY", "planted_MELON", "tiles_empty", "weeds"]),
-    ("Daily flows", ["revenue_total", "harvest_MILK", "harvest_WOOL", "harvest_EGG", "water",
-                     "fert_collect", "fert_apply", "feed_per_animal", "care_per_animal", "idle_frac"]),
+    ("Revenue and harvest to date", ["cum_revenue_total", "revenue_total", "cum_revenue_MILK",
+                                     "cum_revenue_WOOL", "cum_revenue_STRAWBERRY", "cum_harvest_MILK",
+                                     "cum_harvest_WOOL", "cum_harvest_EGG"]),
+    ("Upkeep (per day)", ["water", "fert_collect", "fert_apply", "fed_frac", "cared_frac",
+                          "feed_per_animal", "care_per_animal", "idle_frac"]),
 ]
 SHORT = {"money_dawn": "money", "tiles_owned": "tiles", "animals_COW": "cow", "animals_SHEEP": "sheep",
          "animals_GOOSE": "goose", "structures_empty": "emptyS", "tiles_planted": "planted",
          "planted_WHEAT": "wheat", "planted_CARROT": "carrot", "planted_TOMATO": "tomato",
          "planted_STRAWBERRY": "strawb", "planted_MELON": "melon", "tiles_empty": "empty",
-         "revenue_total": "revenue", "harvest_MILK": "h_milk", "harvest_WOOL": "h_wool",
-         "harvest_EGG": "h_egg", "fert_collect": "f_coll", "fert_apply": "f_appl",
+         "revenue_total": "rev/day", "cum_revenue_total": "rev to date", "cum_revenue_MILK": "milk rev",
+         "cum_revenue_WOOL": "wool rev", "cum_revenue_STRAWBERRY": "strawb rev",
+         "cum_harvest_MILK": "milk units", "cum_harvest_WOOL": "wool units", "cum_harvest_EGG": "egg units",
+         "fert_collect": "f_coll", "fert_apply": "f_appl", "fed_frac": "fed", "cared_frac": "cared",
          "feed_per_animal": "feed/an", "care_per_animal": "care/an", "idle_frac": "idle"}
 
 
@@ -59,10 +64,11 @@ def fmt(v):
 
 
 def distance(metric, v, p25, p50, p75):
-    """How far v sits outside [p25, p75], in units of the IQR (floored per metric)."""
+    """How far v sits outside [p25, p75], in IQRs; the IQR is floored per metric and at a
+    quarter of the median, so a quiet (zero-IQR) day cannot dominate the ranking."""
     if v is None or p25 is None:
         return 0.0
-    s = max(p75 - p25, DM.scale_floor(metric))
+    s = max(p75 - p25, DM.scale_floor(metric), 0.25 * abs(p50 or 0))
     if v > p75:
         return (v - p75) / s
     if v < p25:
@@ -90,6 +96,7 @@ def main():
     ap.add_argument("--seat", type=int, default=0, choices=(0, 1))
     ap.add_argument("--split", default="all")
     ap.add_argument("--top", type=int, default=15)
+    ap.add_argument("--all-metrics", action="store_true", help="rank every metric, not the headline list")
     a = ap.parse_args()
 
     with open(TARGETS, encoding="utf-8") as f:
@@ -109,10 +116,21 @@ def main():
     season = split["season"]
     print(f"top-six band: split '{a.split}', {n_games} games; top-six bank median "
           f"{season['bank']['p50']:,.0f} [{season['bank']['p25']:,.0f}-{season['bank']['p75']:,.0f}]")
+    gap = band["money_dawn"]["p50"]
+    print("money at dawn, candidate minus top-six median: " + "  ".join(
+        f"d{d}:{mine['money_dawn'][d] - gap[d]:+,.0f}" for d in range(0, len(gap), 3) if gap[d] is not None))
+    if "drain_MILK" in band:
+        ctx = []
+        for p in ("MILK", "WOOL", "STRAWBERRY", "TOMATO", "EGG"):
+            ctx.append(f"{p.lower()} " + "/".join(f"{mine['drain_' + p][d]}({band['drain_' + p]['p50'][d]:.0f})"
+                                               for d in (9, 15, 21)))
+        print("market context, town drain per day on days 9/15/21, this game (top-six games median): "
+              + ";  ".join(ctx))
 
     # 1. furthest outside the band
     rows = []
-    for m, series in mine.items():
+    ranked = mine if a.all_metrics else {m: mine[m] for m in DM.HEADLINE if m in mine}
+    for m, series in ranked.items():
         if m not in band:
             continue
         b = band[m]
@@ -158,21 +176,31 @@ def main():
             print(f"   {d:3d} " + "".join(f"{c:>15}" for c in cells))
 
     # 3. season revenue by product
-    print(f"\n3. Season revenue by product (units x avg price): candidate, opponent, top-six median")
-    print(f"   {'product':11} {'candidate':>22} {'opponent':>22} {'top6 median rev':>16} {'top6 units':>11} {'top6 avg':>9}")
+    names = [s for s in ("all", "vs_tape", "vs_other", "vs_top6") if s in targets["splits"]]
+    print(f"\n3. Season revenue by product, revenue (units x avg price): candidate, opponent, and the "
+          f"top-six median per split (n = {', '.join(f'{s} {targets['meta']['n_games'][s]}' for s in names)})")
+    print(f"   {'product':11} {'candidate':>22} {'opponent':>22}" + "".join(f"{s:>22}" for s in names))
     tot = [0, 0]
     for p in DM.PRODUCTS:
         cu, cr = sum(mine["sold_" + p]), sum(mine["revenue_" + p])
         ou, orr = sum(theirs["sold_" + p]), sum(theirs["revenue_" + p])
         tot[0] += cr
         tot[1] += orr
-        t = season["revenue_" + p]["p50"]
-        tu = season["units_" + p]["p50"]
-        tp = season["avg_price_" + p]
         c = f"{cr:>9,.0f} ({cu}x{cr / cu:.0f})" if cu else f"{0:>9,}"
         o = f"{orr:>9,.0f} ({ou}x{orr / ou:.0f})" if ou else f"{0:>9,}"
-        print(f"   {p:11} {c:>22} {o:>22} {t:>16,.0f} {tu:>11.0f} {tp if tp is None else round(tp):>9}")
-    print(f"   {'total':11} {tot[0]:>22,.0f} {tot[1]:>22,.0f}")
+        cells = []
+        for s in names:
+            ss = targets["splits"][s]["season"]
+            tp = ss["avg_price_" + p]
+            cells.append(f"{ss['revenue_' + p]['p50']:>9,.0f} ({ss['units_' + p]['p50']:.0f}x{tp or 0:.0f})")
+        print(f"   {p:11} {c:>22} {o:>22}" + "".join(f"{x:>22}" for x in cells))
+    banks = "".join(f"{targets['splits'][s]['season']['bank']['p50']:>22,.0f}" for s in names)
+    print(f"   {'sold total':11} {tot[0]:>22,.0f} {tot[1]:>22,.0f}")
+    print(f"   {'final bank':11} {banks_pair(env, me):>22} {banks_pair(env, opp):>22}{banks}")
+
+
+def banks_pair(env, seat):
+    return f"{env.steps[-1][seat].reward:,.0f}"
 
 
 def _runs(days):

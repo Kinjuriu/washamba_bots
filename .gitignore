@@ -62,3 +62,4 @@ experiments/splice/_dev_b*
 experiments/splice/top6_games.jsonl
 experiments/endgame/field_families_out/
 agents/washamba_splice_v1.py
+experiments/splice/top6_scan.json

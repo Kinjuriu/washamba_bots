@@ -18,6 +18,9 @@ import collections
 
 import kaggle_environments.envs.kaggriculture.kaggriculture as K
 
+from price_model import WB_PriceModel
+
+PM = WB_PriceModel()
 PRODUCTS = list(K.PRODUCTS)
 CROPS = list(K.CROPS)
 SPECIES = list(K.ANIMALS)
@@ -203,7 +206,21 @@ def _dawn(obs, seat):
         out["planted_" + crop] = crops[crop]
     for a in SPECIES:
         out["animals_" + a] = animals[a]
+    out.update(drain_by_product(obs["town"]["unlocked_shops"]))
     return out
+
+
+def drain_by_product(shops):
+    """Units per day the town will consume of each product with this shop list (market
+    context: a premium price is only comparable between games with similar drain)."""
+    shops = list(shops or [])
+    return {"drain_" + p: PM.drain_per_day(p, shops) for p in PRODUCTS if p != "FERTILIZER"}
+
+
+def shops_on_day(final_shops, day, interval=3):
+    """The unlocked shop list at dawn of `day`, from the season's final list: one shop is
+    appended at the end of every `interval`-th day (end of day 2, 5, ...), up to 8."""
+    return list(final_shops)[:min(len(final_shops), day // interval)]
 
 
 def _events(c, animals_dawn):
@@ -252,25 +269,43 @@ def per_day(steps, seat):
         dawn = _dawn(steps[i][seat]["observation"], seat)
         dawn.update(_events(REC.ev[seat][d], dawn["animals_total"]))
         rows.append(dawn)
-    keys = rows[0].keys()
-    return {k: [r[k] for r in rows] for k in keys}
+    out = {k: [r[k] for r in rows] for k in rows[0]}
+    return add_cumulative(out)
 
 
-# Metrics compare.py shows by default, grouped for reading; everything is in the JSON.
+def add_cumulative(series):
+    """Add running totals of the flows (idempotent): robust where a single day depends on
+    production phase (cows yield every 2nd day, sheep every 3rd) or on the hour a batch sold."""
+    for k in list(series):
+        if k.startswith("cum_") or "cum_" + k in series:
+            continue
+        if k.startswith(("revenue_", "harvest_", "sold_")) or k in ("spend", "hires", "fert_collect", "fert_apply"):
+            acc, cum = 0, []
+            for v in series[k]:
+                acc += v or 0
+                cum.append(acc)
+            series["cum_" + k] = cum
+    return series
+
+
+# Metrics compare.py ranks by default: the plan (assets, crops) and the outcomes (running
+# revenue and harvest totals, realized premium prices), not engine bookkeeping.
 HEADLINE = [
-    "money_dawn", "tiles_owned", "tiles_planted", "hires",
+    "money_dawn", "tiles_owned", "tiles_planted", "hires", "cum_hires",
     "animals_COW", "animals_SHEEP", "animals_GOOSE", "animals_in_shed", "structures_empty",
     "planted_WHEAT", "planted_CARROT", "planted_TOMATO", "planted_STRAWBERRY", "planted_MELON",
-    "harvest_MILK", "harvest_WOOL", "harvest_EGG",
-    "revenue_total", "revenue_MILK", "revenue_WOOL", "revenue_EGG", "revenue_STRAWBERRY",
-    "revenue_TOMATO", "revenue_CARROT", "revenue_WHEAT", "revenue_MELON", "revenue_FERTILIZER",
+    "cum_harvest_MILK", "cum_harvest_WOOL", "cum_harvest_EGG", "cum_harvest_STRAWBERRY",
+    "cum_harvest_TOMATO", "cum_harvest_CARROT", "cum_harvest_WHEAT", "cum_harvest_MELON",
+    "cum_revenue_total", "cum_revenue_MILK", "cum_revenue_WOOL", "cum_revenue_EGG",
+    "cum_revenue_STRAWBERRY", "cum_revenue_TOMATO", "cum_revenue_CARROT", "cum_revenue_WHEAT",
+    "cum_revenue_MELON", "cum_revenue_FERTILIZER", "cum_spend",
     "price_MILK", "price_WOOL", "price_STRAWBERRY",
-    "feed_per_animal", "care_per_animal", "fert_collect", "fert_apply", "water", "idle_frac",
+    "fed_frac", "cared_frac", "cum_fert_collect", "cum_fert_apply", "water", "idle_frac",
 ]
 
 # Scale floors for "how far outside the band" (the IQR can be 0 on a quiet day).
-SCALE_FLOOR = {"money_dawn": 2000.0, "revenue": 300.0, "price": 10.0, "spend": 300.0,
-               "frac": 0.05, "per_animal": 0.05}
+SCALE_FLOOR = {"money_dawn": 2000.0, "cum_revenue": 1000.0, "cum_spend": 1000.0, "revenue": 300.0,
+               "price": 10.0, "spend": 300.0, "frac": 0.05, "per_animal": 0.05}
 
 
 def scale_floor(metric):

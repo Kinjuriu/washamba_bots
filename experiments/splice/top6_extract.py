@@ -187,6 +187,39 @@ def scan(since):
     return cache
 
 
+def final_shops(eid):
+    """The season's final unlocked-shop list, read from the raw replay text."""
+    global _SHARDS
+    if _SHARDS is None:
+        with open(os.path.join(FFOUT, "shard_index.json"), encoding="utf-8") as f:
+            _SHARDS = json.load(f)
+    shard, rg = _SHARDS[str(eid)]
+    shard = os.path.join(KDS, os.path.basename(shard))
+    blob = pq.ParquetFile(shard).read_row_group(rg, columns=["replay_json"]).column("replay_json")[0].as_py()
+    k = blob.rfind('"unlocked_shops": [')
+    shops, _ = json.JSONDecoder().raw_decode(blob, k + len('"unlocked_shops": '))
+    return shops
+
+
+def add_shops(games):
+    """Backfill per-day drain (market context) into games extracted before it existed."""
+    cache = {}
+    for g in games:
+        if "shops_final" not in g:
+            eid = g["episode_id"]
+            if eid not in cache:
+                cache[eid] = final_shops(eid)
+            g["shops_final"] = cache[eid]
+        for side in ("days", "opp_days"):
+            per = [DM.drain_by_product(DM.shops_on_day(g["shops_final"], d)) for d in range(len(g[side]["money_dawn"]))]
+            for key in per[0]:
+                g[side][key] = [row[key] for row in per]
+    with open(OUT_GAMES, "w", encoding="utf-8") as f:
+        for g in games:
+            f.write(json.dumps(g) + "\n")
+    return games
+
+
 def resimulate(rep):
     """Re-run the recorded actions; None if any step's money differs from the recording."""
     cfg = dict(rep["configuration"])
@@ -247,11 +280,12 @@ def extract_games(picked, append=False):
             continue
         names = rep["info"].get("TeamNames") or ["?", "?"]
         rewards = rep.get("rewards") or [None, None]
+        shops_final = list(steps[-1][0]["observation"]["town"]["unlocked_shops"])
         for s in seats:
             o = 1 - s
             opp_fam = fams[o] if t1s[o] != TOP6_T1 else "top_six"
             out.append({
-                "episode_id": int(eid), "date": date, "team": names[s], "seat": s,
+                "episode_id": int(eid), "date": date, "team": names[s], "seat": s, "shops_final": shops_final,
                 "family": fams[s], "opponent": names[o],
                 "opp_family": opp_fam if not opp_fam.startswith("unknown") else "unknown",
                 "opp_bucket": bucket(opp_fam), "bank": rewards[s], "opp_bank": rewards[o],
@@ -279,6 +313,9 @@ def pct(vals, q):
 
 
 def aggregate(games):
+    for g in games:
+        DM.add_cumulative(g["days"])
+        DM.add_cumulative(g["opp_days"])
     splits = {"all": games,
               "vs_tape": [g for g in games if g["opp_bucket"] == "tape"],
               "vs_other": [g for g in games if g["opp_bucket"] == "other"],
@@ -336,9 +373,15 @@ if __name__ == "__main__":
     ap.add_argument("--aggregate-only", action="store_true")
     ap.add_argument("--scan", action="store_true")
     ap.add_argument("--add-tape", type=int, default=0)
+    ap.add_argument("--add-shops", action="store_true")
     a = ap.parse_args()
     if a.scan:
         scan(a.since)
+        sys.exit(0)
+    if a.add_shops:
+        games = add_shops(load_games())
+        res = aggregate(games)
+        print("wrote", OUT_TARGETS, res["meta"]["n_games"])
         sys.exit(0)
     if a.add_tape:
         with open(OUT_SCAN, encoding="utf-8") as f:
