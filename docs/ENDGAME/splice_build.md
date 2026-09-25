@@ -75,18 +75,20 @@ class WB_Controller:
 
 ## Gates (responding opponents decide; read win counts first)
 
-`experiments/splice/gate.py <candidate>` runs all of these at 16 fresh seeds, both seats:
+`experiments/splice/gate.py <candidate>` runs all of these at 16 fresh seeds in both seats, so **32 games per opponent**. Every bar below is out of 32. Dev seeds are 900-915; confirm on holdout seeds 1000-1015 before any upload.
 
 | gate | pass |
 |---|---|
-| vs W3 (`agents/w3_herdsafe2700.py`) | **≥ 8 of 16**. This is the kill criterion. |
-| vs W1 (`agents/w1_v15stack_race44.py`) and W0 | ≥ 10 of 16 each |
-| vs reactive v7 (`agents/washamba_reactive_v1.py`) | ≥ 10 of 16 |
-| vs the 2945 Farm (`agents/washamba_base_v1.py`) | ≥ 10 of 16. The 2945 Farm and v15stack forks make up about half the band we must climb (`field_families_2026-09-25.md`). |
+| vs W3 (`agents/w3_herdsafe2700.py`) | **≥ 16 of 32 (50%)**. This is the kill criterion. |
+| vs W1 (`agents/w1_v15stack_race44.py`) and W0 | ≥ 20 of 32 each |
+| vs reactive v7 (`agents/washamba_reactive_v1.py`, committed) | ≥ 20 of 32 |
+| vs the 2945 Farm (`agents/washamba_base_v1.py`) | ≥ 20 of 32. The 2945 Farm and v15stack forks make up about half the band we must climb (`field_families_2026-09-25.md`). |
 | absolute self-play bank | ≥ W3's self-play mean |
 | seed-0 self-play | `['DONE','DONE']`, no reward of exactly 3000 |
 | timing | max per-turn < 500 ms, first call included |
 | executor envelope (R2.3) | idle ≤ 5%, waters ≥ 40/day, care ≥ 0.8 per animal-day, zero duplicate CARE |
+
+A missing opponent file must fail the gate loudly, never skip it silently.
 
 The faithful top-six panel (`harness/top6panel.py`) is directional only. A reactive agent diverges from the recorded opponent after day 8, so the "faithful" filter collapses. Read it as absolute bank on episodes that stay faithful under W3.
 
@@ -98,7 +100,7 @@ Also note that a +1,000 margin over W3 does not make this a top-six-class agent.
 |---|---|
 | Sept 25 | price model exact vs engine; gate runner and base choice done; controller plays full episodes to `DONE` |
 | Sept 26 | controller inside the executor envelope; herd plan and sell engine wired; first gate run |
-| **Sept 27, end of day** | **Kill date.** If it doesn't reach ≥ 8 of 16 vs W3, stop. The final pair falls back to W3 plus W1 or reactive v7. |
+| **Sept 27, end of day** | **Kill date.** If it doesn't reach ≥ 16 of 32 vs W3, stop. The final pair falls back to W3 plus W1 or reactive v7. |
 | Sept 28, evening | first credible build uploaded (evicts the older slot; W3 re-uploaded right after if needed) |
 | Sept 29 | post-burst ladder read at n ≥ 40, equal n and comparable field vs W3 |
 | Sept 30 | final pair. W3 second-to-last; the splice last only if its ladder read beats W3's. |
