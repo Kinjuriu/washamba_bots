@@ -276,6 +276,85 @@ class TestContested(unittest.TestCase):
         self.assertEqual(qty(self.se.orders(obs, {"MILK": 20}, 10), "MILK"), 4)
 
 
+class _StubPredictor:
+    """upcoming() returns the dumps it was given that fall in (step, step + horizon]."""
+
+    def __init__(self, dumps):
+        self.dumps = dumps              # {product: [(step, qty), ...]}
+
+    def upcoming(self, obs, product, horizon):
+        s = int(obs["step"])
+        return [(t, q) for t, q in self.dumps.get(product, ()) if s < t <= s + horizon]
+
+
+class TestFrontRunning(unittest.TestCase):
+    """With a predictor, sell ahead of a predicted opponent dump."""
+
+    def setUp(self):
+        self.base = WB_SellEngine(PM)
+
+    def _engine(self, dumps):
+        return WB_SellEngine(PM, predictor=_StubPredictor(dumps))
+
+    def test_off_by_default(self):
+        self.assertIsNone(self.base.predictor)
+
+    def test_sells_ahead_of_a_dump_off_cadence(self):
+        # Healthy milk market, off-cadence turn: without a predictor nothing sells.
+        step = EARLY + 1
+        obs = make_obs(step, shops=["SMOOTHIE_SHOP"], shed={"MILK": 20})
+        self.assertEqual(self.base.orders(obs, {"MILK": 20}, 10), [])
+        se = self._engine({"MILK": [(step + 3, 12)]})
+        q = qty(se.orders(obs, {"MILK": 20}, 10), "MILK")
+        # Units whose quote now is >= the quote right after their 12 land; the SMOOTHIE_SHOP
+        # tick at step 224 drains 1 before the dump at 225.
+        post = PM.quote("MILK", I0 - 1 + 12)
+        self.assertEqual(q, PM.units_at_or_above("MILK", I0, post, 20))
+        self.assertEqual(q, 12)
+
+    def test_front_run_goes_to_slot_zero(self):
+        step = EARLY + 1
+        obs = make_obs(step, {"MELON": I0 + 100}, ["SMOOTHIE_SHOP"], {"MILK": 20, "MELON": 5})
+        se = self._engine({"MILK": [(step + 2, 12)]})
+        orders = se.orders(obs, {"MILK": 20, "MELON": 5}, 10)
+        self.assertEqual(orders[0][1], "MILK")          # dearer melon (glut, sold whole) comes after
+
+    def test_ignores_small_or_current_or_far_dumps(self):
+        step = EARLY + 1
+        obs = make_obs(step, shops=["SMOOTHIE_SHOP"], shed={"MILK": 20})
+        for dumps in ({"MILK": [(step + 2, 3)]},        # below front_run_min_qty
+                      {"MILK": [(step, 12)]},           # this call: cannot be beaten
+                      {"MILK": [(step + 7, 12)]}):      # beyond the horizon
+            self.assertEqual(self._engine(dumps).orders(obs, {"MILK": 20}, 10), [], dumps)
+
+    def test_waits_for_the_post_drain_turn_when_there_is_time(self):
+        step = EARLY + 3                                # phase 0: pre-drain
+        obs = make_obs(step, shops=["SMOOTHIE_SHOP"], shed={"MILK": 20})
+        self.assertEqual(self._engine({"MILK": [(step + 3, 12)]}).orders(obs, {"MILK": 20}, 10), [])
+        self.assertGreater(qty(self._engine({"MILK": [(step + 1, 12)]}).orders(obs, {"MILK": 20}, 10), "MILK"), 0)
+
+    def test_never_exceeds_sellable(self):
+        step = EARLY + 1
+        obs = make_obs(step, shops=["SMOOTHIE_SHOP"], shed={"MILK": 5})
+        self.assertEqual(qty(self._engine({"MILK": [(step + 2, 40)]}).orders(obs, {"MILK": 5}, 10), "MILK"), 5)
+
+    def test_product_allowlist(self):
+        step = EARLY + 1
+        obs = make_obs(step, shops=["SMOOTHIE_SHOP"], shed={"MILK": 20})
+        se = self._engine({"MILK": [(step + 3, 12)]})
+        se.front_run_products = ("MELON", "STRAWBERRY")
+        self.assertEqual(se.orders(obs, {"MILK": 20}, 10), [])
+        se.front_run_products = ("MILK",)
+        self.assertEqual(qty(se.orders(obs, {"MILK": 20}, 10), "MILK"), 12)
+
+    def test_no_front_run_at_the_floor(self):
+        step = EARLY + 1
+        obs = make_obs(step, {"WOOL": I0 + 80}, ["YARN_STORE"], {"WOOL": 5})
+        se = self._engine({"WOOL": [(step + 2, 20)]})
+        # Deep glut sells the whole release anyway; the predictor adds nothing on top.
+        self.assertEqual(se.orders(obs, {"WOOL": 5}, 10), [["SELL", "WOOL", 5]])
+
+
 class TestScarcityTaking(unittest.TestCase):
     def setUp(self):
         self.se = WB_SellEngine(PM)

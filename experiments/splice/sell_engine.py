@@ -30,6 +30,11 @@ W3 in mirrors, where the spec config realized ~2 less per unit, but both effects
 from W3 dropping the same goods on the same turn, which a non-tape controller will not
 reproduce. The coordinator decides; the default stays spec-faithful.
 
+Front-running (optional, `predictor=WB_DumpPredictor`, default None = off): when a tape
+opponent is predicted to dump a product we hold within front_run_horizon steps, sell now
+the units whose quote beats the price the market will show right after that dump, in the
+earliest slots (experiments/splice/dump_predictor.py).
+
 Endgame: the final processed turn (obs step 718) sells everything; before it the
 clearance term spreads what is left over the remaining selling turns. Shed valve (any
 turn): if shed plus carried goods would pass the 100-item cap, sell the release down to
@@ -72,10 +77,15 @@ class WB_SellEngine:
     scarcity_stop = 1.3        # ...and sells while the pre-sell quote stays >= 1.3 x base
     shed_valve_high = 90       # shed + carried above this: sell down to shed_valve_low
     shed_valve_low = 80
+    front_run_horizon = 6      # with a predictor: look this many steps ahead for an opponent dump
+    front_run_min_qty = 4      # ...ignore predicted dumps smaller than this
+    front_run_min_drop = 0.03  # ...or that would lower the price by less than 3%
+    front_run_products = None  # None = every predicted product; else an allowlist tuple
 
-    def __init__(self, price_model, final_step=WB_SE_FINAL_STEP):
+    def __init__(self, price_model, final_step=WB_SE_FINAL_STEP, predictor=None):
         self.pm = price_model
         self.final_step = int(final_step)
+        self.predictor = predictor  # WB_DumpPredictor or None (front-running off)
 
     # ---- schedule and regime -----------------------------------------------------
     def selling_turns_left(self, step):
@@ -158,6 +168,13 @@ class WB_SellEngine:
                     q = 0
                 if q > 0:
                     plan[item] = q
+        front = set()
+        if self.predictor is not None and step < self.final_step:
+            for item, n in avail.items():
+                extra = self._front_run_qty(obs, item, n, plan.get(item, 0), market_inv[item], shops, step)
+                if extra > 0:
+                    plan[item] = plan.get(item, 0) + extra
+                    front.add(item)
         self._shed_valve(obs, avail, plan, market_inv)
 
         rows = []
@@ -165,10 +182,34 @@ class WB_SellEngine:
             inv = market_inv[item]
             rows.append((pm.sell_revenue(item, inv, q), pm.quote(item, inv), item, q))
         if len(rows) > slots:
-            rows.sort(key=lambda r: (-r[0], r[2]))
+            rows.sort(key=lambda r: (r[2] not in front, -r[0], r[2]))
             rows = rows[:slots]
-        rows.sort(key=lambda r: (-r[1], -r[0], r[2]))
+        rows.sort(key=lambda r: (r[2] not in front, -r[1], -r[0], r[2]))
         return [["SELL", item, q] for (_rev, _quote, item, q) in rows]
+
+    def _front_run_qty(self, obs, item, n, planned, inv, shops, step):
+        """Extra units to sell now because the opponent is predicted to dump `item` within
+        front_run_horizon steps: the units whose quote now is at least the price the market
+        will show right after that dump (net of the drain in between)."""
+        if planned >= n or (self.front_run_products is not None and item not in self.front_run_products):
+            return 0
+        dumps = [(s, q) for s, q in (self.predictor.upcoming(obs, item, self.front_run_horizon) or ()) if q > 0]
+        total = sum(q for _, q in dumps)
+        if total < self.front_run_min_qty:
+            return 0
+        first = min(s for s, _ in dumps)
+        if step % 4 == 0 and first - step > 1:
+            return 0                                   # one step later is post-drain and still first
+        pm = self.pm
+        inv_now = pm.inventory_after_sells(item, inv, planned)
+        quote_now = pm.quote(item, inv_now)
+        if quote_now <= 1:
+            return 0
+        drain = sum(pm.drain_per_step(item, shops, s) for s in range(step, first))
+        post = pm.quote(item, pm.inventory_after_sells(item, inv_now - drain, total))
+        if post >= quote_now * (1.0 - self.front_run_min_drop):
+            return 0
+        return pm.units_at_or_above(item, inv_now, post, n - planned)
 
     # ---- per-product decision -----------------------------------------------------
     def _healthy_qty(self, item, n, inv, shops, step, turns_left):
