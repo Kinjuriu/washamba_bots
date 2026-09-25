@@ -5,6 +5,7 @@ Every submission since Sept 21 is in `submissions_log.md`.
 
 ## Where things stand
 
+- **2026-09-25: W3 (`agents/w3_herdsafe2700.py`) is our best agent.** It goes 196-24 against 11 public agents and beats every newer public fork across that field. The top six are still about 21,000 ahead (`frontier_screen_2026-09-25.md`).
 - Today's top 10 are reactive agents, not fixed schedules. None of them can be copied (`copyability.md`).
 - The best public agents are the 2945 Farm (`agents/washamba_base_v1.py`) and V56 (fetched by `experiments/field_research/fetch_public_v56.py`). V56 beats the 2945 Farm 16-0 locally (`experiments/endgame/v56_vs_base.jsonl`).
 - Eight overlays on the 2945 Farm were measured and rejected. The base already contains our rim, sells-first ordering and the turn-0 wheat trick.
@@ -20,6 +21,7 @@ Every submission since Sept 21 is in `submissions_log.md`.
 | `day11_diagnosis.md`, `traces_2026-09-21.md` | Where does the 2945 Farm lose to 3,000+ teams? |
 | `late_overlay_results.md`, `v2_results.md`, `v3_results.md`, `rim_results.md`, `dead_spend.md`, `fork_results.md` | The eight levers, and why each one was rejected |
 | `ladder_diagnosis_56431632.md` | Why the base converged at 2,145 on the ladder |
+| `frontier_screen_2026-09-25.md` | Does anything public beat W3 across the field and the top six? (No. Keep W3.) |
 
 ## Rules the measurements taught
 
