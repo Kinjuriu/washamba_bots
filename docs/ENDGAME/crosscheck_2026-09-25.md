@@ -24,9 +24,15 @@ The top six share an opening no public agent was known to use (turn 1: buy 1 cow
 1 wheat, 4 hires, 1 cow, 3 sheep). `experiments/endgame/opening_check.py` printed the first two turns of all
 20 public agents we hold plus W0/W1/W3.
 
-**None matches.** Every one of them hires 5 and buys 2 cows and 2 sheep on turn 2; they differ only in the
-turn-1 wheat trade. No public descendant of the top family exists among the notebooks we found, so there
-is no agent to adopt that plays at the top-six level.
+**No sampled opening matches.** Every one of them hires 5 and buys 2 cows and 2 sheep on turn 2; they
+differ only in the turn-1 wheat trade.
+
+Scope, stated plainly: the survey ran each agent in seat 0 only, on seed 0 only, against `pass`, and read
+two turns. A reactive agent, or a derivative that changed its opening, could still descend from the
+top-six family without showing that opening here. So this is evidence against adopting any of these
+agents as a top-six substitute, not proof that none descends from that family. Real-ladder records
+support the same conclusion independently: every public family loses to the top-six opening family
+(`field_families_2026-09-25.md`).
 
 ## What this means for the final pair
 
