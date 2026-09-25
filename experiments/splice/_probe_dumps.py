@@ -101,7 +101,7 @@ def job(args):
 
 
 ITEMS = ("MELON", "STRAWBERRY", "MILK", "WOOL", "TOMATO", "CARROT")   # EGG measured unpredictable (precision 0.34)
-TABLE_FROM_STEP = 180          # the controller acts from step 192; earlier dumps are the base's business
+TABLE_FROM_STEP = 96           # day 4: covers the pre-handover dumps a W3 overlay can front-run
 PREDICTOR = os.path.join(HERE, "dump_predictor.py")
 BEGIN, END = "# ---- BEGIN GENERATED TABLES (_probe_dumps.py --table) ----", "# ---- END GENERATED TABLES ----"
 
