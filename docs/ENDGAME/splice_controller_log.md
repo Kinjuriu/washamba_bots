@@ -11,6 +11,79 @@ later step; `dev:<module>` = an older controller snapshot (`_dev_b_ctrl_*.py`). 
 modules are frozen in `experiments/splice/_dev_b_frozen/` for stable A/B comparisons (set
 `WB_LIVE_A=1` to use the live ones).
 
+## Files
+
+- `experiments/splice/controller.py`: `WB_Controller` (current build: wedge zones, zone-local feeding
+  with a day-15 rescue, economic feeding, same-day premium DROP, shop/opponent crop targets with
+  top-six floors, herd mirror, melon race). Plan switches are module constants (`WB_*`), with the
+  measured verdict beside the switches that were tried and turned off.
+- `tests/test_splice_controller.py`: 19 unittest cases (planner targets, no duplicate CARE, PLANT
+  never exceeds seeds and is watered next turn, structure/animal matching, the 10-order cap with
+  sells first, never the fourth quadrant, exception fallback, day-28/29 feeding, final-day DROP).
+- `experiments/splice/_dev_b.py`: private harness (see top). Snapshots `_dev_b_ctrl_*.py` and
+  single-change variants `_dev_b_var_*.py` are the builds measured in the tables below.
+
+## 2026-09-25 09:00 UTC: stop signal reached (day-14 gap stays near -16k to -18k, bar was -8k)
+
+**Official gate, current controller** (build of 08:00, with the dump predictor wired by build.py,
+16 dev seeds x both seats):
+
+| opponent | result | mean margin |
+|---|---|---|
+| W3 | **0-32** | -19,803 |
+| W1 | 0-32 | -19,992 |
+| W0 | 0-32 | -19,789 |
+| reactive v7 | 0-32 | -16,879 |
+| 2945 Farm | 0-32 | -20,416 |
+| self-play mean | 100,214 | vs W3 self-play 104,348 |
+
+Envelope: idle 1.9%, waters 36.8/day (FAIL), care 0.81, 0 duplicate CARE.
+
+**Stop test (agreed with the coordinator): move the day-14 identical-board gap from about -15k to
+about -8k.** Handover at step 336, 16 dev seeds, one seat each, one change at a time against the
+current-build baseline of -18.1k:
+
+| change | mean | median |
+|---|---|---|
+| baseline (current build) | -18.1k | -17.6k |
+| late carrots: every freed tile from day 23 | -16.6k | -15.7k |
+| sell fertilizer unless a premium crop is producing | -18.0k | -16.4k |
+| mirror the opponent's crops and herd | **-15.8k** | -14.6k |
+| batch all tasks on a tile before leaving | -18.7k | -18.1k |
+| rotation: harvested wheat/carrot tiles keep their crop | -17.5k | -15.3k |
+| animals harvested at 2+ units | -17.8k | -16.6k |
+| no extra geese, no tomato | -19.6k | -15.0k |
+| tile-bundle matching (at step 192, vs -21.9k there) | -28.0k | -28.9k |
+
+None reaches -8k. On seed 900 the tape's second half is a steady machine the controller does not
+reproduce: W3 plants 6-11 wheat **every day** from day 14 to 24 (a ~28-tile rotation), converts
+expiring strawberry land to wheat and then to 4-14 carrots a day from day 22, sells fertilizer early
+and buys it cheap late to apply. Our plantings come in lumps (0 on day 14, 1 a day on days 18-20),
+so harvests do too.
+
+**Timing (single-threaded, nothing else running):** controller turn mean 1.5-1.9 ms, p99 4.3 ms,
+dawn turns at most 3.7 ms. One 138 ms outlier in 1,054 turns (non-dawn, GC or OS). Under the 300 ms
+rule with a wide margin. The 330-810 ms reads came from 4-worker contention and W3's own first call.
+
+**Which build is "the controller".** `controller.py` today is the 08:00 build: -19.8k on the
+official gate with Builder A's live, cadence-gated sell engine and the dump predictor. The 05:20
+snapshot (`_dev_b_ctrl_1045_drop.py`) read -17.4k on A's earlier every-turn engine. Both are 0-32;
+the difference is confounded by A's default change, not a controller regression.
+
+**Per-product revenue vs W3, same games** (current build, 16 dev seeds, one seat each, exact from
+the engine's commit log; gate.py's opponent-side columns are broken and not used here): strawberry
+25.1k vs 33.5k, wheat 8.9k vs 15.6k, wool 16.3k vs 20.7k, fertilizer 12.4k vs 15.8k, carrot 2.3k vs
+6.8k, melon 13.6k vs 14.9k, milk 27.4k vs 26.7k; we lead on egg (+3.3k) and tomato (+1.2k).
+
+**Recommendation for the lead.** The splice controller, as built, should not ship. Against W3 the
+natural baseline for any W3-based agent is a tie (same tape, same state), so an agent that keeps W3's
+tape for every unit action and changes market orders only (the W2 overlay, FABLE section 4) would
+pass the W3 gate with any consistent positive edge. Be clear about its size: Builder A's own overlay
+diagnostic found the paced sell engine neutral on a glutted W3 board (wool +0.6, milk -4.0,
+strawberry -0.7 per unit), so the case rests on the dump predictor's measured +683 to +978 a game
+against tapes. That is a +$800 agent, not a prize-line one. Wheat and fertilizer must stay the
+tape's (it feeds from the shed). The lead decides.
+
 ## 2026-09-25 07:20 UTC: official gate 0-32 vs W3 (-17.4k); dev-seed reads all ~-20k
 
 **Official gate** (`gate.py`, 16 dev seeds x both seats, build of 05:20 = "drop" build):
