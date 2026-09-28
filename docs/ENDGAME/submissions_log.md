@@ -23,3 +23,5 @@
 **Superseded (2026-09-27):** the W3 + front-running rule above no longer applies; no plain W3 is active. New rule: once both active slots have n >= 60 at equal n with opponent means within 150 (`experiments/ladder_episodes.py 56605799 56601524`), the lower post-burst win rate is replaced before Sept 30 20:00 UTC, by DP if w6 is lower, else by front-running.
 
 **Final pair (2026-09-28 14:53 UTC):** two copies of DP, 56644360 and 56644371. Every alternative rated lower on the ladder (W3 ~1,975-1,993, front-running ~1,955, w6 ~1,871, rebuild ~1,805). No further uploads unless one of the pair fails validation.
+
+**Update (2026-09-28 15:34 UTC):** a teammate uploaded `tetsu_step1009_full.py` as 56645467 ("tetsutani Step1009 public agent, unchanged"), which replaced DP-A 56644360. Step1009 is DP's own entrypoint name, so this is most likely the same tetsutani agent. The file is not in the repo, so that is unverified. Active pair: DP-B 56644371 + tetsu Step1009 56645467.
