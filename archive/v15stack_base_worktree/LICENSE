@@ -1,0 +1,42 @@
+Copyright (c) 2026 Washamba Bots
+
+## Code in this repository: CC BY 4.0
+
+This work is licensed under the Creative Commons Attribution 4.0
+International License (SPDX identifier: `CC-BY-4.0`).
+
+To view a copy of this license, visit
+https://creativecommons.org/licenses/by/4.0/
+or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042,
+USA.
+
+You are free to share and adapt this material for any purpose, including
+commercially, provided you give appropriate credit, link to the license, and
+indicate if changes were made.
+
+This choice is not incidental: the Kaggriculture competition rules require
+winning submissions to be released under CC BY 4.0, so the agent is licensed
+that way from the start rather than relicensed after the fact.
+
+## Competition environment and game data: Apache 2.0
+
+The Kaggriculture simulation environment, its rules, tables and game data are
+**not ours** and are not covered by the license above. They ship with the
+`kaggle-environments` package under the Apache License 2.0:
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+That includes everything under
+`.venv/Lib/site-packages/kaggle_environments/`, and the material quoted from
+it in `docs/kaggriculture_context.md` and in source comments, which is
+reproduced here for reference under that license.
+
+The official starter notebook referenced in `CLAUDE.md` is likewise Apache
+2.0.
+
+## In short
+
+| what | license |
+|---|---|
+| `main.py`, `tests/`, `experiments/`, `notebooks/`, our docs | CC BY 4.0 |
+| the Kaggriculture environment and its game data | Apache 2.0 |

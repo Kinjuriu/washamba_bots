@@ -1,0 +1,19 @@
+.venv/
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# Episode replays are multi-MB per game — keep them out of history
+replay*.json
+experiments/*.json
+
+# Personal working files — not shared with the team
+/mydocs/
+
+# Replay JSONs pulled from the host episode dumps (~30MB each)
+replays/
+*.json.zip
+
+# Fetched on demand by experiments/meta_opponent.py - never committed.
+experiments/.meta_agent.py
+experiments/.meta_kernel/

@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git pull *)",
+      "Bash(git fetch *)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git fsck *)",
+      "Bash(timeout 60 .venv/bin/python -c ' *)",
+      "Bash(.venv/bin/python -c ' *)",
+      "Bash(.venv/bin/python experiments/selfplay_agent.py experiments/bigfarm_opponent.py 6)",
+      "Bash(grep -viE \"^\\(openspiel|[a-z_0-9]+\\)$\")",
+      "Bash(.venv/bin/python experiments/selfplay_agent.py experiments/candidates/large_farm_opponent_v0.py 6)",
+      "Bash(.venv/bin/python *)",
+      "Read(//tmp/**)",
+      "Bash(git ls-remote *)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(/Users/stephanengugi/Desktop/washamba_bots/.venv/bin/python -c ' *)",
+      "Bash(mkdir -p /private/tmp/claude-501/-Users-stephanengugi-Desktop-washamba-bots/ec8ee6a4-0303-443d-9122-12414f45ea7b/scratchpad/reproduce_old_bug)",
+      "Bash(git add *)",
+      "Bash(git restore *)",
+      "Bash(echo \"main.py diff exit: $?\")",
+      "Bash(echo \"grep exit \\(1=none found, good\\): $?\")",
+      "Bash(git commit *)",
+      "Bash(echo \"grep exit: $?\")",
+      "Bash(awk '{print $NF}')",
+      "Bash(.venv/bin/kaggle competitions *)",
+      "Bash(git rev-list *)",
+      "Bash(grep -E '^agents/|^docs/PUBLIC_META\\\\.md$')",
+      "Bash(cp -r . ../washamba_bots_backup_pre_sync)",
+      "Read(//Users/stephanengugi/Desktop/**)"
+    ]
+  }
+}
