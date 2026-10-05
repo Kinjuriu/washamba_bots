@@ -1,0 +1,538 @@
+{
+  "washamba_base_v2.py": [
+    {
+      "episode_id": "112320110",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112320110",
+        "player": "washamba_base_v2.py",
+        "player_submission": "56483595",
+        "seat": 0,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 892.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 135391.0,
+      "opponent_final_bank": 19367.0,
+      "won": "1",
+      "opponent_name": "KK",
+      "seat": 0
+    },
+    {
+      "episode_id": "112321348",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112321348",
+        "player": "washamba_base_v2.py",
+        "player_submission": "56483595",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 824.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 150786.0,
+      "opponent_final_bank": 36225.0,
+      "won": "1",
+      "opponent_name": "James Patounas",
+      "seat": 1
+    },
+    {
+      "episode_id": "112322532",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112322532",
+        "player": "washamba_base_v2.py",
+        "player_submission": "56483595",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 893.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 123348.0,
+      "opponent_final_bank": 82291.0,
+      "won": "1",
+      "opponent_name": "cszf_first",
+      "seat": 1
+    },
+    {
+      "episode_id": "112323709",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112323709",
+        "player": "washamba_base_v2.py",
+        "player_submission": "56483595",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 771.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 121603.0,
+      "opponent_final_bank": 67480.0,
+      "won": "1",
+      "opponent_name": "yukino",
+      "seat": 1
+    },
+    {
+      "episode_id": "112324853",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112324853",
+        "player": "washamba_base_v2.py",
+        "player_submission": "56483595",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 805.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 108467.0,
+      "opponent_final_bank": 77551.0,
+      "won": "1",
+      "opponent_name": "Dandan Li",
+      "seat": 1
+    },
+    {
+      "episode_id": "112326038",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112326038",
+        "player": "washamba_base_v2.py",
+        "player_submission": "56483595",
+        "seat": 0,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 894.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 9,
+        "detail": ""
+      },
+      "final_bank": 141888.0,
+      "opponent_final_bank": 111819.0,
+      "won": "1",
+      "opponent_name": "Zihao Zeng",
+      "seat": 0
+    }
+  ],
+  "washamba_base_v1_fork.py": [
+    {
+      "episode_id": "112321357",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112321357",
+        "player": "washamba_base_v1_fork.py",
+        "player_submission": "56483603",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 823.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 9,
+        "detail": ""
+      },
+      "final_bank": 195581.0,
+      "opponent_final_bank": 72569.0,
+      "won": "1",
+      "opponent_name": "Boyu Wan",
+      "seat": 1
+    },
+    {
+      "episode_id": "112322506",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112322506",
+        "player": "washamba_base_v1_fork.py",
+        "player_submission": "56483603",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 826.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 175901.0,
+      "opponent_final_bank": 56872.0,
+      "won": "1",
+      "opponent_name": "Saptanshu Samal",
+      "seat": 1
+    },
+    {
+      "episode_id": "112323718",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112323718",
+        "player": "washamba_base_v1_fork.py",
+        "player_submission": "56483603",
+        "seat": 0,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 797.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 113374.0,
+      "opponent_final_bank": 66181.0,
+      "won": "1",
+      "opponent_name": "HoJoonYun",
+      "seat": 0
+    },
+    {
+      "episode_id": "112324968",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112324968",
+        "player": "washamba_base_v1_fork.py",
+        "player_submission": "56483603",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 801.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 99969.0,
+      "opponent_final_bank": 56154.0,
+      "won": "1",
+      "opponent_name": "Robot Farm",
+      "seat": 1
+    },
+    {
+      "episode_id": "112326041",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112326041",
+        "player": "washamba_base_v1_fork.py",
+        "player_submission": "56483603",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 787.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 90578.0,
+      "opponent_final_bank": 90554.0,
+      "won": "1",
+      "opponent_name": "shoryakumar mishra",
+      "seat": 1
+    },
+    {
+      "episode_id": "112326669",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112326669",
+        "player": "washamba_base_v1_fork.py",
+        "player_submission": "56483603",
+        "seat": 0,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 805.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 74999.0,
+      "opponent_final_bank": 32847.0,
+      "won": "1",
+      "opponent_name": "Efe Can Celiksoy",
+      "seat": 0
+    }
+  ],
+  "w0_v15stack_control.py": [
+    {
+      "episode_id": "112369485",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112369485",
+        "player": "w0_v15stack_control.py",
+        "player_submission": "56487592",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 910.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 119171.0,
+      "opponent_final_bank": 22201.0,
+      "won": "1",
+      "opponent_name": "宣城市机械电子职业技术学院",
+      "seat": 1
+    },
+    {
+      "episode_id": "112370719",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112370719",
+        "player": "w0_v15stack_control.py",
+        "player_submission": "56487592",
+        "seat": 0,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 884.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 147934.0,
+      "opponent_final_bank": 81829.0,
+      "won": "1",
+      "opponent_name": "Penn Lam",
+      "seat": 0
+    },
+    {
+      "episode_id": "112371819",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112371819",
+        "player": "w0_v15stack_control.py",
+        "player_submission": "56487592",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 902.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 106475.0,
+      "opponent_final_bank": 70371.0,
+      "won": "1",
+      "opponent_name": "SG4265",
+      "seat": 1
+    },
+    {
+      "episode_id": "112372983",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112372983",
+        "player": "w0_v15stack_control.py",
+        "player_submission": "56487592",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 894.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 137295.0,
+      "opponent_final_bank": 111129.0,
+      "won": "1",
+      "opponent_name": "Pavel Pakhmutov",
+      "seat": 1
+    },
+    {
+      "episode_id": "112374191",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112374191",
+        "player": "w0_v15stack_control.py",
+        "player_submission": "56487592",
+        "seat": 0,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 907.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 117803.0,
+      "opponent_final_bank": 101483.0,
+      "won": "1",
+      "opponent_name": "VelloNChiru",
+      "seat": 0
+    },
+    {
+      "episode_id": "112375384",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112375384",
+        "player": "w0_v15stack_control.py",
+        "player_submission": "56487592",
+        "seat": 0,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 868.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 108236.0,
+      "opponent_final_bank": 104885.0,
+      "won": "1",
+      "opponent_name": "Michael McGrain",
+      "seat": 0
+    }
+  ],
+  "w1_v15stack_race44.py": [
+    {
+      "episode_id": "112421724",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112421724",
+        "player": "w1_v15stack_race44.py",
+        "player_submission": "56491123",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 907.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 95040.0,
+      "opponent_final_bank": 20871.0,
+      "won": "1",
+      "opponent_name": "Allen Chun",
+      "seat": 1
+    },
+    {
+      "episode_id": "112422899",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112422899",
+        "player": "w1_v15stack_race44.py",
+        "player_submission": "56491123",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 875.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 119833.0,
+      "opponent_final_bank": 82193.0,
+      "won": "1",
+      "opponent_name": "Dynamic_fire07",
+      "seat": 1
+    },
+    {
+      "episode_id": "112424003",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112424003",
+        "player": "w1_v15stack_race44.py",
+        "player_submission": "56491123",
+        "seat": 0,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 894.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 104354.0,
+      "opponent_final_bank": 59379.0,
+      "won": "1",
+      "opponent_name": "Jiajun HAN",
+      "seat": 0
+    },
+    {
+      "episode_id": "112425137",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112425137",
+        "player": "w1_v15stack_race44.py",
+        "player_submission": "56491123",
+        "seat": 1,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 890.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 122886.0,
+      "opponent_final_bank": 96918.0,
+      "won": "1",
+      "opponent_name": "rakumo",
+      "seat": 1
+    },
+    {
+      "episode_id": "112426291",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112426291",
+        "player": "w1_v15stack_race44.py",
+        "player_submission": "56491123",
+        "seat": 0,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 896.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 142877.0,
+      "opponent_final_bank": 107556.0,
+      "won": "1",
+      "opponent_name": "Ali Esam",
+      "seat": 0
+    },
+    {
+      "episode_id": "112427441",
+      "dist_to_144": 7,
+      "event": {
+        "episode_id": "112427441",
+        "player": "w1_v15stack_race44.py",
+        "player_submission": "56491123",
+        "seat": 0,
+        "event_type": "BUY_LAND",
+        "step": 151,
+        "day": 6,
+        "pre_cash": 693.0,
+        "pre_land": 25,
+        "peak_crew_that_day": 8,
+        "detail": ""
+      },
+      "final_bank": 61892.0,
+      "opponent_final_bank": 75913.0,
+      "won": "0",
+      "opponent_name": "Aura Farming",
+      "seat": 0
+    }
+  ]
+}

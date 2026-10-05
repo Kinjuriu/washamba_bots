@@ -1,0 +1,85 @@
+{
+ "agent": "agents/v7.12_synth/main.py",
+ "baseline": "agents/v7.10_abdelrazik/main.py",
+ "pool": "/Users/davidestevez/WORK/projects/kaggriculture/sparring/recent_pool.json.zz",
+ "gates": [
+  {
+   "name": "PARITY",
+   "checked": 4314,
+   "diffs": 0,
+   "first_diff_turn": null,
+   "pass": true,
+   "why": "with the new behaviour off the candidate emits its parent's action"
+  },
+  {
+   "name": "SAFETY",
+   "pass": true,
+   "tail": [
+    "no failures: every episode finished DONE with a real reward,",
+    "a well-formed action every turn, and the overage bank untouched.",
+    "SAFE TO SUBMIT (on this evidence)."
+   ],
+   "why": "no crash, well-formed action every turn, inside the time budget"
+  },
+  {
+   "name": "POPULATION",
+   "nominal": 40,
+   "effective": 17,
+   "coverage": 0.4156545209176788,
+   "plans": 2,
+   "already_won": 4,
+   "seat0": 18,
+   "pass": true,
+   "why": "enough distinct behaviours that a win rate is not one game repeated"
+  }
+ ],
+ "sample_audit": [
+  {
+   "measure": "PARITY",
+   "have": 4314,
+   "need": 4320,
+   "ok": false,
+   "needs": "WHOLE episodes at BOTH seats, not sampled turns",
+   "why": "a divergence can first appear at any turn, and seat 1 sees a trimmed observation that seat 0 does not",
+   "note": ""
+  },
+  {
+   "measure": "SAFETY",
+   "have": "preflight",
+   "need": 12,
+   "ok": true,
+   "needs": "several seeds and several opponent kinds, including an idle one",
+   "why": "a crash is usually a state the agent reaches rarely",
+   "note": ""
+  },
+  {
+   "measure": "POPULATION",
+   "have": 17,
+   "need": 5,
+   "ok": true,
+   "needs": "EFFECTIVE n, distinct plans, seat balance, and the share of games the baseline had already won",
+   "why": "a win rate over near-duplicates is one game repeated, and a pool of games we already won cannot falsify a claim about being behind",
+   "note": "nominal 40, 4 already won"
+  },
+  {
+   "measure": "PAIRED",
+   "have": 40,
+   "need": 20,
+   "ok": true,
+   "needs": "the SAME seed, seat and recorded opponent for both agents",
+   "why": "common random numbers only pays if the pairing is exact; below about twenty the sign test cannot resolve a realistic effect",
+   "note": "smallest detectable win rate at 80 % power: 72 %"
+  },
+  {
+   "measure": "OBJECTIVE",
+   "have": 17,
+   "need": 20,
+   "ok": true,
+   "needs": "enough games per opponent for mu and sigma to mean anything",
+   "why": "sigma from a handful of games is mostly its own error",
+   "note": "sigma is estimated across opponents, so EFFECTIVE n carries it"
+  }
+ ],
+ "verdict": "GATES ONLY",
+ "verdict_why": "no games played"
+}

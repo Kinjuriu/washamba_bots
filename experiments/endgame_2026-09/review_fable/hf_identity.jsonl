@@ -1,0 +1,8 @@
+{"a": "off", "b": "w3", "seed": 9201, "cand": 0, "ra": 73679.0, "rb": 73679.0, "sa": "DONE", "sb": "DONE"}
+{"a": "w3", "b": "off", "seed": 9201, "cand": 1, "ra": 73679.0, "rb": 73679.0, "sa": "DONE", "sb": "DONE"}
+{"a": "off", "b": "w3", "seed": 9202, "cand": 0, "ra": 125633.0, "rb": 125633.0, "sa": "DONE", "sb": "DONE"}
+{"a": "w3", "b": "off", "seed": 9202, "cand": 1, "ra": 125633.0, "rb": 125633.0, "sa": "DONE", "sb": "DONE"}
+{"a": "hf", "b": "w3", "seed": 9201, "cand": 0, "ra": 73725.0, "rb": 73625.0, "sa": "DONE", "sb": "DONE"}
+{"a": "w3", "b": "hf", "seed": 9201, "cand": 1, "ra": 73625.0, "rb": 73725.0, "sa": "DONE", "sb": "DONE"}
+{"a": "hf", "b": "w3", "seed": 9202, "cand": 0, "ra": 125029.0, "rb": 125798.0, "sa": "DONE", "sb": "DONE"}
+{"a": "w3", "b": "hf", "seed": 9202, "cand": 1, "ra": 125798.0, "rb": 125029.0, "sa": "DONE", "sb": "DONE"}

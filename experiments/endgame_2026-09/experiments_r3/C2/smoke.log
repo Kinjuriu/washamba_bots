@@ -1,0 +1,10 @@
+C build coop d=6 (5, 4)
+C buy goose d=6
+C place goose d=6 (5, 4)
+C build coop d=6 (9, 4)
+C build coop d=7 (9, 3)
+C buy goose d=8
+C place goose d=8 (9, 4)
+C buy goose d=9
+C buy goose d=9
+C place goose d=9 (9, 3)

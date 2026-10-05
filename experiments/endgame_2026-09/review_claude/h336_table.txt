@@ -1,0 +1,19 @@
+base             mean  -17411 median  -17066  
+sticky25         mean  -20735 median  -18184  WB_STICKY=2.5
+zone06           mean  -16335 median  -13632  WB_ZONE_OUT=0.6
+carrot           mean  -17411 median  -17066  WB_CARROT_FIRST_DAY=20;WB_CARROT_MAX=30
+notomato         mean  -26527 median  -18664  WB_TOMATO_MAX=0
+nogoose          mean  -18646 median  -14244  WB_GOOSE_EXTRA=0
+actcost5         mean  -19782 median  -18294  WB_ACTION_COST=5.0
+wheatpa2         mean  -17600 median  -16506  WB_WHEAT_PER_ANIMAL=2.0
+dumpsell         mean  -22010 median  -18522  
+dumpsell_zone06  mean  -16162 median  -14491  WB_ZONE_OUT=0.6
+plant110         mean  -21588 median  -17238  WB_W_PLANT=110.0
+plant110z        mean  -17754 median  -16189  WB_W_PLANT=110.0;WB_ZONE_OUT=0.6
+wheat2z          mean  -17887 median  -16518  WB_WHEAT_PER_ANIMAL=2.0;WB_ZONE_OUT=0.6;WB_W_PLANT=110.0
+tpa15            mean  -18731 median  -16170  _WB_TURNS_PER_ACTION=1.5
+hands14          mean  -18775 median  -16210  WB_MAX_HANDS=14;_WB_TURNS_PER_ACTION=1.5
+p1_floor         mean  -17411 median  -17066  
+p1_floor_res3    mean  -22782 median  -18136  P1_WHEAT_RESERVE_DAYS=3
+p1_floor12_res3  mean  -23237 median  -18460  P1_WHEAT_RESERVE_DAYS=3;P1_WHEAT_FLOOR_MULT=1.2
+noherd           mean  -17396 median  -15163  WB_HERD_CUTOFF={"GOOSE": 0, "COW": 0, "SHEEP": 0}

@@ -1,0 +1,98 @@
+{
+  "Kaggledew Valley": {
+    "n": 60,
+    "wins": 29,
+    "losses": 31,
+    "ties": 0,
+    "own_family_counts": {
+      "other": 60
+    },
+    "n_vs_tape": 1,
+    "winrate_vs_tape": 1.0,
+    "median_margin_vs_tape": 43810.0,
+    "n_vs_nontape": 59,
+    "winrate_vs_nontape": 0.4745762711864407,
+    "median_margin_vs_nontape": -2926.0,
+    "median_final_bank": 102718.0
+  },
+  "Azat Akhtyamov": {
+    "n": 60,
+    "wins": 33,
+    "losses": 27,
+    "ties": 0,
+    "own_family_counts": {
+      "DSM": 60
+    },
+    "n_vs_tape": 4,
+    "winrate_vs_tape": 0.5,
+    "median_margin_vs_tape": -3169.5,
+    "n_vs_nontape": 56,
+    "winrate_vs_nontape": 0.5535714285714286,
+    "median_margin_vs_nontape": 987.5,
+    "median_final_bank": 96146.5
+  },
+  "THIRD FARM CLUB": {
+    "n": 60,
+    "wins": 51,
+    "losses": 9,
+    "ties": 0,
+    "own_family_counts": {
+      "Boey": 60
+    },
+    "n_vs_tape": 23,
+    "winrate_vs_tape": 1.0,
+    "median_margin_vs_tape": 16666.0,
+    "n_vs_nontape": 37,
+    "winrate_vs_nontape": 0.7567567567567568,
+    "median_margin_vs_nontape": 4748.0,
+    "median_final_bank": 109481.0
+  },
+  "Arda Ceylan": {
+    "n": 60,
+    "wins": 43,
+    "losses": 17,
+    "ties": 0,
+    "own_family_counts": {
+      "other": 60
+    },
+    "n_vs_tape": 12,
+    "winrate_vs_tape": 1.0,
+    "median_margin_vs_tape": 12058.0,
+    "n_vs_nontape": 48,
+    "winrate_vs_nontape": 0.6458333333333334,
+    "median_margin_vs_nontape": 1423.0,
+    "median_final_bank": 105761.5
+  },
+  "mtmr_s1": {
+    "n": 60,
+    "wins": 28,
+    "losses": 32,
+    "ties": 0,
+    "own_family_counts": {
+      "DSM": 60
+    },
+    "n_vs_tape": 0,
+    "winrate_vs_tape": null,
+    "median_margin_vs_tape": null,
+    "n_vs_nontape": 60,
+    "winrate_vs_nontape": 0.4666666666666667,
+    "median_margin_vs_nontape": -957.5,
+    "median_final_bank": 100365.5
+  },
+  "TheEggman": {
+    "n": 60,
+    "wins": 30,
+    "losses": 30,
+    "ties": 0,
+    "own_family_counts": {
+      "other": 60
+    },
+    "n_vs_tape": 5,
+    "winrate_vs_tape": 0.8,
+    "median_margin_vs_tape": 5842.0,
+    "n_vs_nontape": 55,
+    "winrate_vs_nontape": 0.4727272727272727,
+    "median_margin_vs_nontape": -671.0,
+    "median_final_bank": 104874.5
+  }
+}

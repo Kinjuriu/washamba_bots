@@ -1,0 +1,17 @@
+screening 81 candidates x 5 opponents x 4 seeds x 2 seats
+halving stage: 12 candidates on 8 more seeds
+screen base {'points': 0.8, 'games': 40, 'mean_margin': 324.55} top [('c080', 0.9, {'_HP_WINDOW': 7, '_V92_P_TOP': 2}), ('c020', 0.9, {'_HP_WINDOW': 8}), ('c076', 0.9, {'_V92_P_TOP': 2, '_HP_WINDOW': 8}), ('c029', 0.9, {'_HP_WINDOW': 7}), ('c059', 0.9, {'_HP_WINDOW': 7, 'V9_RACE_MAX': 60})]
+
+CONFIRM (fresh seeds): candidate points / mean margin / params
+base 0.71 426 {}
+   per opponent: {'w4': 0.5, 'w3': 0.85, 'w1': 0.55, 'hsv3': 0.85, 'v57': 0.8}
+c080 0.795 502 {'_HP_WINDOW': 7, '_V92_P_TOP': 2}
+   per opponent: {'w4': 0.975, 'w3': 0.9, 'w1': 0.5, 'hsv3': 0.85, 'v57': 0.75}
+c020 0.775 518 {'_HP_WINDOW': 8}
+   per opponent: {'w4': 0.875, 'w3': 0.9, 'w1': 0.5, 'hsv3': 0.8, 'v57': 0.8}
+c076 0.765 531 {'_V92_P_TOP': 2, '_HP_WINDOW': 8}
+   per opponent: {'w4': 0.875, 'w3': 0.9, 'w1': 0.5, 'hsv3': 0.75, 'v57': 0.8}
+c029 0.795 493 {'_HP_WINDOW': 7}
+   per opponent: {'w4': 0.975, 'w3': 0.9, 'w1': 0.5, 'hsv3': 0.85, 'v57': 0.75}
+c059 0.795 493 {'_HP_WINDOW': 7, 'V9_RACE_MAX': 60}
+   per opponent: {'w4': 0.975, 'w3': 0.9, 'w1': 0.5, 'hsv3': 0.85, 'v57': 0.75}

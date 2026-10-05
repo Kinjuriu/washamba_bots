@@ -1,0 +1,25 @@
+{
+  "nikaangukia_meroni.py (Stephane, Step1009)": {
+    "sid": 56681229,
+    "total_api": 46,
+    "since_cutoff": 45,
+    "since_cutoff_completed": 45,
+    "since_cutoff_other_state": []
+  },
+  "tetsu_step1009_full.py (Stephane, Step1009)": {
+    "sid": 56645467,
+    "total_api": 139,
+    "since_cutoff": 91,
+    "since_cutoff_completed": 89,
+    "since_cutoff_other_state": [
+      [
+        115091156,
+        "ERRORED"
+      ],
+      [
+        115114335,
+        "ERRORED"
+      ]
+    ]
+  }
+}

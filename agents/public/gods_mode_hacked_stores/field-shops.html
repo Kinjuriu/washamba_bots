@@ -1,0 +1,871 @@
+<title>Field Shop Stats</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef0e6; --surface: #ffffff; --surface-2: #e4e7da; --ink: #232620; --muted: #6b6f5f; --line: #d3d6c6;
+    --us: #2f6f4f; --us-soft: #2f6f4f22; --opp: #35618c; --opp-soft: #35618c22;
+    --warn: #a4392b; --warn-soft: #a4392b1c; --grain: #b8863b; --hide: #7a4a35;
+    --shadow: 0 1px 2px rgba(35,38,32,0.06), 0 8px 24px rgba(35,38,32,0.06);
+    --cat-1: #2a78d6; --cat-2: #eb6834; --cat-3: #1baf7a; --cat-4: #eda100;
+    --cat-5: #e87ba4; --cat-6: #008300; --cat-7: #4a3aa7; --cat-8: #e34948;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#12140f; --surface:#1b1e17; --surface-2:#23271e; --ink:#ece9da; --muted:#9a9c86; --line:#333729;
+      --us:#55b382; --us-soft:#55b38230; --opp:#6badde; --opp-soft:#6badde30;
+      --warn:#e2705a; --warn-soft:#e2705a26; --grain:#d1a256; --hide:#b0805f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+      --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500;
+      --cat-5: #d55181; --cat-6: #008300; --cat-7: #9085e9; --cat-8: #e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#12140f; --surface:#1b1e17; --surface-2:#23271e; --ink:#ece9da; --muted:#9a9c86; --line:#333729;
+    --us:#55b382; --us-soft:#55b38230; --opp:#6badde; --opp-soft:#6badde30;
+    --warn:#e2705a; --warn-soft:#e2705a26; --grain:#d1a256; --hide:#b0805f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500;
+    --cat-5: #d55181; --cat-6: #008300; --cat-7: #9085e9; --cat-8: #e66767;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; padding: 20px clamp(14px,3vw,40px) 48px; max-width: 1340px; margin: 0 auto; }
+  h1,h2,h3 { font-family: "Fraunces", Georgia, serif; text-wrap: balance; margin: 0; }
+  .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  code { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .93em; }
+
+  nav.pages { display:flex; gap:8px; margin-bottom:14px; }
+  nav.pages a { font:600 12px "IBM Plex Sans"; padding:6px 12px; border-radius:8px; border:1px solid var(--line); background:var(--surface); color:var(--muted); text-decoration:none; }
+  nav.pages a.active { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  nav.subpages { display:flex; gap:6px; margin:0 0 14px; padding-left:2px; }
+  nav.subpages a { font:600 11.5px "IBM Plex Sans"; padding:5px 12px; border-radius:8px; border:1px solid var(--line); background:var(--surface-2); color:var(--muted); text-decoration:none; }
+  nav.subpages a.active { background:var(--grain); color:var(--bg); border-color:var(--grain); }
+
+  header.top { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end; gap:14px; padding-bottom:16px; border-bottom:1px solid var(--line); margin-bottom:18px; }
+  header.top h1 { font-size:28px; font-weight:600; }
+  header.top p { margin:5px 0 0; color:var(--muted); font-size:13.5px; max-width:80ch; line-height:1.6; }
+  .badge-truth { display:inline-block; font:600 10.5px "IBM Plex Mono"; text-transform:uppercase; letter-spacing:.05em; color:var(--opp); background:var(--opp-soft); border:1px solid var(--opp); border-radius:6px; padding:2px 7px; margin-bottom:6px; }
+
+  .panel { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow); margin-bottom:18px; }
+  .panel h2 { font-size:15.5px; font-weight:600; margin-bottom:4px; }
+  .panel .sub { color:var(--muted); font-size:12.5px; margin:0 0 12px; max-width:88ch; line-height:1.55; }
+
+  table.mech { width:100%; border-collapse:collapse; font-size:12.5px; }
+  table.mech th, table.mech td { padding:6px 9px; text-align:left; border-bottom:1px solid var(--surface-2); }
+  table.mech th { color:var(--muted); font-weight:500; text-transform:uppercase; font-size:10px; letter-spacing:.03em; white-space:nowrap; }
+  table.mech td.num, table.mech th.num { text-align:right; font-family:"IBM Plex Mono",monospace; }
+  table.mech tr.special td { color:var(--warn); font-style:italic; }
+  /* Vertical section dividers -- these wide tables mix an identity prefix
+     (product/shop name) with a run of many same-shaped data columns, and
+     bestCaseTable additionally groups those columns by K; a light column
+     rule at each section's start line makes it easy to tell which section
+     a given cell belongs to without counting columns. */
+  #touchTable th:nth-child(3), #touchTable td:nth-child(3),
+  #capacityTable th:nth-child(4), #capacityTable td:nth-child(4),
+  #shopTable th:nth-child(3), #shopTable td:nth-child(3),
+  #demandTable th:nth-child(2), #demandTable td:nth-child(2),
+  #priceTable th:nth-child(3), #priceTable td:nth-child(3),
+  #priceTable th:nth-child(11), #priceTable td:nth-child(11),
+  #bestCaseTable th:nth-child(n+4),
+  #bestCaseTable td:nth-child(4), #bestCaseTable td:nth-child(7),
+  #bestCaseTable td:nth-child(10), #bestCaseTable td:nth-child(13) {
+    border-left: 2px solid var(--line);
+  }
+  .shop-swatch { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:6px; vertical-align:middle; }
+  .scroll-x { overflow-x:auto; }
+  .chip { display:inline-block; font:500 10.5px "IBM Plex Mono"; background:var(--surface-2); border-radius:5px; padding:1px 6px; margin:1px 3px 1px 0; }
+
+  .note { background:var(--surface-2); border:1px dashed var(--line); border-radius:10px; padding:12px 16px; margin-top:12px; font-size:12px; color:var(--muted); line-height:1.55; }
+
+  .filters { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+  .filters button { font:500 11.5px "IBM Plex Sans"; padding:5px 10px; border-radius:7px; border:1px solid var(--line); background:var(--surface-2); color:var(--muted); cursor:pointer; }
+  .filters button.active { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .chart-legend { display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:var(--muted); margin-top:6px; justify-content:center; }
+  .chart-legend span { display:inline-flex; align-items:center; gap:6px; }
+  .chart-swatch { display:inline-block; width:16px; height:3px; border-radius:2px; }
+
+  .product-checks { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .product-checks label { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--ink); cursor:pointer; padding:4px 10px; border:1px solid var(--line); border-radius:7px; background:var(--surface-2); }
+  .product-checks input { accent-color: var(--ink); cursor:pointer; }
+
+  .slider-row { display:flex; align-items:center; gap:14px; margin-bottom:10px; font-size:12.5px; flex-wrap:wrap; }
+  .slider-row label { min-width:190px; color:var(--muted); flex:none; }
+  .slider-row input[type=range] { flex:1; min-width:140px; accent-color:var(--grain); }
+  .slider-row select { font:500 12px "IBM Plex Sans"; padding:5px 9px; border-radius:7px; border:1px solid var(--line); background:var(--surface-2); color:var(--ink); }
+
+  .sale-result { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:8px; overflow:hidden; margin:12px 0; }
+  .sale-result .cell { background:var(--surface); padding:10px 12px; }
+  .sale-result .label { font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-bottom:3px; }
+  .sale-result .value { font-size:16px; font-weight:600; }
+
+  footer { color:var(--muted); font-size:11.5px; margin-top:4px; }
+  footer p { margin: 4px 0; }
+nav.pages, nav.subpages { display:none!important; }
+body { padding-top:12px!important; }
+.badge-truth { display:block!important; width:max-content; }
+header.top > div { width:100%; }
+</style>
+
+<nav class="pages">
+  <a href="#" onclick="return false">Workshop</a>
+  <a href="#" onclick="return false">Agent</a>
+  <a href="#" onclick="return false" class="active">Global</a>
+</nav>
+<nav class="subpages">
+  <a href="#" onclick="return false">Worlds (day 6)</a>
+  <a href="#" class="active">Shop Stats</a>
+  <a href="#" onclick="return false">Leaderboard</a>
+</nav>
+
+<header class="top">
+  <div>
+    <span class="badge-truth">engine constants, not replay data</span>
+    <h1>Field Shop Stats</h1>
+    <p>Everything on this page comes straight from the installed <code>kaggriculture.py</code> engine's own constants (<code>SHOPS</code>, <code>MARKET_PARAMS</code>, <code>market_price()</code>, <code>_town_consume()</code>) — not from any played match or downloaded replay. It's about the shop mechanic itself: what each shop actually consumes, and what that implies for town-wide demand and market price if the 8 reveals land the way the engine draws them (uniformly, with replacement — matching what the <a href="#" onclick="return false">Worlds</a>/Shops-by-day pages already observe empirically). The "Worlds" and per-day-reveal statistics you played or downloaded live on the Global/Worlds tab; this page never touches that dataset.</p>
+  </div>
+</header>
+
+<div class="panel">
+  <h2>Shop draw probability</h2>
+  <p class="sub">Every reveal (day 3, 6, 9, ... 24) draws one of the 8 shop types with replacement. The engine draws uniformly — the <a href="#" onclick="return false">Worlds</a> page's own per-day pies confirm this empirically across every real replay. Everything below assumes this same 1-in-8 baseline for whichever reveals haven't happened yet.</p>
+  <div class="scroll-x"><table class="mech" id="drawTable"></table></div>
+</div>
+
+<div class="panel">
+  <h2>Probability a product gets touched by the next reveal</h2>
+  <p class="sub" id="touchSub"></p>
+  <div class="scroll-x"><table class="mech" id="touchTable"></table></div>
+</div>
+
+<div class="panel">
+  <h2>Production capacity vs. consumption pressure</h2>
+  <p class="sub">How fast can a farm actually replace what the town is draining? Steady-state per-tile (or per-animal) output is read straight from the same crop/animal constants this project's own <code>valuation.py</code> uses for its future-harvest projections: a one-shot crop (WHEAT/CARROT/MELON) at <code>max_yield / max_yield_day</code>, assuming an immediate replant each cycle; an "ongoing" crop (TOMATO/STRAWBERRY) or an animal at <code>1 / interval</code> once it's mature. This deliberately ignores the market (no price-driven behavior change) and the opponent (no competition for tiles) -- it's a raw capacity number, not a strategy.</p>
+  <div class="scroll-x"><table class="mech" id="capacityTable"></table></div>
+  <div class="note">"Tiles/animals to break even" = expected daily consumption (from the demand table below) divided by this steady-state rate, rounded up -- roughly how many of that crop/animal a farm would need dedicated to it just to keep pace with the town's own draw, before selling a single unit for profit.</div>
+</div>
+
+<div class="panel">
+  <h2>What each shop actually consumes</h2>
+  <p class="sub">Every <code>townShopSellInterval</code> steps (4 by default — 6 times a day), each currently-unlocked shop instance pulls its own products out of the market's inventory. A shop is drawn <b>with replacement</b> once every 3 days (8 draws total, by day 24) and, once unlocked, never stops consuming — so by late game several instances of the same shop can be active at once. A shop with only one product consumes it at double the rate of a shop with several (the engine's own <code>multiplier = 2 if len(products) == 1 else 1</code>).</p>
+  <div class="scroll-x"><table class="mech" id="shopTable"></table></div>
+</div>
+
+<div class="panel">
+  <h2>Expected town demand per product, assuming random draws</h2>
+  <p class="sub" id="demandSub"></p>
+  <div class="scroll-x"><table class="mech" id="demandTable"></table></div>
+  <div class="note">Model: each of the 8 reveal slots independently draws one of the 8 shop types with equal probability, with replacement (so a shop type can repeat, and its expected instance count after N reveals is N/8). "Town center" is a separate, shop-independent baseline: 1 unit of every product except FERTILIZER, once a day, from step 0 regardless of what's unlocked.</div>
+</div>
+
+<div class="panel">
+  <h2>Projected market price, consumption only</h2>
+  <p class="sub">Starting every product at the engine's own <code>I0</code> (10,000, the price-neutral inventory level) and applying <i>only</i> the expected demand above — no player buying or selling at all — this is <code>market_price()</code> run forward against that one-sided drain, day by day through the 8 reveals and on to day 30, the engine's actual default game length (<code>episodeSteps</code>=720) — 6 more days of every shop still consuming after the 8th and last one opens. It isolates what the shop mechanic alone does to price; real games also have players selling into the market (which raises inventory back up) and buying out of it (which lowers it further), so actual prices move differently. This is the shape of the pressure shops apply, not a prediction of any real match's prices.</p>
+  <div class="scroll-x"><table class="mech" id="priceTable"></table></div>
+</div>
+
+<div class="panel">
+  <h2>Price range: worst / expected / best, GIVEN the last K reveals are guaranteed to fit</h2>
+  <p class="sub">Same consumption-only projection to day 30 (the engine's own default episode length, <code>episodeSteps</code>=720 -- 6 full days past the 8th and final reveal, still consuming the whole time). The premise for each K column is fixed: the LAST K reveals (K=3, 4, 5, 6) are guaranteed to land on whichever single shop drains this product fastest, in <i>every</i> one of the 3 numbers -- that part never varies, since it's the whole point of "the last K are ideal." What actually varies is only the remaining (8&minus;K) EARLY reveals, whose outcome genuinely isn't known yet: "worst" assumes they also miss this product entirely (nothing extra beyond the guaranteed late run); "expected" assumes their real average value; "best" assumes they ALSO happen to land on that same best shop. So "worst" is never lower than what the guaranteed late shops alone would produce -- it's a floor built ON TOP of the guarantee, not a scenario where the guarantee might not have happened. A product touched by many shops already (WHEAT: 5 of 8) has a high floor even at "worst," while its own worst-to-best RANGE stays narrow if its price-response function is a damped one (<code>log</code>/<code>sqrt</code>) rather than a sharp one (<code>hinge</code>/<code>sq</code>) -- being consumed everywhere and being volatile are two different things.</p>
+  <div class="scroll-x"><table class="mech" id="bestCaseTable"></table></div>
+  <div class="note">A product no shop ever touches (MELON, FERTILIZER) has no range at all -- worst, expected, and best are all identical, since luck in the shop draw can't do anything for it.</div>
+</div>
+
+<div class="panel">
+  <h2>Price over the full 30-day game</h2>
+  <p class="sub">Pick one product -- the chart assumes the last K reveals are guaranteed to land on THAT product's own best shop. Almost every shop serves several products at once (YARN_STORE and PET_CAFE are the only single-product exceptions), so that same guaranteed shop is also quietly driving up demand for whatever else it consumes -- tick those "also affected" products below to put them on the same axes. Toggle worst/expected/best independently to cut clutter, and optionally lay a sale on top: a single one-time dump, or repeated selling timed to that product's own harvest cycle from the Capacity table above (a melon farm can't turn over stock every day the way a carrot farm can, so the repeat interval is read from the crop/animal itself, never a free-floating slider).</p>
+
+  <div class="filters" id="chartProductToggle"></div>
+  <div class="slider-row" style="margin-bottom:0">
+    <label style="min-width:120px">Guarantee width</label>
+    <div class="filters" id="chartKToggle" style="margin-bottom:0"></div>
+  </div>
+  <div class="product-checks" id="chartScenarioToggle"></div>
+  <div class="product-checks" id="chartSiblingToggle"></div>
+
+  <div class="slider-row">
+    <label style="min-width:auto"><input type="checkbox" id="saleEnable"> Add a sale event to this chart</label>
+  </div>
+  <div id="saleControls" hidden>
+    <div class="slider-row">
+      <label for="saleQty">Quantity per sale: <span id="saleQtyLabel"></span> units</label>
+      <input type="range" id="saleQty" min="0" max="100" step="1" value="20">
+    </div>
+    <div class="slider-row">
+      <label for="saleStep">Start selling at step: <span id="saleStepLabel"></span></label>
+      <input type="range" id="saleStep" min="4" max="720" step="4" value="360">
+    </div>
+    <div class="slider-row">
+      <label style="min-width:auto"><input type="checkbox" id="saleCyclic"> Repeat every harvest, instead of a single one-time sale</label>
+    </div>
+    <p class="sub" id="saleCycleNote" style="margin:-4px 0 10px"></p>
+    <div class="sale-result" id="saleResult"></div>
+  </div>
+
+  <svg id="priceChart" viewBox="0 0 640 320" style="width:100%;height:auto"></svg>
+  <div class="chart-legend">
+    <span><svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5,4"/></svg>Worst</span>
+    <span><svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="var(--muted)" stroke-width="2"/></svg>Expected</span>
+    <span><svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="var(--muted)" stroke-width="2" stroke-dasharray="1,2.5"/></svg>Best</span>
+  </div>
+  <div class="chart-legend" id="chartProductLegend"></div>
+</div>
+
+<footer id="footerNotes"></footer>
+
+<script>
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const fmt1 = n => (Math.round(n * 10) / 10).toLocaleString('en-US');
+
+// Straight from kaggriculture.py's own SHOPS dict.
+const SHOPS = {
+  BAKERY:         ['EGG', 'WHEAT'],
+  PIZZA_SHOP:     ['MILK', 'TOMATO', 'WHEAT'],
+  BRUNCH_SPOT:    ['EGG', 'WHEAT', 'STRAWBERRY'],
+  YARN_STORE:     ['WOOL'],
+  ICE_CREAM_SHOP: ['STRAWBERRY', 'MILK', 'WHEAT'],
+  PET_CAFE:       ['CARROT'],
+  SMOOTHIE_SHOP:  ['STRAWBERRY', 'MILK'],
+  FARMERS_MARKET: ['WHEAT', 'CARROT', 'TOMATO', 'STRAWBERRY'],
+};
+const SHOP_NAMES = Object.keys(SHOPS);
+const CAT_HUES = ['var(--cat-1)','var(--cat-2)','var(--cat-3)','var(--cat-4)','var(--cat-5)','var(--cat-6)','var(--cat-7)','var(--cat-8)'];
+// Same shop -> hue assignment as the Worlds page (alphabetical shop order).
+const SHOPS_ALPHA = ['BAKERY','BRUNCH_SPOT','FARMERS_MARKET','ICE_CREAM_SHOP','PET_CAFE','PIZZA_SHOP','SMOOTHIE_SHOP','YARN_STORE'];
+const SHOP_COLOR = Object.fromEntries(SHOPS_ALPHA.map((s, i) => [s, CAT_HUES[i]]));
+const SHOP_ABBR = s => s.replace(/_SHOP$|_STORE$|_MARKET$|_CAFE$|_SPOT$/, '');
+
+const PRODUCTS = ['WHEAT','CARROT','TOMATO','STRAWBERRY','MELON','EGG','MILK','WOOL','FERTILIZER'];
+const TOWN_CENTER_PRODUCTS = PRODUCTS.filter(p => p !== 'FERTILIZER');
+
+// Straight from kaggriculture.py's own CROPS/ANIMALS (and this project's own
+// valuation.py, which copies the same constants verbatim for its future-
+// harvest projections -- same numbers, same source, reused here).
+const CROPS = {
+  WHEAT:      { maxYield: 6, maxYieldDay: 4,  ongoing: false, interval: 0 },
+  CARROT:     { maxYield: 4, maxYieldDay: 3,  ongoing: false, interval: 0 },
+  TOMATO:     { maxYield: 4, maxYieldDay: 8,  ongoing: true,  interval: 1 },
+  STRAWBERRY: { maxYield: 4, maxYieldDay: 10, ongoing: true,  interval: 2 },
+  MELON:      { maxYield: 6, maxYieldDay: 12, ongoing: false, interval: 0 },
+};
+const ANIMALS = {
+  GOOSE: { product: 'EGG',  interval: 1 },
+  COW:   { product: 'MILK', interval: 2 },
+  SHEEP: { product: 'WOOL', interval: 3 },
+};
+// Steady-state per-tile (crop) or per-animal output once mature: a one-shot
+// crop assumes an immediate replant each cycle (max_yield / max_yield_day);
+// an "ongoing" crop or an animal produces 1 unit every `interval` days
+// indefinitely. FERTILIZER isn't a crop or animal product at all (it's
+// bought or collected from animal droppings), so it has no rate here.
+function steadyRate(product) {
+  const cd = CROPS[product];
+  if (cd) return cd.ongoing ? 1 / cd.interval : cd.maxYield / cd.maxYieldDay;
+  const animal = Object.values(ANIMALS).find(a => a.product === product);
+  return animal ? 1 / animal.interval : null;
+}
+function sourceOf(product) {
+  if (CROPS[product]) return CROPS[product].ongoing ? 'ongoing crop' : 'one-shot crop';
+  const animal = Object.entries(ANIMALS).find(([, a]) => a.product === product);
+  return animal ? `animal (${animal[0]})` : 'none (shops/trading only)';
+}
+// Real turnover cycle in days -- how often a farm can plausibly bring a
+// fresh batch of THIS SPECIFIC product to market, not an arbitrary slider
+// value. A one-shot crop's cycle is its own max_yield_day (the engine's own
+// assumption already used for steadyRate's "immediate replant" rate); an
+// ongoing crop or an animal yields 1 unit every `interval` days. A melon
+// farm (12-day cycle) genuinely cannot turn over stock as fast as a carrot
+// farm (3-day cycle) -- this is what makes the two different, not a slider.
+function productionIntervalDays(product) {
+  const cd = CROPS[product];
+  if (cd) return cd.ongoing ? cd.interval : cd.maxYieldDay;
+  const animal = Object.values(ANIMALS).find(a => a.product === product);
+  return animal ? animal.interval : null;
+}
+
+// Straight from kaggriculture.py's own MARKET_PARAMS.
+const MARKET_PARAMS = {
+  WHEAT:      { base: 25,  I0: 10000, T: 400, belowFunc: 'sqrt',  belowTarget: 0.80, aboveFunc: 'log',    aboveTarget: 0.20 },
+  CARROT:     { base: 35,  I0: 10000, T: 450, belowFunc: 'hinge', belowTarget: 1.00, aboveFunc: 'sqrt',   aboveTarget: 0.70 },
+  TOMATO:     { base: 60,  I0: 10000, T: 200, belowFunc: 'hinge', belowTarget: 0.40, aboveFunc: 'sqrt',   aboveTarget: 0.60 },
+  STRAWBERRY: { base: 120, I0: 10000, T: 100, belowFunc: 'sqrt',  belowTarget: 0.70, aboveFunc: 'linear', aboveTarget: 1.60 },
+  MELON:      { base: 250, I0: 10000, T: 300, belowFunc: 'log',   belowTarget: 0.20, aboveFunc: 'sq',     aboveTarget: 3.60 },
+  EGG:        { base: 50,  I0: 10000, T: 332, belowFunc: 'hinge', belowTarget: 0.40, aboveFunc: 'log',    aboveTarget: 0.20 },
+  MILK:       { base: 160, I0: 10000, T: 122, belowFunc: 'sqrt',  belowTarget: 0.60, aboveFunc: 'linear', aboveTarget: 1.60 },
+  WOOL:       { base: 200, I0: 10000, T: 105, belowFunc: 'log',   belowTarget: 0.20, aboveFunc: 'sq',     aboveTarget: 3.20 },
+  FERTILIZER: { base: 100, I0: 10000, T: 200, belowFunc: 'linear', belowTarget: 0.40, aboveFunc: 'linear', aboveTarget: 0.40 },
+};
+const HINGE_GAIN = 8.0;
+
+function shape(func, x, T) {
+  x = Math.max(0, x);
+  if (func === 'linear') return x;
+  if (func === 'sq') return x * x;
+  if (func === 'sqrt') return Math.sqrt(x);
+  if (func === 'log') return Math.log(1 + x);
+  if (func === 'log10') return Math.log10(1 + x);
+  if (func === 'hinge') {
+    if (!T || T <= 0) return x;
+    const u = x / T;
+    return u + HINGE_GAIN * Math.pow(Math.max(0, u - 1), 2);
+  }
+  return x;
+}
+function marketPrice(item, inventory) {
+  const p = MARKET_PARAMS[item];
+  let price;
+  if (inventory < p.I0) {
+    const amp = p.belowTarget * p.base / shape(p.belowFunc, p.T, p.T);
+    price = p.base + amp * shape(p.belowFunc, p.I0 - inventory, p.T);
+  } else {
+    const amp = p.aboveTarget * p.base / shape(p.aboveFunc, p.T, p.T);
+    price = p.base - amp * shape(p.aboveFunc, inventory - p.I0, p.T);
+  }
+  return Math.max(1, Math.round(price));
+}
+
+const SHOP_TICK_STEPS = 4;    // townShopSellInterval default
+const CENTER_TICK_STEPS = 24; // townCenterSellInterval default
+const STEPS_PER_DAY = 24;
+const REVEAL_DAYS = [3, 6, 9, 12, 15, 18, 21, 24];
+const N_SHOP_TYPES = 8;
+// The engine's own default episodeSteps is 720 (kaggriculture.json) = 30
+// days at 24 steps/day -- the game runs 6 full days PAST the 8th and final
+// shop reveal, with every shop (including any "lucky" late ones) still
+// consuming the whole time. A projection that stops at day 24 understates
+// the real end-of-game price by missing exactly that tail.
+const GAME_DAYS = 30;
+
+const expectedInstances = N => N / N_SHOP_TYPES;
+
+function expectedShopUnitsPerTick(product, N) {
+  let total = 0;
+  SHOP_NAMES.forEach(shopName => {
+    const products = SHOPS[shopName];
+    if (!products.includes(product)) return;
+    const perInstance = products.length === 1 ? 2 : 1;
+    total += expectedInstances(N) * perInstance;
+  });
+  return total;
+}
+function expectedDailyConsumption(product, N) {
+  const ticksPerDay = STEPS_PER_DAY / SHOP_TICK_STEPS;
+  let daily = expectedShopUnitsPerTick(product, N) * ticksPerDay;
+  if (TOWN_CENTER_PRODUCTS.includes(product)) daily += STEPS_PER_DAY / CENTER_TICK_STEPS;
+  return daily;
+}
+
+// The single shop that drains `product` fastest per instance (accounting
+// for the single-product 2x rule) -- since consumption from independent
+// shop instances just adds up, repeating THIS one shop for every
+// "guaranteed" slot always maximizes that product's total demand. No
+// other choice or mix of qualifying shops can beat it.
+function bestShopFor(product) {
+  let best = null;
+  SHOP_NAMES.forEach(name => {
+    const products = SHOPS[name];
+    if (!products.includes(product)) return;
+    const rate = products.length === 1 ? 2 : 1;
+    if (!best || rate > best.rate) best = { shop: name, rate };
+  });
+  return best;
+}
+
+// The last K reveals are the FIXED premise of this whole table -- "given
+// the last K are guaranteed to be this product's best shop," not something
+// that varies between worst/expected/best. What actually varies is only
+// the remaining (8-K) EARLY reveals, whose outcome genuinely isn't known
+// yet: 'worst' assumes they also miss this product entirely (0 extra),
+// 'expected' assumes their real average value, 'best' assumes they ALSO
+// happen to land on the same best shop. Getting this backwards (letting
+// the late K vary instead) was a real modeling bug: it let "worst" imply
+// the guaranteed shops might not show up at all, contradicting the very
+// premise that they're guaranteed.
+function scenarioDailyConsumption(product, day, K, earlyMode) {
+  const best = bestShopFor(product);
+  const earlySlots = N_SHOP_TYPES - K; // the (8-K) reveals NOT covered by the guarantee
+  const revealsSoFar = REVEAL_DAYS.filter(d => d <= day).length;
+  const nEarlyRevealed = Math.min(revealsSoFar, earlySlots);
+  const nLateRevealed = Math.max(0, Math.min(K, revealsSoFar - earlySlots));
+  const ticksPerDay = STEPS_PER_DAY / SHOP_TICK_STEPS;
+
+  let unitsPerTick = best ? nLateRevealed * best.rate : 0; // guaranteed late K -- identical in all 3 scenarios
+  if (earlyMode === 'expected') {
+    unitsPerTick += expectedShopUnitsPerTick(product, nEarlyRevealed);
+  } else if (earlyMode === 'best' && best) {
+    unitsPerTick += nEarlyRevealed * best.rate;
+  }
+  // earlyMode === 'worst': the early slots contribute nothing extra.
+
+  let daily = unitsPerTick * ticksPerDay;
+  if (TOWN_CENTER_PRODUCTS.includes(product)) daily += STEPS_PER_DAY / CENTER_TICK_STEPS;
+  return daily;
+}
+
+function projectScenarioPrice(product, K, earlyMode) {
+  let inventory = MARKET_PARAMS[product].I0;
+  for (let day = 1; day <= GAME_DAYS; day++) inventory -= scenarioDailyConsumption(product, day, K, earlyMode);
+  return marketPrice(product, inventory);
+}
+
+function renderBestCaseTable() {
+  const K_VALUES = [3, 4, 5, 6];
+  let html = '<tr><th>Product</th><th>Best shop for it</th><th class="num">base</th>' +
+    K_VALUES.map(k => `<th class="num" colspan="3">last ${k} guaranteed: worst | expected | best</th>`).join('') + '</tr>';
+  PRODUCTS.forEach(p => {
+    const best = bestShopFor(p);
+    const baseline = projectScenarioPrice(p, 0, 'expected'); // K=0: no guarantee at all, plain unconditional average
+    html += `<tr class="${best ? '' : 'special'}"><td>${p}</td><td>${best ? `${SHOP_ABBR(best.shop)} (${best.rate}/tick)` : '<span style="color:var(--muted)">none touches it -- no range at all</span>'}</td>` +
+      `<td class="num">$${fmt(MARKET_PARAMS[p].base)}</td>` +
+      K_VALUES.map(k => {
+        if (!best) return `<td class="num">$${fmt(baseline)}</td><td class="num">$${fmt(baseline)}</td><td class="num">$${fmt(baseline)}</td>`;
+        return `<td class="num">$${fmt(projectScenarioPrice(p, k, 'worst'))}</td>` +
+          `<td class="num">$${fmt(projectScenarioPrice(p, k, 'expected'))}</td>` +
+          `<td class="num">$${fmt(projectScenarioPrice(p, k, 'best'))}</td>`;
+      }).join('') + '</tr>';
+  });
+  document.getElementById('bestCaseTable').innerHTML = html;
+}
+
+// Product identity color -- same 8-hue categorical ramp used for shops
+// elsewhere on this page, in the page's own fixed PRODUCTS order. FERTILIZER
+// is the 9th product and the one no shop or town-center tick ever touches,
+// so it deliberately sits outside that ramp rather than forcing a 9th hue
+// into an 8-slot palette.
+const PRODUCT_COLOR = {};
+PRODUCTS.forEach((p, i) => { PRODUCT_COLOR[p] = i < CAT_HUES.length ? CAT_HUES[i] : 'var(--hide)'; });
+
+const SCENARIO_LINE_STYLE = {
+  worst:    { dash: '5,4',   width: 1.6, opacity: 0.65 },
+  expected: { dash: null,    width: 2.2, opacity: 1 },
+  best:     { dash: '1,2.5', width: 1.8, opacity: 0.9 },
+};
+const SCENARIO_LABELS = { worst: 'Worst', expected: 'Expected', best: 'Best' };
+const TOTAL_STEPS = GAME_DAYS * STEPS_PER_DAY;
+
+function shopRateFor(shopName, product) {
+  if (!shopName) return 0;
+  const products = SHOPS[shopName];
+  if (!products.includes(product)) return 0;
+  return products.length === 1 ? 2 : 1;
+}
+
+// units/tick for `product` given a FIXED guaranteed shop -- almost every
+// shop serves several products, so the same guarantee that's driving the
+// primary product's late reveals is also driving whatever else that one
+// shop consumes. Reduces to the existing scenarioDailyConsumption's own
+// per-tick math when `product` IS the shop's best match for itself.
+function unitsPerTickForDay(product, day, K, earlyMode, guaranteedShop) {
+  const earlySlots = N_SHOP_TYPES - K;
+  const revealsSoFar = REVEAL_DAYS.filter(d => d <= day).length;
+  const nEarlyRevealed = Math.min(revealsSoFar, earlySlots);
+  const nLateRevealed = Math.max(0, Math.min(K, revealsSoFar - earlySlots));
+  const lateRate = shopRateFor(guaranteedShop, product);
+  let perTick = nLateRevealed * lateRate;
+  if (earlyMode === 'expected') perTick += expectedShopUnitsPerTick(product, nEarlyRevealed);
+  else if (earlyMode === 'best') perTick += nEarlyRevealed * lateRate;
+  return perTick;
+}
+
+// Step-level (not just once/day) trajectory so a sale's dip and its
+// recovery are actually visible instead of smeared across a whole day.
+// `sale` is null, or {mode:'once'|'cyclic', step, quantity, intervalSteps}.
+// `step` is always WHERE selling starts, for both modes -- 'once' fires
+// exactly there, 'cyclic' fires there and then every `intervalSteps` after,
+// where intervalSteps comes from the product's own real harvest cycle
+// (productionIntervalDays), never a freely-chosen slider value.
+function buildTrajectory(product, K, earlyMode, guaranteedShop, sale) {
+  let inventory = MARKET_PARAMS[product].I0;
+  let totalRevenue = 0;
+  const points = [{ step: 0, price: MARKET_PARAMS[product].base, inventory }];
+  for (let s = SHOP_TICK_STEPS; s <= TOTAL_STEPS; s += SHOP_TICK_STEPS) {
+    const day = Math.ceil(s / STEPS_PER_DAY); // same day-bucketing as scenarioDailyConsumption/renderPriceTable
+    inventory -= unitsPerTickForDay(product, day, K, earlyMode, guaranteedShop);
+    if (TOWN_CENTER_PRODUCTS.includes(product) && s % CENTER_TICK_STEPS === 0) inventory -= 1;
+    if (sale && sale.quantity > 0 && s >= sale.step) {
+      const fires = sale.mode === 'once'
+        ? s === sale.step
+        : (sale.intervalSteps > 0 && (s - sale.step) % sale.intervalSteps === 0);
+      if (fires) {
+        totalRevenue += saleRevenue(product, inventory, sale.quantity); // per-unit price recalculated inside, same as the engine's own SELL loop
+        inventory += sale.quantity;
+      }
+    }
+    points.push({ step: s, price: marketPrice(product, inventory), inventory });
+  }
+  points.totalRevenue = totalRevenue; // summed across every firing (matters for 'cyclic' -- 'once' just has the one)
+  return points;
+}
+
+// Nice round axis ceiling (1/2/2.5/5/10 x a power of 10) so gridlines land
+// on clean numbers instead of whatever a tight auto-fit happens to produce.
+function niceCeiling(x) {
+  if (x <= 0) return 100;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(x)));
+  const residual = x / magnitude;
+  const nice = residual <= 1 ? 1 : residual <= 2 ? 2 : residual <= 2.5 ? 2.5 : residual <= 5 ? 5 : 10;
+  return nice * magnitude;
+}
+
+// The chart's own Y-axis, fixed to the FULL price envelope this primary
+// product (and its shop-mates) can ever reach across every K and every
+// scenario -- not just whichever ones happen to be ticked right now. That's
+// what keeps the axis from jumping every time a checkbox or K button is
+// toggled: it only moves when you pick a different primary product, which
+// is the one case where a different scale is actually warranted (MELON and
+// TOMATO don't live on the same price scale). Sales never raise the
+// ceiling (selling only pushes price down), so they're left out here.
+function computeAxisCeiling(product) {
+  const best = bestShopFor(product);
+  const guaranteedShop = best ? best.shop : null;
+  const products = [product, ...(best ? SHOPS[best.shop].filter(p => p !== product) : [])];
+  let maxP = MARKET_PARAMS[product].base;
+  products.forEach(p => {
+    [3, 4, 5, 6].forEach(k => {
+      ['worst', 'expected', 'best'].forEach(mode => {
+        buildTrajectory(p, k, mode, guaranteedShop, null).forEach(pt => { if (pt.price > maxP) maxP = pt.price; });
+      });
+    });
+  });
+  return niceCeiling(maxP);
+}
+
+let chartProduct = 'TOMATO';
+let chartK = 6;
+let chartScenarios = new Set(['worst', 'expected', 'best']);
+let chartSiblings = null; // seeded to "all on" the first time renderChartSiblingToggle runs for a product
+let chartAxisCeiling = computeAxisCeiling(chartProduct); // fixed per primary product -- see computeAxisCeiling
+let saleEnabled = false;
+let saleState = { mode: 'once', quantity: 20, step: 360 };
+
+function renderChartProductToggle() {
+  const el = document.getElementById('chartProductToggle');
+  el.innerHTML = PRODUCTS.map(p => `<button class="${p === chartProduct ? 'active' : ''}" data-product="${p}">${p}</button>`).join('');
+  el.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      chartProduct = btn.dataset.product;
+      chartSiblings = null;
+      chartAxisCeiling = computeAxisCeiling(chartProduct);
+      renderChartProductToggle();
+      renderChartSiblingToggle();
+      renderSaleCycleInfo();
+      renderPriceChart();
+    });
+  });
+}
+
+function renderChartKToggle() {
+  const el = document.getElementById('chartKToggle');
+  el.innerHTML = [3, 4, 5, 6].map(k => `<button class="${k === chartK ? 'active' : ''}" data-k="${k}">K=${k}</button>`).join('');
+  el.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => { chartK = Number(btn.dataset.k); renderChartKToggle(); renderPriceChart(); });
+  });
+}
+
+function renderChartScenarioToggle() {
+  const el = document.getElementById('chartScenarioToggle');
+  el.innerHTML = ['worst', 'expected', 'best'].map(mode =>
+    `<label><input type="checkbox" data-mode="${mode}" ${chartScenarios.has(mode) ? 'checked' : ''}>${SCENARIO_LABELS[mode]}</label>`
+  ).join('');
+  el.querySelectorAll('input').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) chartScenarios.add(cb.dataset.mode); else chartScenarios.delete(cb.dataset.mode);
+      renderPriceChart();
+    });
+  });
+}
+
+function renderChartSiblingToggle() {
+  const el = document.getElementById('chartSiblingToggle');
+  const best = bestShopFor(chartProduct);
+  const siblings = best ? SHOPS[best.shop].filter(p => p !== chartProduct) : [];
+  if (chartSiblings === null) chartSiblings = new Set(siblings); // default: show every shop-mate
+  else chartSiblings = new Set(Array.from(chartSiblings).filter(p => siblings.includes(p)));
+  if (!siblings.length) {
+    el.innerHTML = `<span style="color:var(--muted);font-size:12px;padding:4px 0">${
+      best ? `${SHOP_ABBR(best.shop)} only serves ${chartProduct} -- no other product shares this guarantee.`
+           : `no shop touches ${chartProduct} -- there is no guarantee to share.`}</span>`;
+    return;
+  }
+  el.innerHTML = `<span style="font-size:11px;color:var(--muted);align-self:center;margin-right:2px">also driven by ${SHOP_ABBR(best.shop)}:</span>` +
+    siblings.map(p => `<label><input type="checkbox" data-sibling="${p}" ${chartSiblings.has(p) ? 'checked' : ''}>
+      <span class="shop-swatch" style="background:${PRODUCT_COLOR[p]}"></span>${p}</label>`).join('');
+  el.querySelectorAll('input').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) chartSiblings.add(cb.dataset.sibling); else chartSiblings.delete(cb.dataset.sibling);
+      renderPriceChart();
+    });
+  });
+}
+
+function renderSaleControls() {
+  const enableCb = document.getElementById('saleEnable');
+  enableCb.checked = saleEnabled;
+  enableCb.addEventListener('change', () => {
+    saleEnabled = enableCb.checked;
+    document.getElementById('saleControls').hidden = !saleEnabled;
+    renderPriceChart();
+  });
+  const qty = document.getElementById('saleQty');
+  qty.value = saleState.quantity;
+  qty.addEventListener('input', () => { saleState.quantity = Number(qty.value); renderPriceChart(); });
+  const step = document.getElementById('saleStep');
+  step.value = saleState.step;
+  step.addEventListener('input', () => { saleState.step = Number(step.value); renderPriceChart(); });
+  const cyclic = document.getElementById('saleCyclic');
+  cyclic.checked = saleState.mode === 'cyclic';
+  cyclic.addEventListener('change', () => {
+    saleState.mode = cyclic.checked ? 'cyclic' : 'once';
+    renderPriceChart();
+  });
+  renderSaleCycleInfo();
+}
+
+// The cyclic interval is never user-set -- it's read straight off the
+// product's own harvest cycle (same numbers as the Capacity table above).
+// A product with no crop/animal source (FERTILIZER) has no such cycle, so
+// cyclic mode is disabled for it and forced back to a one-time sale.
+function renderSaleCycleInfo() {
+  const days = productionIntervalDays(chartProduct);
+  const cyclic = document.getElementById('saleCyclic');
+  const note = document.getElementById('saleCycleNote');
+  if (days == null) {
+    cyclic.checked = false;
+    cyclic.disabled = true;
+    if (saleState.mode === 'cyclic') saleState.mode = 'once';
+    note.textContent = `${chartProduct} has no crop/animal harvest cycle (${sourceOf(chartProduct)}) -- cyclic selling isn't modeled for it.`;
+  } else {
+    cyclic.disabled = false;
+    note.textContent = saleState.mode === 'cyclic'
+      ? `Reselling every ${days} day${days === 1 ? '' : 's'} (${days * STEPS_PER_DAY} steps) -- ${chartProduct}'s own harvest cycle, from the Capacity table above.`
+      : `${chartProduct}'s harvest cycle is ${days} day${days === 1 ? '' : 's'} -- tick the box above to resell that often instead of a single dump.`;
+  }
+}
+
+function updateSaleLabels() {
+  document.getElementById('saleQtyLabel').textContent = saleState.quantity;
+  document.getElementById('saleStepLabel').textContent = `${saleState.step} (day ${(saleState.step / STEPS_PER_DAY).toFixed(1)})`;
+}
+
+function renderChartProductLegend() {
+  const el = document.getElementById('chartProductLegend');
+  const products = [chartProduct, ...Array.from(chartSiblings || [])];
+  el.innerHTML = products.map(p =>
+    `<span><span class="chart-swatch" style="background:${PRODUCT_COLOR[p]}"></span>${p}${p === chartProduct ? ' (selected)' : ''}</span>`
+  ).join('');
+}
+
+function renderSaleResult(seriesByMode) {
+  const el = document.getElementById('saleResult');
+  if (!seriesByMode) { el.innerHTML = ''; return; }
+  const mode = chartScenarios.has('expected') ? 'expected' : Array.from(chartScenarios)[0];
+  const series = mode && seriesByMode[mode];
+  if (!series) { el.innerHTML = '<div class="cell"><div class="label">No scenario selected</div><div class="value">--</div></div>'; return; }
+  const saleIdx = series.findIndex(pt => pt.step >= saleState.step);
+  const before = saleIdx > 0 ? series[saleIdx - 1] : series[0];
+  const atSale = series[saleIdx] || before;
+  const dropPct = before.price > 0 ? (1 - atSale.price / before.price) * 100 : 0;
+  const revenueLabel = saleState.mode === 'cyclic' ? 'Total revenue, all sales (day 30)' : 'Total revenue from this sale';
+  el.innerHTML = `
+    <div class="cell"><div class="label">Price just before (${SCENARIO_LABELS[mode].toLowerCase()})</div><div class="value">$${fmt(before.price)}</div></div>
+    <div class="cell"><div class="label">Price right after</div><div class="value">$${fmt(atSale.price)}</div></div>
+    <div class="cell"><div class="label">Immediate drop</div><div class="value" style="color:var(--warn)">-${fmt1(dropPct)}%</div></div>
+    <div class="cell"><div class="label">${revenueLabel}</div><div class="value">$${fmt(series.totalRevenue)}</div></div>
+    <div class="cell"><div class="label">Price at day 30 (end)</div><div class="value">$${fmt(series[series.length - 1].price)}</div></div>
+  `;
+}
+function saleRevenue(product, inventoryBefore, quantity) {
+  let inv = inventoryBefore, revenue = 0;
+  for (let i = 0; i < quantity; i++) { revenue += marketPrice(product, inv); inv += 1; }
+  return revenue;
+}
+
+function renderPriceChart() {
+  if (chartSiblings === null) renderChartSiblingToggle();
+  updateSaleLabels();
+  const best = bestShopFor(chartProduct);
+  const guaranteedShop = best ? best.shop : null;
+  const products = [chartProduct, ...Array.from(chartSiblings)];
+  const modes = Array.from(chartScenarios);
+  const cycleDays = productionIntervalDays(chartProduct);
+  const sale = saleEnabled ? {
+    ...saleState,
+    intervalSteps: saleState.mode === 'cyclic' && cycleDays != null ? cycleDays * STEPS_PER_DAY : 0,
+  } : null;
+
+  const seriesByProduct = {};
+  products.forEach(p => {
+    seriesByProduct[p] = {};
+    modes.forEach(mode => {
+      seriesByProduct[p][mode] = buildTrajectory(p, chartK, mode, guaranteedShop, p === chartProduct ? sale : null);
+    });
+  });
+
+  const svg = document.getElementById('priceChart');
+  const W = 640, H = 320, padL = 54, padR = 16, padT = 16, padB = 34;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+  const allPrices = products.flatMap(p => modes.flatMap(mode => seriesByProduct[p][mode])).map(pt => pt.price);
+  renderChartProductLegend();
+  renderSaleResult(saleEnabled ? seriesByProduct[chartProduct] : null);
+  if (!allPrices.length) {
+    const label = document.createElementNS(ns, 'text');
+    label.setAttribute('x', W / 2); label.setAttribute('y', H / 2);
+    label.setAttribute('text-anchor', 'middle'); label.setAttribute('font-size', '12'); label.setAttribute('fill', 'var(--muted)');
+    label.textContent = 'tick at least one scenario above';
+    svg.appendChild(label);
+    return;
+  }
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  // Fixed 0..ceiling axis (see computeAxisCeiling) -- deliberately NOT
+  // fitted to `allPrices`, so toggling scenarios/siblings/K never moves
+  // the scale; only switching the primary product does.
+  const yLo = 0, yHi = Math.max(chartAxisCeiling, niceCeiling(Math.max(...allPrices)));
+  const x = step => padL + (step / TOTAL_STEPS) * plotW;
+  const y = price => padT + plotH - ((price - yLo) / (yHi - yLo)) * plotH;
+  const toPoints = series => series.map(pt => `${x(pt.step).toFixed(1)},${y(pt.price).toFixed(1)}`).join(' ');
+
+  for (let i = 0; i <= 5; i++) {
+    const price = yLo + (i / 5) * (yHi - yLo);
+    const yy = y(price);
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', padL); line.setAttribute('x2', W - padR);
+    line.setAttribute('y1', yy.toFixed(1)); line.setAttribute('y2', yy.toFixed(1));
+    line.setAttribute('stroke', 'var(--surface-2)'); line.setAttribute('stroke-width', '1');
+    svg.appendChild(line);
+    const label = document.createElementNS(ns, 'text');
+    label.setAttribute('x', padL - 6); label.setAttribute('y', (yy + 3).toFixed(1));
+    label.setAttribute('text-anchor', 'end'); label.setAttribute('font-size', '10'); label.setAttribute('fill', 'var(--muted)');
+    label.textContent = '$' + fmt(price);
+    svg.appendChild(label);
+  }
+  [0, 6, 12, 18, 24, 30].forEach(day => {
+    const xx = x(day * STEPS_PER_DAY);
+    const label = document.createElementNS(ns, 'text');
+    label.setAttribute('x', xx.toFixed(1)); label.setAttribute('y', H - padB + 16);
+    label.setAttribute('text-anchor', 'middle'); label.setAttribute('font-size', '10'); label.setAttribute('fill', 'var(--muted)');
+    label.textContent = 'day ' + day;
+    svg.appendChild(label);
+  });
+
+  products.forEach(p => {
+    modes.forEach(mode => {
+      const style = SCENARIO_LINE_STYLE[mode];
+      const poly = document.createElementNS(ns, 'polyline');
+      poly.setAttribute('points', toPoints(seriesByProduct[p][mode]));
+      poly.setAttribute('fill', 'none');
+      poly.setAttribute('stroke', PRODUCT_COLOR[p]);
+      poly.setAttribute('stroke-width', String(style.width));
+      poly.setAttribute('opacity', String(style.opacity));
+      if (style.dash) poly.setAttribute('stroke-dasharray', style.dash);
+      svg.appendChild(poly);
+    });
+  });
+}
+
+function renderDrawTable() {
+  let html = '<tr><th>Shop</th><th class="num">Probability, each reveal</th></tr>';
+  SHOP_NAMES.forEach(name => {
+    html += `<tr><td><span class="shop-swatch" style="background:${SHOP_COLOR[name]}"></span>${SHOP_ABBR(name)}</td><td class="num">1/8 (12.5%)</td></tr>`;
+  });
+  document.getElementById('drawTable').innerHTML = html;
+}
+
+function renderTouchTable() {
+  document.getElementById('touchSub').textContent =
+    'For one random reveal: the chance the shop drawn happens to consume this product at all (it can appear in more than one shop\'s recipe, so this is NOT 1/8 per shop -- it\'s the share of the 8 shops whose recipe includes it).';
+  const rows = PRODUCTS.map(p => {
+    const shopsWithIt = SHOP_NAMES.filter(name => SHOPS[name].includes(p));
+    return { product: p, shops: shopsWithIt, prob: shopsWithIt.length / SHOP_NAMES.length };
+  }).sort((a, b) => b.prob - a.prob);
+  let html = '<tr><th>Product</th><th class="num">P(touched by next reveal)</th><th>Shops that consume it</th></tr>';
+  rows.forEach(r => {
+    html += `<tr><td>${r.product}</td><td class="num">${(r.prob * 100).toFixed(1)}%</td>` +
+      `<td>${r.shops.length ? r.shops.map(s => `<span class="chip">${SHOP_ABBR(s)}</span>`).join('') : '<span style="color:var(--muted)">none</span>'}</td></tr>`;
+  });
+  document.getElementById('touchTable').innerHTML = html;
+}
+
+function renderCapacityTable() {
+  let html = '<tr><th>Product</th><th>Source</th><th class="num">Steady rate/day</th>' +
+    REVEAL_DAYS.map(d => `<th class="num">day ${d} break-even</th>`).join('') + '</tr>';
+  PRODUCTS.forEach(p => {
+    const rate = steadyRate(p);
+    const noSource = rate == null;
+    html += `<tr class="${noSource ? 'special' : ''}"><td>${p}</td><td>${sourceOf(p)}</td>` +
+      `<td class="num">${noSource ? '—' : fmt1(rate)}</td>` +
+      REVEAL_DAYS.map(d => {
+        if (noSource) return '<td class="num">—</td>';
+        const need = expectedDailyConsumption(p, d / 3) / rate;
+        return `<td class="num">${need > 0 ? Math.ceil(need) : 0}</td>`;
+      }).join('') + '</tr>';
+  });
+  document.getElementById('capacityTable').innerHTML = html;
+}
+
+function renderShopTable() {
+  let html = '<tr><th>Shop</th><th>Consumes</th><th class="num">Units/product/tick</th><th class="num">Tick</th></tr>';
+  SHOP_NAMES.forEach(name => {
+    const products = SHOPS[name];
+    const perUnit = products.length === 1 ? 2 : 1;
+    html += `<tr><td><span class="shop-swatch" style="background:${SHOP_COLOR[name]}"></span>${SHOP_ABBR(name)}</td>
+      <td>${products.map(p => `<span class="chip">${p}</span>`).join('')}</td>
+      <td class="num">${perUnit}${perUnit === 2 ? ' (single-product shop)' : ''}</td>
+      <td class="num">every ${SHOP_TICK_STEPS} steps</td></tr>`;
+  });
+  document.getElementById('shopTable').innerHTML = html;
+}
+
+function renderDemandTable() {
+  document.getElementById('demandSub').textContent =
+    `Expected units/day consumed by the town, per product, as more of the 8 shops reveal (day 3 = 1 shop known, day 24 = all 8). FERTILIZER is consumed by neither shops nor the town center -- its market price moves only from player trading.`;
+  let html = '<tr><th>Product</th>' + REVEAL_DAYS.map(d => `<th class="num">day ${d}</th>`).join('') + '</tr>';
+  PRODUCTS.forEach(p => {
+    const isFertilizer = p === 'FERTILIZER';
+    html += `<tr class="${isFertilizer ? 'special' : ''}"><td>${p}</td>` +
+      REVEAL_DAYS.map(d => `<td class="num">${fmt1(expectedDailyConsumption(p, d / 3))}</td>`).join('') + '</tr>';
+  });
+  document.getElementById('demandTable').innerHTML = html;
+}
+
+function renderPriceTable() {
+  const inventory = {}; PRODUCTS.forEach(p => { inventory[p] = MARKET_PARAMS[p].I0; });
+  const checkpoints = { 0: {} };
+  PRODUCTS.forEach(p => { checkpoints[0][p] = MARKET_PARAMS[p].base; });
+  const CHECKPOINTS = [...REVEAL_DAYS, GAME_DAYS]; // the 8 reveals, then the real game end (day 30)
+  for (let day = 1; day <= GAME_DAYS; day++) {
+    const N = REVEAL_DAYS.filter(d => d <= day).length;
+    PRODUCTS.forEach(p => { inventory[p] -= expectedDailyConsumption(p, N); });
+    if (CHECKPOINTS.includes(day)) {
+      checkpoints[day] = {};
+      PRODUCTS.forEach(p => { checkpoints[day][p] = marketPrice(p, inventory[p]); });
+    }
+  }
+  let html = '<tr><th>Product</th><th class="num">base</th>' +
+    CHECKPOINTS.map(d => `<th class="num">${d === GAME_DAYS ? 'day 30 (end)' : 'day ' + d}</th>`).join('') + '</tr>';
+  PRODUCTS.forEach(p => {
+    const isFertilizer = p === 'FERTILIZER';
+    html += `<tr class="${isFertilizer ? 'special' : ''}"><td>${p}</td><td class="num">$${fmt(MARKET_PARAMS[p].base)}</td>` +
+      CHECKPOINTS.map(d => `<td class="num">$${fmt(checkpoints[d][p])}</td>`).join('') + '</tr>';
+  });
+  document.getElementById('priceTable').innerHTML = html;
+}
+
+renderDrawTable();
+renderTouchTable();
+renderCapacityTable();
+renderShopTable();
+renderDemandTable();
+renderPriceTable();
+renderBestCaseTable();
+renderChartProductToggle();
+renderChartKToggle();
+renderChartScenarioToggle();
+renderChartSiblingToggle();
+renderSaleControls();
+renderPriceChart();
+
+document.getElementById('footerNotes').innerHTML = `
+  <p>Source constants: <code>kaggriculture.py</code>'s <code>SHOPS</code>, <code>MARKET_PARAMS</code>, <code>market_price()</code>, <code>_shape()</code>, and <code>_town_consume()</code> (townShopSellInterval=4, townCenterSellInterval=24 by default) -- read directly from the installed engine, not re-derived from observed games.</p>
+  <p>MELON is never consumed by any shop -- only the town-center baseline touches it. FERTILIZER is consumed by neither; its price is driven entirely by player FERTILIZE/BUY_PRODUCT actions, never by this page's model.</p>
+`;
+</script>

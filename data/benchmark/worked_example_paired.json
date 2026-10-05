@@ -1,0 +1,1026 @@
+{
+ "what": "Two agents, each an EXACT REPLAY of a different recorded top-10 route, with no decision layer in either. Played on identical seeds, seats and recorded opponents.",
+ "agent_A": {
+  "source": "Utkarsh #2",
+  "rank_at_capture": 2,
+  "rating_at_capture": 3086.1,
+  "episode": "93000189",
+  "seat": 1
+ },
+ "agent_B": {
+  "source": "Mohamed abdelrazik",
+  "rank_at_capture": 9,
+  "episode": "92745780",
+  "seat": 0
+ },
+ "games": [
+  {
+   "game": 0,
+   "seat": 0,
+   "opponent": "thwaitsusa2",
+   "A_bank": 57988.0,
+   "A_opponent_bank": 38133.0,
+   "B_bank": 87133.0,
+   "B_opponent_bank": 58886.0
+  },
+  {
+   "game": 1,
+   "seat": 0,
+   "opponent": "thwaitsusa2",
+   "A_bank": 80272.0,
+   "A_opponent_bank": 63227.0,
+   "B_bank": 92815.0,
+   "B_opponent_bank": 70896.0
+  },
+  {
+   "game": 2,
+   "seat": 0,
+   "opponent": "thwaitsusa2",
+   "A_bank": 46968.0,
+   "A_opponent_bank": 27078.0,
+   "B_bank": 118574.0,
+   "B_opponent_bank": 91161.0
+  },
+  {
+   "game": 3,
+   "seat": 0,
+   "opponent": "thwaitsusa2",
+   "A_bank": 145732.0,
+   "A_opponent_bank": 123490.0,
+   "B_bank": 108022.0,
+   "B_opponent_bank": 84273.0
+  },
+  {
+   "game": 4,
+   "seat": 0,
+   "opponent": "thwaitsusa2",
+   "A_bank": 76294.0,
+   "A_opponent_bank": 53286.0,
+   "B_bank": 94332.0,
+   "B_opponent_bank": 72819.0
+  },
+  {
+   "game": 5,
+   "seat": 0,
+   "opponent": "thwaitsusa2",
+   "A_bank": 70760.0,
+   "A_opponent_bank": 56188.0,
+   "B_bank": 115837.0,
+   "B_opponent_bank": 99329.0
+  },
+  {
+   "game": 6,
+   "seat": 1,
+   "opponent": "Raiden.B",
+   "A_bank": 142513.0,
+   "A_opponent_bank": 62503.0,
+   "B_bank": 57801.0,
+   "B_opponent_bank": 11988.0
+  },
+  {
+   "game": 7,
+   "seat": 0,
+   "opponent": "Raiden.B",
+   "A_bank": 162274.0,
+   "A_opponent_bank": 9786.0,
+   "B_bank": 161559.0,
+   "B_opponent_bank": 18859.0
+  },
+  {
+   "game": 8,
+   "seat": 1,
+   "opponent": "Le Viet",
+   "A_bank": 60540.0,
+   "A_opponent_bank": 53878.0,
+   "B_bank": 87670.0,
+   "B_opponent_bank": 69807.0
+  },
+  {
+   "game": 9,
+   "seat": 0,
+   "opponent": "Le Viet",
+   "A_bank": 63918.0,
+   "A_opponent_bank": 40905.0,
+   "B_bank": 88375.0,
+   "B_opponent_bank": 69737.0
+  },
+  {
+   "game": 10,
+   "seat": 0,
+   "opponent": "Winter Lamb",
+   "A_bank": 69914.0,
+   "A_opponent_bank": 58935.0,
+   "B_bank": 62226.0,
+   "B_opponent_bank": 46765.0
+  },
+  {
+   "game": 11,
+   "seat": 0,
+   "opponent": "oni chan arigato",
+   "A_bank": 71053.0,
+   "A_opponent_bank": 62147.0,
+   "B_bank": 75456.0,
+   "B_opponent_bank": 62207.0
+  },
+  {
+   "game": 12,
+   "seat": 0,
+   "opponent": "sunchang71",
+   "A_bank": 34967.0,
+   "A_opponent_bank": 12658.0,
+   "B_bank": 65987.0,
+   "B_opponent_bank": 35913.0
+  },
+  {
+   "game": 13,
+   "seat": 1,
+   "opponent": "Le Viet",
+   "A_bank": 64947.0,
+   "A_opponent_bank": 54230.0,
+   "B_bank": 42537.0,
+   "B_opponent_bank": 16129.0
+  },
+  {
+   "game": 14,
+   "seat": 1,
+   "opponent": "Le Viet",
+   "A_bank": 98774.0,
+   "A_opponent_bank": 84497.0,
+   "B_bank": 117232.0,
+   "B_opponent_bank": 99942.0
+  },
+  {
+   "game": 15,
+   "seat": 1,
+   "opponent": "Winter Lamb",
+   "A_bank": 57591.0,
+   "A_opponent_bank": 36752.0,
+   "B_bank": 101813.0,
+   "B_opponent_bank": 74016.0
+  },
+  {
+   "game": 16,
+   "seat": 1,
+   "opponent": "Cary Jin",
+   "A_bank": 98139.0,
+   "A_opponent_bank": 48215.0,
+   "B_bank": 67495.0,
+   "B_opponent_bank": 30328.0
+  },
+  {
+   "game": 17,
+   "seat": 1,
+   "opponent": "Ueddy",
+   "A_bank": 71605.0,
+   "A_opponent_bank": 54934.0,
+   "B_bank": 53608.0,
+   "B_opponent_bank": 28500.0
+  },
+  {
+   "game": 18,
+   "seat": 0,
+   "opponent": "Ueddy",
+   "A_bank": 77122.0,
+   "A_opponent_bank": 73151.0,
+   "B_bank": 120423.0,
+   "B_opponent_bank": 145168.0
+  },
+  {
+   "game": 19,
+   "seat": 0,
+   "opponent": "Ueddy",
+   "A_bank": 80387.0,
+   "A_opponent_bank": 62761.0,
+   "B_bank": 70732.0,
+   "B_opponent_bank": 46791.0
+  },
+  {
+   "game": 20,
+   "seat": 0,
+   "opponent": "Artem Voronov",
+   "A_bank": 118475.0,
+   "A_opponent_bank": 112539.0,
+   "B_bank": 88312.0,
+   "B_opponent_bank": 72717.0
+  },
+  {
+   "game": 21,
+   "seat": 0,
+   "opponent": "Shuhan Yang",
+   "A_bank": 85747.0,
+   "A_opponent_bank": 65778.0,
+   "B_bank": 140335.0,
+   "B_opponent_bank": 72018.0
+  },
+  {
+   "game": 22,
+   "seat": 0,
+   "opponent": "Shuhan Yang",
+   "A_bank": 65979.0,
+   "A_opponent_bank": 54465.0,
+   "B_bank": 131089.0,
+   "B_opponent_bank": 62597.0
+  },
+  {
+   "game": 23,
+   "seat": 1,
+   "opponent": "Scorpi",
+   "A_bank": 73247.0,
+   "A_opponent_bank": 70209.0,
+   "B_bank": 90514.0,
+   "B_opponent_bank": 73691.0
+  },
+  {
+   "game": 24,
+   "seat": 1,
+   "opponent": "Krzysztof \"Chris\" Karaszewski",
+   "A_bank": 129461.0,
+   "A_opponent_bank": 97150.0,
+   "B_bank": 95809.0,
+   "B_opponent_bank": 81159.0
+  },
+  {
+   "game": 25,
+   "seat": 0,
+   "opponent": "Agent 33",
+   "A_bank": 96799.0,
+   "A_opponent_bank": 88032.0,
+   "B_bank": 82179.0,
+   "B_opponent_bank": 63860.0
+  },
+  {
+   "game": 26,
+   "seat": 1,
+   "opponent": "Artem Voronov",
+   "A_bank": 65233.0,
+   "A_opponent_bank": 53729.0,
+   "B_bank": 85326.0,
+   "B_opponent_bank": 60739.0
+  },
+  {
+   "game": 27,
+   "seat": 1,
+   "opponent": "Krzysztof \"Chris\" Karaszewski",
+   "A_bank": 76161.0,
+   "A_opponent_bank": 61641.0,
+   "B_bank": 100995.0,
+   "B_opponent_bank": 84032.0
+  },
+  {
+   "game": 28,
+   "seat": 0,
+   "opponent": "Agent 33",
+   "A_bank": 86983.0,
+   "A_opponent_bank": 83626.0,
+   "B_bank": 139646.0,
+   "B_opponent_bank": 131596.0
+  },
+  {
+   "game": 29,
+   "seat": 0,
+   "opponent": "Krzysztof \"Chris\" Karaszewski",
+   "A_bank": 125138.0,
+   "A_opponent_bank": 82725.0,
+   "B_bank": 116571.0,
+   "B_opponent_bank": 103582.0
+  },
+  {
+   "game": 30,
+   "seat": 0,
+   "opponent": "Keito",
+   "A_bank": 67172.0,
+   "A_opponent_bank": 62185.0,
+   "B_bank": 90144.0,
+   "B_opponent_bank": 43325.0
+  },
+  {
+   "game": 31,
+   "seat": 1,
+   "opponent": "Keito",
+   "A_bank": 81663.0,
+   "A_opponent_bank": 72967.0,
+   "B_bank": 131040.0,
+   "B_opponent_bank": 62648.0
+  },
+  {
+   "game": 32,
+   "seat": 0,
+   "opponent": "Scorpi",
+   "A_bank": 57740.0,
+   "A_opponent_bank": 50200.0,
+   "B_bank": 134759.0,
+   "B_opponent_bank": 118028.0
+  },
+  {
+   "game": 33,
+   "seat": 0,
+   "opponent": "Keito",
+   "A_bank": 77541.0,
+   "A_opponent_bank": 75258.0,
+   "B_bank": 95929.0,
+   "B_opponent_bank": 43337.0
+  },
+  {
+   "game": 34,
+   "seat": 0,
+   "opponent": "Scorpi",
+   "A_bank": 79084.0,
+   "A_opponent_bank": 70233.0,
+   "B_bank": 87235.0,
+   "B_opponent_bank": 68137.0
+  },
+  {
+   "game": 35,
+   "seat": 0,
+   "opponent": "Agent 33",
+   "A_bank": 72282.0,
+   "A_opponent_bank": 69210.0,
+   "B_bank": 102403.0,
+   "B_opponent_bank": 85511.0
+  },
+  {
+   "game": 36,
+   "seat": 1,
+   "opponent": "Keito",
+   "A_bank": 78079.0,
+   "A_opponent_bank": 68285.0,
+   "B_bank": 120064.0,
+   "B_opponent_bank": 59684.0
+  },
+  {
+   "game": 37,
+   "seat": 1,
+   "opponent": "hongqian miao",
+   "A_bank": 68087.0,
+   "A_opponent_bank": 65226.0,
+   "B_bank": 72114.0,
+   "B_opponent_bank": 56102.0
+  },
+  {
+   "game": 38,
+   "seat": 1,
+   "opponent": "hongqian miao",
+   "A_bank": 76373.0,
+   "A_opponent_bank": 68696.0,
+   "B_bank": 78139.0,
+   "B_opponent_bank": 65785.0
+  },
+  {
+   "game": 39,
+   "seat": 1,
+   "opponent": "hongqian miao",
+   "A_bank": 69054.0,
+   "A_opponent_bank": 56836.0,
+   "B_bank": 102970.0,
+   "B_opponent_bank": 82050.0
+  },
+  {
+   "game": 40,
+   "seat": 0,
+   "opponent": "Raiden.B",
+   "A_bank": 144951.0,
+   "A_opponent_bank": 51088.0,
+   "B_bank": 149732.0,
+   "B_opponent_bank": 46796.0
+  },
+  {
+   "game": 41,
+   "seat": 1,
+   "opponent": "Ueddy",
+   "A_bank": 140563.0,
+   "A_opponent_bank": 116781.0,
+   "B_bank": 96679.0,
+   "B_opponent_bank": 77373.0
+  },
+  {
+   "game": 42,
+   "seat": 0,
+   "opponent": "Calmracer",
+   "A_bank": 105291.0,
+   "A_opponent_bank": 75539.0,
+   "B_bank": 121157.0,
+   "B_opponent_bank": 95049.0
+  },
+  {
+   "game": 43,
+   "seat": 0,
+   "opponent": "OlivierS",
+   "A_bank": 111575.0,
+   "A_opponent_bank": 82390.0,
+   "B_bank": 96875.0,
+   "B_opponent_bank": 71109.0
+  },
+  {
+   "game": 44,
+   "seat": 0,
+   "opponent": "OlivierS",
+   "A_bank": 79534.0,
+   "A_opponent_bank": 73186.0,
+   "B_bank": 72200.0,
+   "B_opponent_bank": 47924.0
+  },
+  {
+   "game": 45,
+   "seat": 0,
+   "opponent": "OlivierS",
+   "A_bank": 75312.0,
+   "A_opponent_bank": 56056.0,
+   "B_bank": 56538.0,
+   "B_opponent_bank": 34860.0
+  },
+  {
+   "game": 46,
+   "seat": 0,
+   "opponent": "Artem Voronov",
+   "A_bank": 73720.0,
+   "A_opponent_bank": 74096.0,
+   "B_bank": 92810.0,
+   "B_opponent_bank": 85562.0
+  },
+  {
+   "game": 47,
+   "seat": 1,
+   "opponent": "Shuhan Yang",
+   "A_bank": 148994.0,
+   "A_opponent_bank": 128037.0,
+   "B_bank": 150318.0,
+   "B_opponent_bank": 81746.0
+  },
+  {
+   "game": 48,
+   "seat": 0,
+   "opponent": "BHackers",
+   "A_bank": 59976.0,
+   "A_opponent_bank": 51665.0,
+   "B_bank": 77984.0,
+   "B_opponent_bank": 61986.0
+  },
+  {
+   "game": 49,
+   "seat": 0,
+   "opponent": "Chekhlov Dmitrii",
+   "A_bank": 128359.0,
+   "A_opponent_bank": 114722.0,
+   "B_bank": 106157.0,
+   "B_opponent_bank": 90328.0
+  },
+  {
+   "game": 50,
+   "seat": 1,
+   "opponent": "Shuhan Yang",
+   "A_bank": 86078.0,
+   "A_opponent_bank": 79843.0,
+   "B_bank": 114997.0,
+   "B_opponent_bank": 56301.0
+  },
+  {
+   "game": 51,
+   "seat": 1,
+   "opponent": "Artem Voronov",
+   "A_bank": 106626.0,
+   "A_opponent_bank": 110495.0,
+   "B_bank": 111621.0,
+   "B_opponent_bank": 104627.0
+  },
+  {
+   "game": 52,
+   "seat": 0,
+   "opponent": "Artem Voronov",
+   "A_bank": 107517.0,
+   "A_opponent_bank": 107317.0,
+   "B_bank": 101952.0,
+   "B_opponent_bank": 87689.0
+  },
+  {
+   "game": 53,
+   "seat": 0,
+   "opponent": "Scorpi",
+   "A_bank": 96357.0,
+   "A_opponent_bank": 91741.0,
+   "B_bank": 106897.0,
+   "B_opponent_bank": 87887.0
+  },
+  {
+   "game": 54,
+   "seat": 1,
+   "opponent": "Veeranuch Leelalai",
+   "A_bank": 65447.0,
+   "A_opponent_bank": 60109.0,
+   "B_bank": 81842.0,
+   "B_opponent_bank": 71515.0
+  },
+  {
+   "game": 55,
+   "seat": 0,
+   "opponent": "Krzysztof \"Chris\" Karaszewski",
+   "A_bank": 72610.0,
+   "A_opponent_bank": 50825.0,
+   "B_bank": 124728.0,
+   "B_opponent_bank": 104722.0
+  },
+  {
+   "game": 56,
+   "seat": 1,
+   "opponent": "HealthStone",
+   "A_bank": 97744.0,
+   "A_opponent_bank": 89367.0,
+   "B_bank": 60280.0,
+   "B_opponent_bank": 43944.0
+  },
+  {
+   "game": 57,
+   "seat": 1,
+   "opponent": "OlivierS",
+   "A_bank": 64337.0,
+   "A_opponent_bank": 56315.0,
+   "B_bank": 74059.0,
+   "B_opponent_bank": 60224.0
+  },
+  {
+   "game": 58,
+   "seat": 1,
+   "opponent": "HealthStone",
+   "A_bank": 127903.0,
+   "A_opponent_bank": 111826.0,
+   "B_bank": 101399.0,
+   "B_opponent_bank": 98478.0
+  },
+  {
+   "game": 59,
+   "seat": 1,
+   "opponent": "OlivierS",
+   "A_bank": 146707.0,
+   "A_opponent_bank": 126166.0,
+   "B_bank": 112251.0,
+   "B_opponent_bank": 96332.0
+  },
+  {
+   "game": 60,
+   "seat": 1,
+   "opponent": "OlivierS",
+   "A_bank": 52560.0,
+   "A_opponent_bank": 37166.0,
+   "B_bank": 50547.0,
+   "B_opponent_bank": 33379.0
+  },
+  {
+   "game": 61,
+   "seat": 1,
+   "opponent": "Scorpi",
+   "A_bank": 111470.0,
+   "A_opponent_bank": 111962.0,
+   "B_bank": 88326.0,
+   "B_opponent_bank": 72776.0
+  },
+  {
+   "game": 62,
+   "seat": 1,
+   "opponent": "Artem Voronov",
+   "A_bank": 62513.0,
+   "A_opponent_bank": 58160.0,
+   "B_bank": 118744.0,
+   "B_opponent_bank": 101973.0
+  },
+  {
+   "game": 63,
+   "seat": 1,
+   "opponent": "BHackers",
+   "A_bank": 61694.0,
+   "A_opponent_bank": 54494.0,
+   "B_bank": 112153.0,
+   "B_opponent_bank": 91230.0
+  },
+  {
+   "game": 64,
+   "seat": 1,
+   "opponent": "Raiden.B",
+   "A_bank": 106369.0,
+   "A_opponent_bank": 64650.0,
+   "B_bank": 150082.0,
+   "B_opponent_bank": 52573.0
+  },
+  {
+   "game": 65,
+   "seat": 1,
+   "opponent": "Scorpi",
+   "A_bank": 95514.0,
+   "A_opponent_bank": 81624.0,
+   "B_bank": 102972.0,
+   "B_opponent_bank": 85051.0
+  },
+  {
+   "game": 66,
+   "seat": 0,
+   "opponent": "Veeranuch Leelalai",
+   "A_bank": 129183.0,
+   "A_opponent_bank": 112925.0,
+   "B_bank": 114624.0,
+   "B_opponent_bank": 111329.0
+  },
+  {
+   "game": 67,
+   "seat": 0,
+   "opponent": "Egor Trushin",
+   "A_bank": 73160.0,
+   "A_opponent_bank": 71201.0,
+   "B_bank": 45069.0,
+   "B_opponent_bank": 21409.0
+  },
+  {
+   "game": 68,
+   "seat": 0,
+   "opponent": "Veeranuch Leelalai",
+   "A_bank": 77837.0,
+   "A_opponent_bank": 70020.0,
+   "B_bank": 77129.0,
+   "B_opponent_bank": 60701.0
+  },
+  {
+   "game": 69,
+   "seat": 1,
+   "opponent": "Shuhan Yang",
+   "A_bank": 91457.0,
+   "A_opponent_bank": 72547.0,
+   "B_bank": 161124.0,
+   "B_opponent_bank": 82362.0
+  },
+  {
+   "game": 70,
+   "seat": 1,
+   "opponent": "Krzysztof \"Chris\" Karaszewski",
+   "A_bank": 66538.0,
+   "A_opponent_bank": 65312.0,
+   "B_bank": 69660.0,
+   "B_opponent_bank": 61263.0
+  },
+  {
+   "game": 71,
+   "seat": 0,
+   "opponent": "Shuhan Yang",
+   "A_bank": 97075.0,
+   "A_opponent_bank": 75008.0,
+   "B_bank": 85817.0,
+   "B_opponent_bank": 68238.0
+  },
+  {
+   "game": 72,
+   "seat": 1,
+   "opponent": "Raiden.B",
+   "A_bank": 55794.0,
+   "A_opponent_bank": 34089.0,
+   "B_bank": 71193.0,
+   "B_opponent_bank": 47131.0
+  },
+  {
+   "game": 73,
+   "seat": 1,
+   "opponent": "fistyee",
+   "A_bank": 59123.0,
+   "A_opponent_bank": 51143.0,
+   "B_bank": 120009.0,
+   "B_opponent_bank": 85205.0
+  },
+  {
+   "game": 74,
+   "seat": 1,
+   "opponent": "Sathwik Chinthakayala",
+   "A_bank": 50025.0,
+   "A_opponent_bank": 48276.0,
+   "B_bank": 78003.0,
+   "B_opponent_bank": 57113.0
+  },
+  {
+   "game": 75,
+   "seat": 1,
+   "opponent": "Sathwik Chinthakayala",
+   "A_bank": 68571.0,
+   "A_opponent_bank": 63421.0,
+   "B_bank": 70859.0,
+   "B_opponent_bank": 54034.0
+  },
+  {
+   "game": 76,
+   "seat": 0,
+   "opponent": "fistyee",
+   "A_bank": 68891.0,
+   "A_opponent_bank": 64131.0,
+   "B_bank": 101782.0,
+   "B_opponent_bank": 102885.0
+  },
+  {
+   "game": 77,
+   "seat": 0,
+   "opponent": "fistyee",
+   "A_bank": 106923.0,
+   "A_opponent_bank": 83947.0,
+   "B_bank": 80450.0,
+   "B_opponent_bank": 74621.0
+  },
+  {
+   "game": 78,
+   "seat": 0,
+   "opponent": "fistyee",
+   "A_bank": 113173.0,
+   "A_opponent_bank": 101232.0,
+   "B_bank": 131231.0,
+   "B_opponent_bank": 125116.0
+  },
+  {
+   "game": 79,
+   "seat": 1,
+   "opponent": "fistyee",
+   "A_bank": 122928.0,
+   "A_opponent_bank": 100223.0,
+   "B_bank": 89604.0,
+   "B_opponent_bank": 70619.0
+  },
+  {
+   "game": 80,
+   "seat": 1,
+   "opponent": "\u3072\u308d\u3051\u3093",
+   "A_bank": 74087.0,
+   "A_opponent_bank": 69075.0,
+   "B_bank": 96514.0,
+   "B_opponent_bank": 88195.0
+  },
+  {
+   "game": 81,
+   "seat": 0,
+   "opponent": "Lev Neganov",
+   "A_bank": 119526.0,
+   "A_opponent_bank": 101274.0,
+   "B_bank": 106549.0,
+   "B_opponent_bank": 79015.0
+  },
+  {
+   "game": 82,
+   "seat": 0,
+   "opponent": "thwaitsusa2",
+   "A_bank": 109071.0,
+   "A_opponent_bank": 103080.0,
+   "B_bank": 104009.0,
+   "B_opponent_bank": 78467.0
+  },
+  {
+   "game": 83,
+   "seat": 1,
+   "opponent": "Krzysztof \"Chris\" Karaszewski",
+   "A_bank": 75446.0,
+   "A_opponent_bank": 61289.0,
+   "B_bank": 78239.0,
+   "B_opponent_bank": 61044.0
+  },
+  {
+   "game": 84,
+   "seat": 1,
+   "opponent": "Raiden.B",
+   "A_bank": 134948.0,
+   "A_opponent_bank": 66782.0,
+   "B_bank": 139253.0,
+   "B_opponent_bank": 53466.0
+  },
+  {
+   "game": 85,
+   "seat": 0,
+   "opponent": "Kevin E R MILLE",
+   "A_bank": 75177.0,
+   "A_opponent_bank": 74513.0,
+   "B_bank": 98053.0,
+   "B_opponent_bank": 72362.0
+  },
+  {
+   "game": 86,
+   "seat": 1,
+   "opponent": "Kevin E R MILLE",
+   "A_bank": 121422.0,
+   "A_opponent_bank": 117141.0,
+   "B_bank": 97812.0,
+   "B_opponent_bank": 75130.0
+  },
+  {
+   "game": 87,
+   "seat": 0,
+   "opponent": "Henfry De Los Santos",
+   "A_bank": 61997.0,
+   "A_opponent_bank": 47009.0,
+   "B_bank": 135609.0,
+   "B_opponent_bank": 6288.0
+  },
+  {
+   "game": 88,
+   "seat": 0,
+   "opponent": "Excluding",
+   "A_bank": 52648.0,
+   "A_opponent_bank": 47377.0,
+   "B_bank": 73487.0,
+   "B_opponent_bank": 59597.0
+  },
+  {
+   "game": 89,
+   "seat": 0,
+   "opponent": "Excluding",
+   "A_bank": 127631.0,
+   "A_opponent_bank": 105941.0,
+   "B_bank": 136219.0,
+   "B_opponent_bank": 122660.0
+  },
+  {
+   "game": 90,
+   "seat": 0,
+   "opponent": "cocoaAI",
+   "A_bank": 115195.0,
+   "A_opponent_bank": 93821.0,
+   "B_bank": 123167.0,
+   "B_opponent_bank": 101924.0
+  },
+  {
+   "game": 91,
+   "seat": 1,
+   "opponent": "cocoaAI",
+   "A_bank": 85381.0,
+   "A_opponent_bank": 75395.0,
+   "B_bank": 81725.0,
+   "B_opponent_bank": 71434.0
+  },
+  {
+   "game": 92,
+   "seat": 1,
+   "opponent": "HealthStone",
+   "A_bank": 144980.0,
+   "A_opponent_bank": 90851.0,
+   "B_bank": 70047.0,
+   "B_opponent_bank": 92739.0
+  },
+  {
+   "game": 93,
+   "seat": 0,
+   "opponent": "cocoaAI",
+   "A_bank": 75863.0,
+   "A_opponent_bank": 75321.0,
+   "B_bank": 63895.0,
+   "B_opponent_bank": 45015.0
+  },
+  {
+   "game": 94,
+   "seat": 0,
+   "opponent": "HealthStone",
+   "A_bank": 81538.0,
+   "A_opponent_bank": 71485.0,
+   "B_bank": 46304.0,
+   "B_opponent_bank": 45741.0
+  },
+  {
+   "game": 95,
+   "seat": 0,
+   "opponent": "HamsterSashka",
+   "A_bank": 91987.0,
+   "A_opponent_bank": 77933.0,
+   "B_bank": 42414.0,
+   "B_opponent_bank": 43722.0
+  },
+  {
+   "game": 96,
+   "seat": 1,
+   "opponent": "Harrison Interactive",
+   "A_bank": 148568.0,
+   "A_opponent_bank": 135044.0,
+   "B_bank": 152708.0,
+   "B_opponent_bank": 95652.0
+  },
+  {
+   "game": 97,
+   "seat": 1,
+   "opponent": "Sathwik Chinthakayala",
+   "A_bank": 107364.0,
+   "A_opponent_bank": 103984.0,
+   "B_bank": 120028.0,
+   "B_opponent_bank": 94543.0
+  },
+  {
+   "game": 98,
+   "seat": 1,
+   "opponent": "Raiden.B",
+   "A_bank": 96620.0,
+   "A_opponent_bank": 86169.0,
+   "B_bank": 86843.0,
+   "B_opponent_bank": 46887.0
+  },
+  {
+   "game": 99,
+   "seat": 0,
+   "opponent": "Sathwik Chinthakayala",
+   "A_bank": 109266.0,
+   "A_opponent_bank": 102955.0,
+   "B_bank": 93749.0,
+   "B_opponent_bank": 75202.0
+  },
+  {
+   "game": 100,
+   "seat": 0,
+   "opponent": "Kevin E R MILLE",
+   "A_bank": 95863.0,
+   "A_opponent_bank": 91799.0,
+   "B_bank": 63481.0,
+   "B_opponent_bank": 46529.0
+  },
+  {
+   "game": 101,
+   "seat": 1,
+   "opponent": "fistyee",
+   "A_bank": 84185.0,
+   "A_opponent_bank": 77177.0,
+   "B_bank": 94181.0,
+   "B_opponent_bank": 85288.0
+  },
+  {
+   "game": 102,
+   "seat": 1,
+   "opponent": "Excluding",
+   "A_bank": 61167.0,
+   "A_opponent_bank": 74786.0,
+   "B_bank": 42361.0,
+   "B_opponent_bank": 38743.0
+  },
+  {
+   "game": 103,
+   "seat": 0,
+   "opponent": "Henfry De Los Santos",
+   "A_bank": 37893.0,
+   "A_opponent_bank": 23019.0,
+   "B_bank": 96902.0,
+   "B_opponent_bank": 1883.0
+  },
+  {
+   "game": 104,
+   "seat": 0,
+   "opponent": "Henfry De Los Santos",
+   "A_bank": 103783.0,
+   "A_opponent_bank": 58554.0,
+   "B_bank": 108622.0,
+   "B_opponent_bank": 1559.0
+  },
+  {
+   "game": 105,
+   "seat": 0,
+   "opponent": "Excluding",
+   "A_bank": 66280.0,
+   "A_opponent_bank": 56066.0,
+   "B_bank": 65861.0,
+   "B_opponent_bank": 49301.0
+  },
+  {
+   "game": 106,
+   "seat": 0,
+   "opponent": "HealthStone",
+   "A_bank": 61046.0,
+   "A_opponent_bank": 60796.0,
+   "B_bank": 74893.0,
+   "B_opponent_bank": 76661.0
+  },
+  {
+   "game": 107,
+   "seat": 1,
+   "opponent": "Sathwik Chinthakayala",
+   "A_bank": 55515.0,
+   "A_opponent_bank": 46902.0,
+   "B_bank": 46494.0,
+   "B_opponent_bank": 35607.0
+  },
+  {
+   "game": 108,
+   "seat": 1,
+   "opponent": "SHAURYA SHARMA",
+   "A_bank": 128687.0,
+   "A_opponent_bank": 109705.0,
+   "B_bank": 104325.0,
+   "B_opponent_bank": 98725.0
+  },
+  {
+   "game": 109,
+   "seat": 0,
+   "opponent": "\u3072\u308d\u3051\u3093",
+   "A_bank": 82520.0,
+   "A_opponent_bank": 75646.0,
+   "B_bank": 85200.0,
+   "B_opponent_bank": 62515.0
+  },
+  {
+   "game": 110,
+   "seat": 0,
+   "opponent": "Raiden.B",
+   "A_bank": 110504.0,
+   "A_opponent_bank": 34931.0,
+   "B_bank": 140355.0,
+   "B_opponent_bank": 67538.0
+  },
+  {
+   "game": 111,
+   "seat": 1,
+   "opponent": "Winter Lamb",
+   "A_bank": 151342.0,
+   "A_opponent_bank": 127257.0,
+   "B_bank": 132084.0,
+   "B_opponent_bank": 113403.0
+  }
+ ]
+}

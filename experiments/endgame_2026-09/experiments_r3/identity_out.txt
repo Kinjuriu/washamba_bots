@@ -1,0 +1,11 @@
+w0 vs w0 baselines: {101: [96073.0, 96073.0], 102: [104236.0, 104236.0], 103: [99960.0, 99960.0]}
+B identity: PASS
+B smoke on=1 seed101: [96067.0, 96082.0, 'DONE', 'DONE']
+C1 identity: PASS
+C1 smoke on=1 seed101: [88727.0, 107723.0, 'DONE', 'DONE']
+C2 identity: PASS
+C2 smoke on=1 seed101: [62949.0, 79518.0, 'DONE', 'DONE']
+D4 identity: PASS
+D4 smoke on=1 seed101: [95969.0, 95917.0, 'DONE', 'DONE']
+D8 identity: PASS
+D8 smoke on=1 seed101: [96086.0, 95932.0, 'DONE', 'DONE']

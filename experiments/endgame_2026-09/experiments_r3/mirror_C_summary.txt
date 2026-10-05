@@ -1,0 +1,16 @@
+10/120 games
+20/120 games
+30/120 games
+40/120 games
+50/120 games
+60/120 games
+70/120 games
+80/120 games
+90/120 games
+100/120 games
+110/120 games
+120/120 games
+
+candidate vs opponent: W-L-T (mean margin)
+          C1 vs w0           1-59-0  points 0.017  mean -13320
+          C2 vs w0           1-59-0  points 0.017  mean -13448

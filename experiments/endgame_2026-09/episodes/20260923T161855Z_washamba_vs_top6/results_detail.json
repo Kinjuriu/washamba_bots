@@ -1,0 +1,594 @@
+{
+  "w1_v15stack_race44.py": {
+    "submission_id": "56491123",
+    "submitter": "Stephane Njoki",
+    "category_counts": {
+      "competitive": 71,
+      "validation": 1
+    },
+    "n_competitive": 71,
+    "n_decided_with_bank_data": 71,
+    "wins": 65,
+    "losses": 6,
+    "ties": 0,
+    "win_rate": 0.915,
+    "final_bank_margin_mean": 7919.7,
+    "final_bank_margin_median": 2840.0,
+    "final_bank_margin_stdev": 14232.5,
+    "final_bank_margin_min": -14021.0,
+    "final_bank_margin_max": 74169.0,
+    "close_loss_sensitivity": {
+      "margin_within_1000": {
+        "count": 3,
+        "pct_of_losses": 0.5
+      },
+      "margin_within_2500": {
+        "count": 5,
+        "pct_of_losses": 0.833
+      },
+      "margin_within_5000": {
+        "count": 5,
+        "pct_of_losses": 0.833
+      },
+      "margin_within_10000": {
+        "count": 5,
+        "pct_of_losses": 0.833
+      }
+    },
+    "by_seat": {
+      "1": {
+        "w": 38,
+        "l": 2,
+        "t": 0
+      },
+      "0": {
+        "w": 27,
+        "l": 4,
+        "t": 0
+      }
+    },
+    "by_opponent_rating_band": {
+      "0-1000": {
+        "w": 5,
+        "l": 0,
+        "t": 0
+      },
+      "1000-1500": {
+        "w": 9,
+        "l": 1,
+        "t": 0
+      },
+      "1500-2000": {
+        "w": 46,
+        "l": 4,
+        "t": 0
+      },
+      "2000-2500": {
+        "w": 5,
+        "l": 1,
+        "t": 0
+      }
+    },
+    "rating_trajectory_first5": [
+      {
+        "end_time": "2026-09-23 11:06:22",
+        "episode_id": "112421724",
+        "rating_after": 672.1492537698298,
+        "opponent": "Allen Chun",
+        "margin": 74169.0
+      },
+      {
+        "end_time": "2026-09-23 11:08:43",
+        "episode_id": "112422899",
+        "rating_after": 795.7565880518754,
+        "opponent": "Dynamic_fire07",
+        "margin": 37640.0
+      },
+      {
+        "end_time": "2026-09-23 11:12:36",
+        "episode_id": "112424003",
+        "rating_after": 959.5686009076765,
+        "opponent": "Jiajun HAN",
+        "margin": 44975.0
+      },
+      {
+        "end_time": "2026-09-23 11:15:53",
+        "episode_id": "112425137",
+        "rating_after": 1061.6401359348763,
+        "opponent": "rakumo",
+        "margin": 25968.0
+      },
+      {
+        "end_time": "2026-09-23 11:19:40",
+        "episode_id": "112426291",
+        "rating_after": 1139.6660033098672,
+        "opponent": "Ali Esam",
+        "margin": 35321.0
+      }
+    ],
+    "rating_trajectory_last5": [
+      {
+        "end_time": "2026-09-23 15:06:15",
+        "episode_id": "112492607",
+        "rating_after": 2008.060922071563,
+        "opponent": "Дворкин Евгений Владимирович",
+        "margin": 3834.0
+      },
+      {
+        "end_time": "2026-09-23 15:08:16",
+        "episode_id": "112493815",
+        "rating_after": 2012.490267246024,
+        "opponent": "weihao huang2004",
+        "margin": 549.0
+      },
+      {
+        "end_time": "2026-09-23 15:41:56",
+        "episode_id": "112503155",
+        "rating_after": 2015.9189435939213,
+        "opponent": "YKuma",
+        "margin": 1732.0
+      },
+      {
+        "end_time": "2026-09-23 15:47:02",
+        "episode_id": "112503883",
+        "rating_after": 2021.774981107046,
+        "opponent": "GarbageOoze",
+        "margin": 705.0
+      },
+      {
+        "end_time": "2026-09-23 16:03:29",
+        "episode_id": "112509671",
+        "rating_after": 2018.0695527219398,
+        "opponent": "tw1nstar",
+        "margin": -1256.0
+      }
+    ],
+    "rating_first": 672.1492537698298,
+    "rating_last": 2018.0695527219398,
+    "rating_n_points": 71
+  },
+  "w0_v15stack_control.py": {
+    "submission_id": "56487592",
+    "submitter": "Stephane Njoki",
+    "category_counts": {
+      "competitive": 93,
+      "validation": 1
+    },
+    "n_competitive": 93,
+    "n_decided_with_bank_data": 93,
+    "wins": 62,
+    "losses": 27,
+    "ties": 4,
+    "win_rate": 0.667,
+    "final_bank_margin_mean": 4118.3,
+    "final_bank_margin_median": 410.0,
+    "final_bank_margin_stdev": 17779.3,
+    "final_bank_margin_min": -25517.0,
+    "final_bank_margin_max": 113160.0,
+    "close_loss_sensitivity": {
+      "margin_within_1000": {
+        "count": 19,
+        "pct_of_losses": 0.704
+      },
+      "margin_within_2500": {
+        "count": 22,
+        "pct_of_losses": 0.815
+      },
+      "margin_within_5000": {
+        "count": 24,
+        "pct_of_losses": 0.889
+      },
+      "margin_within_10000": {
+        "count": 24,
+        "pct_of_losses": 0.889
+      }
+    },
+    "by_seat": {
+      "1": {
+        "w": 31,
+        "l": 13,
+        "t": 2
+      },
+      "0": {
+        "w": 31,
+        "l": 14,
+        "t": 2
+      }
+    },
+    "by_opponent_rating_band": {
+      "0-1000": {
+        "w": 4,
+        "l": 0,
+        "t": 0
+      },
+      "1000-1500": {
+        "w": 4,
+        "l": 0,
+        "t": 0
+      },
+      "1500-2000": {
+        "w": 5,
+        "l": 0,
+        "t": 0
+      },
+      "2000-2500": {
+        "w": 46,
+        "l": 25,
+        "t": 4
+      },
+      "2500-3000": {
+        "w": 3,
+        "l": 2,
+        "t": 0
+      }
+    },
+    "rating_trajectory_first5": [
+      {
+        "end_time": "2026-09-23 08:09:59",
+        "episode_id": "112369485",
+        "rating_after": 693.7386995452832,
+        "opponent": "宣城市机械电子职业技术学院",
+        "margin": 96970.0
+      },
+      {
+        "end_time": "2026-09-23 08:10:55",
+        "episode_id": "112370719",
+        "rating_after": 776.7884487319332,
+        "opponent": "Penn Lam",
+        "margin": 66105.0
+      },
+      {
+        "end_time": "2026-09-23 08:14:50",
+        "episode_id": "112371819",
+        "rating_after": 884.9166136319336,
+        "opponent": "SG4265",
+        "margin": 36104.0
+      },
+      {
+        "end_time": "2026-09-23 08:21:03",
+        "episode_id": "112372983",
+        "rating_after": 1015.6430561726431,
+        "opponent": "Pavel Pakhmutov",
+        "margin": 26166.0
+      },
+      {
+        "end_time": "2026-09-23 08:23:51",
+        "episode_id": "112374191",
+        "rating_after": 1161.5812773278558,
+        "opponent": "VelloNChiru",
+        "margin": 16320.0
+      }
+    ],
+    "rating_trajectory_last5": [
+      {
+        "end_time": "2026-09-23 14:33:43",
+        "episode_id": "112482226",
+        "rating_after": 2430.0361453865944,
+        "opponent": "akmr",
+        "margin": -2505.0
+      },
+      {
+        "end_time": "2026-09-23 14:36:36",
+        "episode_id": "112484782",
+        "rating_after": 2426.3206342422623,
+        "opponent": "马嘉蛋爱玩跳棋",
+        "margin": -433.0
+      },
+      {
+        "end_time": "2026-09-23 15:08:41",
+        "episode_id": "112493943",
+        "rating_after": 2432.074720969905,
+        "opponent": "benhur0905",
+        "margin": 241.0
+      },
+      {
+        "end_time": "2026-09-23 15:32:54",
+        "episode_id": "112500836",
+        "rating_after": 2428.056316140345,
+        "opponent": "Hamed Vakili",
+        "margin": -220.0
+      },
+      {
+        "end_time": "2026-09-23 16:04:00",
+        "episode_id": "112510341",
+        "rating_after": 2423.797114669578,
+        "opponent": "Teddy Tennant",
+        "margin": -561.0
+      }
+    ],
+    "rating_first": 693.7386995452832,
+    "rating_last": 2423.797114669578,
+    "rating_n_points": 93
+  },
+  "washamba_base_v1_fork.py": {
+    "submission_id": "56483603",
+    "submitter": "Peter Kibet",
+    "category_counts": {
+      "competitive": 78,
+      "validation": 1
+    },
+    "n_competitive": 78,
+    "n_decided_with_bank_data": 78,
+    "wins": 62,
+    "losses": 16,
+    "ties": 0,
+    "win_rate": 0.795,
+    "final_bank_margin_mean": 7404.5,
+    "final_bank_margin_median": 2482.5,
+    "final_bank_margin_stdev": 21334.3,
+    "final_bank_margin_min": -18619.0,
+    "final_bank_margin_max": 123012.0,
+    "close_loss_sensitivity": {
+      "margin_within_1000": {
+        "count": 6,
+        "pct_of_losses": 0.375
+      },
+      "margin_within_2500": {
+        "count": 11,
+        "pct_of_losses": 0.688
+      },
+      "margin_within_5000": {
+        "count": 12,
+        "pct_of_losses": 0.75
+      },
+      "margin_within_10000": {
+        "count": 14,
+        "pct_of_losses": 0.875
+      }
+    },
+    "by_seat": {
+      "0": {
+        "w": 31,
+        "l": 8,
+        "t": 0
+      },
+      "1": {
+        "w": 31,
+        "l": 8,
+        "t": 0
+      }
+    },
+    "by_opponent_rating_band": {
+      "0-1000": {
+        "w": 6,
+        "l": 0,
+        "t": 0
+      },
+      "1000-1500": {
+        "w": 7,
+        "l": 1,
+        "t": 0
+      },
+      "1500-2000": {
+        "w": 49,
+        "l": 14,
+        "t": 0
+      },
+      "2000-2500": {
+        "w": 0,
+        "l": 1,
+        "t": 0
+      }
+    },
+    "rating_trajectory_first5": [
+      {
+        "end_time": "2026-09-23 05:28:36",
+        "episode_id": "112321357",
+        "rating_after": 686.4730407889101,
+        "opponent": "Boyu Wan",
+        "margin": 123012.0
+      },
+      {
+        "end_time": "2026-09-23 05:33:15",
+        "episode_id": "112322506",
+        "rating_after": 751.8169556025734,
+        "opponent": "Saptanshu Samal",
+        "margin": 119029.0
+      },
+      {
+        "end_time": "2026-09-23 05:34:50",
+        "episode_id": "112323718",
+        "rating_after": 842.4831528486495,
+        "opponent": "HoJoonYun",
+        "margin": 47193.0
+      },
+      {
+        "end_time": "2026-09-23 05:40:19",
+        "episode_id": "112324968",
+        "rating_after": 935.6125501651293,
+        "opponent": "Robot Farm",
+        "margin": 43815.0
+      },
+      {
+        "end_time": "2026-09-23 05:45:47",
+        "episode_id": "112326041",
+        "rating_after": 1058.4823144640154,
+        "opponent": "shoryakumar mishra",
+        "margin": 24.0
+      }
+    ],
+    "rating_trajectory_last5": [
+      {
+        "end_time": "2026-09-23 10:28:07",
+        "episode_id": "112411521",
+        "rating_after": 1966.4260552254166,
+        "opponent": "fufufukakaka",
+        "margin": -7764.0
+      },
+      {
+        "end_time": "2026-09-23 10:50:31",
+        "episode_id": "112418339",
+        "rating_after": 1970.9652622051306,
+        "opponent": "Pand",
+        "margin": 57.0
+      },
+      {
+        "end_time": "2026-09-23 10:53:17",
+        "episode_id": "112418232",
+        "rating_after": 1966.7639210463594,
+        "opponent": "Tom3",
+        "margin": -2094.0
+      },
+      {
+        "end_time": "2026-09-23 10:56:14",
+        "episode_id": "112419679",
+        "rating_after": 1963.0901233535517,
+        "opponent": "Niloofar Y.",
+        "margin": -2753.0
+      },
+      {
+        "end_time": "2026-09-23 10:57:52",
+        "episode_id": "112419429",
+        "rating_after": 1959.1457890332854,
+        "opponent": "Sam-wiz",
+        "margin": -51.0
+      }
+    ],
+    "rating_first": 686.4730407889101,
+    "rating_last": 1959.1457890332854,
+    "rating_n_points": 78
+  },
+  "washamba_base_v2.py": {
+    "submission_id": "56483595",
+    "submitter": "Peter Kibet",
+    "category_counts": {
+      "competitive": 48,
+      "validation": 1
+    },
+    "n_competitive": 48,
+    "n_decided_with_bank_data": 48,
+    "wins": 37,
+    "losses": 11,
+    "ties": 0,
+    "win_rate": 0.771,
+    "final_bank_margin_mean": 11357.8,
+    "final_bank_margin_median": 4696.5,
+    "final_bank_margin_stdev": 24854.8,
+    "final_bank_margin_min": -13985.0,
+    "final_bank_margin_max": 116024.0,
+    "close_loss_sensitivity": {
+      "margin_within_1000": {
+        "count": 6,
+        "pct_of_losses": 0.545
+      },
+      "margin_within_2500": {
+        "count": 8,
+        "pct_of_losses": 0.727
+      },
+      "margin_within_5000": {
+        "count": 8,
+        "pct_of_losses": 0.727
+      },
+      "margin_within_10000": {
+        "count": 9,
+        "pct_of_losses": 0.818
+      }
+    },
+    "by_seat": {
+      "0": {
+        "w": 18,
+        "l": 5,
+        "t": 0
+      },
+      "1": {
+        "w": 19,
+        "l": 6,
+        "t": 0
+      }
+    },
+    "by_opponent_rating_band": {
+      "0-1000": {
+        "w": 6,
+        "l": 0,
+        "t": 0
+      },
+      "1000-1500": {
+        "w": 6,
+        "l": 2,
+        "t": 0
+      },
+      "1500-2000": {
+        "w": 25,
+        "l": 9,
+        "t": 0
+      }
+    },
+    "rating_trajectory_first5": [
+      {
+        "end_time": "2026-09-23 05:24:54",
+        "episode_id": "112320110",
+        "rating_after": 675.6981167602443,
+        "opponent": "KK",
+        "margin": 116024.0
+      },
+      {
+        "end_time": "2026-09-23 05:27:19",
+        "episode_id": "112321348",
+        "rating_after": 736.7109568938674,
+        "opponent": "James Patounas",
+        "margin": 114561.0
+      },
+      {
+        "end_time": "2026-09-23 05:34:13",
+        "episode_id": "112322532",
+        "rating_after": 863.7033214907275,
+        "opponent": "cszf_first",
+        "margin": 41057.0
+      },
+      {
+        "end_time": "2026-09-23 05:38:43",
+        "episode_id": "112323709",
+        "rating_after": 937.9741208158749,
+        "opponent": "yukino",
+        "margin": 54123.0
+      },
+      {
+        "end_time": "2026-09-23 05:42:18",
+        "episode_id": "112324853",
+        "rating_after": 1019.7679665383567,
+        "opponent": "Dandan Li",
+        "margin": 30916.0
+      }
+    ],
+    "rating_trajectory_last5": [
+      {
+        "end_time": "2026-09-23 07:52:06",
+        "episode_id": "112364993",
+        "rating_after": 1856.2767775180894,
+        "opponent": "Luon may Man",
+        "margin": -13985.0
+      },
+      {
+        "end_time": "2026-09-23 07:55:36",
+        "episode_id": "112366176",
+        "rating_after": 1847.2964050029982,
+        "opponent": "PeterDreamHan",
+        "margin": -816.0
+      },
+      {
+        "end_time": "2026-09-23 07:59:03",
+        "episode_id": "112367403",
+        "rating_after": 1854.2939129120998,
+        "opponent": "Lord Momo",
+        "margin": 5277.0
+      },
+      {
+        "end_time": "2026-09-23 07:59:37",
+        "episode_id": "112366944",
+        "rating_after": 1848.6987505048803,
+        "opponent": "MD. Nazmus Sakib Anik",
+        "margin": -2292.0
+      },
+      {
+        "end_time": "2026-09-23 08:03:23",
+        "episode_id": "112368570",
+        "rating_after": 1854.5518866831262,
+        "opponent": "Chiranjith",
+        "margin": 5404.0
+      }
+    ],
+    "rating_first": 675.6981167602443,
+    "rating_last": 1854.5518866831262,
+    "rating_n_points": 48
+  }
+}

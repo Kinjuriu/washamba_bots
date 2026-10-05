@@ -1,0 +1,89 @@
+{
+  "snapshot_time_utc": "2026-09-27T12:41:09Z",
+  "top12": [
+    {
+      "team_id": 16623559,
+      "team_name": "DECEM",
+      "score": 3054.5,
+      "submission_date": "2026-09-27 07:18:29.136000",
+      "rank": 1
+    },
+    {
+      "team_id": 16915014,
+      "team_name": "Boey",
+      "score": 3027.9,
+      "submission_date": "2026-09-24 12:57:23.870000",
+      "rank": 2
+    },
+    {
+      "team_id": 16681125,
+      "team_name": "M & M & P & Q",
+      "score": 2983.3,
+      "submission_date": "2026-09-27 11:19:43.713000",
+      "rank": 3
+    },
+    {
+      "team_id": 16718819,
+      "team_name": "Majkel1337",
+      "score": 2965.5,
+      "submission_date": "2026-09-26 10:48:06.600000",
+      "rank": 4
+    },
+    {
+      "team_id": 16770421,
+      "team_name": "Vadim Vasilenko",
+      "score": 2951.3,
+      "submission_date": "2026-09-27 07:51:35.030000",
+      "rank": 5
+    },
+    {
+      "team_id": 16730612,
+      "team_name": "Unknown Mother-Goose",
+      "score": 2933.9,
+      "submission_date": "2026-09-27 12:31:02.813000",
+      "rank": 6
+    },
+    {
+      "team_id": 16667959,
+      "team_name": "Fourth Quadrant",
+      "score": 2917.4,
+      "submission_date": "2026-09-26 22:46:41.416000",
+      "rank": 7
+    },
+    {
+      "team_id": 16657750,
+      "team_name": "Just A game on your lips",
+      "score": 2907.5,
+      "submission_date": "2026-09-27 07:23:41.840000",
+      "rank": 8
+    },
+    {
+      "team_id": 16628664,
+      "team_name": "Anton Tikhonov",
+      "score": 2887.0,
+      "submission_date": "2026-09-27 07:59:43.660000",
+      "rank": 9
+    },
+    {
+      "team_id": 16654697,
+      "team_name": "KawattaTaido",
+      "score": 2885.0,
+      "submission_date": "2026-09-26 22:48:52.266000",
+      "rank": 10
+    },
+    {
+      "team_id": 16743356,
+      "team_name": "Azat Akhtyamov",
+      "score": 2872.7,
+      "submission_date": "2026-09-25 23:24:18.740000",
+      "rank": 11
+    },
+    {
+      "team_id": 16624026,
+      "team_name": "\u6709\u8fa3\u6761\u6709\u6743",
+      "score": 2863.3,
+      "submission_date": "2026-09-27 04:26:41.920000",
+      "rank": 12
+    }
+  ]
+}

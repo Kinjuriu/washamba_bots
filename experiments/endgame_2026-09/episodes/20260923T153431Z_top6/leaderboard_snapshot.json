@@ -1,0 +1,49 @@
+{
+  "retrieved_at_utc": "2026-09-23T15:34:31+00:00",
+  "source": "kaggle competitions leaderboard kaggriculture -s --csv, cross-checked against ListEpisodes teams payload for submission id / teamId",
+  "note": "Task text says 'top seven' in its title but 'top six' everywhere else (section 2 header, folder name _top6, 'six worked branch examples' in the deliverables list). Resolved as TOP 6 on the consistent majority signal; flagged here rather than silently picked.",
+  "targets": [
+    {
+      "rank": 1,
+      "name": "Boey",
+      "team_id": 16915014,
+      "rating": 3098.2,
+      "submission_id": 56484772
+    },
+    {
+      "rank": 2,
+      "name": "M & M & P & Q",
+      "team_id": 16681125,
+      "rating": 3059.5,
+      "submission_id": 56464621
+    },
+    {
+      "rank": 3,
+      "name": "DSM",
+      "team_id": 16732748,
+      "rating": 3056.7,
+      "submission_id": 56489014
+    },
+    {
+      "rank": 4,
+      "name": "Unknown Mother-Goose",
+      "team_id": 16730612,
+      "rating": 3045.1,
+      "submission_id": 56478145
+    },
+    {
+      "rank": 5,
+      "name": "DECEM",
+      "team_id": 16623559,
+      "rating": 3026.6,
+      "submission_id": 56489091
+    },
+    {
+      "rank": 6,
+      "name": "吃白饭的大肥鱼",
+      "team_id": 16854176,
+      "rating": 3005.8,
+      "submission_id": 56483899
+    }
+  ]
+}

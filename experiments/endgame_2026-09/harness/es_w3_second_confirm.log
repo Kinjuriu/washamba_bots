@@ -1,0 +1,6 @@
+running 2 cands x 3 opps x 30 seeds x 2 seats = 360 games
+
+base 0.65 163
+   per opponent: {'w3': 0.5, 'w1': 0.667, 'hsv3': 0.783}
+c042 0.778 461
+   per opponent: {'w3': 0.8, 'w1': 0.633, 'hsv3': 0.9}

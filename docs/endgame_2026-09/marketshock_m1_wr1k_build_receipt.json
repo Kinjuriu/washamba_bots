@@ -1,0 +1,11 @@
+{
+  "agent": "MarketShock-M1-WR1K",
+  "main_bytes": 897851,
+  "main_sha256": "12ad317ecac6c07fb2c2e10bf4820ecd1fd4551a5a36aa0e34ab93b2c33c2693",
+  "archive_bytes": 524553,
+  "archive_sha256": "4d8cf20c2281dca5816eb3615a179a0087f33b10f7f460bbe258741521693461",
+  "archive_members": [
+    "main.py"
+  ],
+  "runtime_parent": "byte-exact Kaggriculture: A Smaller Market Shock"
+}

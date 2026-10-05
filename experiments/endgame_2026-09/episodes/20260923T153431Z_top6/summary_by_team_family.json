@@ -1,0 +1,74 @@
+{
+  "Boey": {
+    "n": 60,
+    "wins": 58,
+    "losses": 2,
+    "own_family_counts": {
+      "Boey": 60
+    },
+    "n_vs_tape": 16,
+    "wins_vs_tape": 15,
+    "median_margin": 14340.5,
+    "median_final_bank": 112216.0
+  },
+  "M & M & P & Q": {
+    "n": 60,
+    "wins": 41,
+    "losses": 19,
+    "own_family_counts": {
+      "DSM": 60
+    },
+    "n_vs_tape": 0,
+    "wins_vs_tape": 0,
+    "median_margin": 3605.5,
+    "median_final_bank": 97660.5
+  },
+  "DSM": {
+    "n": 60,
+    "wins": 58,
+    "losses": 2,
+    "own_family_counts": {
+      "DSM": 60
+    },
+    "n_vs_tape": 22,
+    "wins_vs_tape": 22,
+    "median_margin": 17081.5,
+    "median_final_bank": 111403.5
+  },
+  "Unknown Mother-Goose": {
+    "n": 60,
+    "wins": 46,
+    "losses": 14,
+    "own_family_counts": {
+      "DSM": 60
+    },
+    "n_vs_tape": 7,
+    "wins_vs_tape": 7,
+    "median_margin": 7284.5,
+    "median_final_bank": 106251.0
+  },
+  "DECEM": {
+    "n": 60,
+    "wins": 58,
+    "losses": 2,
+    "own_family_counts": {
+      "DSM": 60
+    },
+    "n_vs_tape": 24,
+    "wins_vs_tape": 24,
+    "median_margin": 13074.5,
+    "median_final_bank": 103573.5
+  },
+  "\u5403\u767d\u996d\u7684\u5927\u80a5\u9c7c": {
+    "n": 60,
+    "wins": 43,
+    "losses": 17,
+    "own_family_counts": {
+      "other": 60
+    },
+    "n_vs_tape": 11,
+    "wins_vs_tape": 11,
+    "median_margin": 6085.5,
+    "median_final_bank": 113092.5
+  }
+}

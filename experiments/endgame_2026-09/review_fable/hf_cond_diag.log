@@ -1,0 +1,4 @@
+(0, {'fires': 6, 'units': 44, 'dump_ev': 34, 'meter_ev': 35, 'verdict': 'dumper', 'share': 0.49})
+(0, {'fires': 12, 'units': 38, 'dump_ev': 37, 'meter_ev': 70, 'verdict': 'meterer', 'share': 0.35})
+(1, {'fires': 2, 'units': 9, 'dump_ev': 28, 'meter_ev': 113, 'verdict': 'meterer', 'share': 0.2})
+(0, {'fires': 0, 'units': 0, 'dump_ev': 22, 'meter_ev': 154, 'verdict': 'meterer', 'share': 0.12})

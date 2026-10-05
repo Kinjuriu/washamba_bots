@@ -55,3 +55,10 @@ probe*.json
 agents/washamba_base_v2.py
 agents/washamba_base_v3.py
 agents/washamba_reactive_v1.py
+
+# endgame archive (Oct 2026): kept on disk, not pushed
+.claude/settings.local.json
+experiments/endgame_2026-09/harness/es_gen2/c*.py
+experiments/endgame_2026-09/harness/es_w3/c*.py
+experiments/endgame_2026-09/public_notebooks/
+*.parquet

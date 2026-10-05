@@ -1,0 +1,48 @@
+{
+  "targets": [
+    {
+      "rank": 7,
+      "name": "Kaggledew Valley",
+      "team_id": 16633132,
+      "submission_id": 56478393,
+      "lb_score": 2964.1
+    },
+    {
+      "rank": 8,
+      "name": "Azat Akhtyamov",
+      "team_id": 16743356,
+      "submission_id": 56491144,
+      "lb_score": 2943.5
+    },
+    {
+      "rank": 9,
+      "name": "THIRD FARM CLUB",
+      "team_id": 16730524,
+      "submission_id": 56520754,
+      "lb_score": 2933.5
+    },
+    {
+      "rank": 10,
+      "name": "Arda Ceylan",
+      "team_id": 16673205,
+      "submission_id": 56508756,
+      "lb_score": 2930.9
+    },
+    {
+      "rank": 11,
+      "name": "mtmr_s1",
+      "team_id": 16758882,
+      "submission_id": 56488920,
+      "lb_score": 2926.7
+    },
+    {
+      "rank": 12,
+      "name": "TheEggman",
+      "team_id": 16887437,
+      "submission_id": 56498825,
+      "lb_score": 2914.4
+    }
+  ],
+  "retrieved_at_utc": "2026-09-24T16:31:15Z",
+  "source": "kaggle competitions leaderboard kaggriculture -d (full CSV download), cross-checked against ListTeamPublicSubmissions public_score match"
+}

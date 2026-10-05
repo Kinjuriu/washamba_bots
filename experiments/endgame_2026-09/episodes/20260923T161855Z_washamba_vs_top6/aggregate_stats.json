@@ -1,0 +1,230 @@
+{
+  "washamba_base_v2.py": {
+    "n_trajectories": 48,
+    "wins": 37,
+    "losses": 11,
+    "ties": 0,
+    "win_rate": 0.771,
+    "final_bank_mean": 107973.8,
+    "final_bank_median": 108237.0,
+    "final_bank_stdev": 26786.4,
+    "final_bank_min": 55381.0,
+    "final_bank_max": 158556.0,
+    "opponent_bank_mean": 96616.0,
+    "n_bought_land": 48,
+    "n_bought_land_denominator": 48,
+    "buy_land_day_mean": 6,
+    "buy_land_day_median": 6.0,
+    "buy_land_count_distribution": {
+      "2": 37,
+      "3": 11
+    },
+    "animal_species_ever_bought_count": {
+      "COW": 48,
+      "SHEEP": 48,
+      "GOOSE": 31
+    },
+    "animal_species_ever_bought_denominator": 48,
+    "animal_species_first_day_mean": {
+      "COW": 0,
+      "SHEEP": 0,
+      "GOOSE": 8.8
+    },
+    "peak_crew_mean": 13.2,
+    "peak_crew_median": 13.0,
+    "peak_crew_max_observed": 15,
+    "cash_trough_d3_7_mean": 213.2,
+    "cash_trough_d3_7_denominator": 48,
+    "cash_trough_day_mode": [
+      3,
+      44
+    ],
+    "sell_orders_per_day_by_phase_mean_REQUESTED": {
+      "opening_d0_2": 2.35,
+      "d3_7_trough_window": 6.44,
+      "d8_14": 8.68,
+      "d15_21": 12.62,
+      "d22_29": 17.63
+    },
+    "dominant_crop_shift_d3_to_d9_count": 48,
+    "dominant_crop_shift_denominator": 48,
+    "plant_orders_REQUESTED_totals_by_crop": {
+      "WHEAT": 7362,
+      "MELON": 576,
+      "STRAWBERRY": 1583,
+      "CARROT": 1948,
+      "TOMATO": 70
+    }
+  },
+  "washamba_base_v1_fork.py": {
+    "n_trajectories": 78,
+    "wins": 62,
+    "losses": 16,
+    "ties": 0,
+    "win_rate": 0.795,
+    "final_bank_mean": 101128.4,
+    "final_bank_median": 98553.5,
+    "final_bank_stdev": 27452.3,
+    "final_bank_min": 52777.0,
+    "final_bank_max": 195581.0,
+    "opponent_bank_mean": 93723.9,
+    "n_bought_land": 78,
+    "n_bought_land_denominator": 78,
+    "buy_land_day_mean": 6,
+    "buy_land_day_median": 6.0,
+    "buy_land_count_distribution": {
+      "2": 52,
+      "3": 26
+    },
+    "animal_species_ever_bought_count": {
+      "COW": 78,
+      "SHEEP": 78,
+      "GOOSE": 55
+    },
+    "animal_species_ever_bought_denominator": 78,
+    "animal_species_first_day_mean": {
+      "COW": 0,
+      "SHEEP": 0,
+      "GOOSE": 8.5
+    },
+    "peak_crew_mean": 13.5,
+    "peak_crew_median": 13.0,
+    "peak_crew_max_observed": 15,
+    "cash_trough_d3_7_mean": 211.9,
+    "cash_trough_d3_7_denominator": 78,
+    "cash_trough_day_mode": [
+      3,
+      76
+    ],
+    "sell_orders_per_day_by_phase_mean_REQUESTED": {
+      "opening_d0_2": 2.34,
+      "d3_7_trough_window": 6.44,
+      "d8_14": 8.93,
+      "d15_21": 13.7,
+      "d22_29": 30.78
+    },
+    "dominant_crop_shift_d3_to_d9_count": 78,
+    "dominant_crop_shift_denominator": 78,
+    "plant_orders_REQUESTED_totals_by_crop": {
+      "WHEAT": 11856,
+      "MELON": 936,
+      "STRAWBERRY": 2572,
+      "CARROT": 3334,
+      "TOMATO": 190
+    }
+  },
+  "w0_v15stack_control.py": {
+    "n_trajectories": 93,
+    "wins": 62,
+    "losses": 31,
+    "ties": 0,
+    "win_rate": 0.667,
+    "final_bank_mean": 101335.7,
+    "final_bank_median": 99964.0,
+    "final_bank_stdev": 24113.7,
+    "final_bank_min": 60000.0,
+    "final_bank_max": 157065.0,
+    "opponent_bank_mean": 97217.4,
+    "n_bought_land": 93,
+    "n_bought_land_denominator": 93,
+    "buy_land_day_mean": 6,
+    "buy_land_day_median": 6,
+    "buy_land_count_distribution": {
+      "2": 72,
+      "3": 21
+    },
+    "animal_species_ever_bought_count": {
+      "COW": 93,
+      "SHEEP": 93,
+      "GOOSE": 61
+    },
+    "animal_species_ever_bought_denominator": 93,
+    "animal_species_first_day_mean": {
+      "COW": 0,
+      "SHEEP": 0,
+      "GOOSE": 8.8
+    },
+    "peak_crew_mean": 13.1,
+    "peak_crew_median": 13,
+    "peak_crew_max_observed": 15,
+    "cash_trough_d3_7_mean": 217.6,
+    "cash_trough_d3_7_denominator": 93,
+    "cash_trough_day_mode": [
+      3,
+      90
+    ],
+    "sell_orders_per_day_by_phase_mean_REQUESTED": {
+      "opening_d0_2": 2.33,
+      "d3_7_trough_window": 6.71,
+      "d8_14": 8.7,
+      "d15_21": 12.67,
+      "d22_29": 18.72
+    },
+    "dominant_crop_shift_d3_to_d9_count": 93,
+    "dominant_crop_shift_denominator": 93,
+    "plant_orders_REQUESTED_totals_by_crop": {
+      "WHEAT": 14478,
+      "MELON": 1116,
+      "STRAWBERRY": 3068,
+      "CARROT": 3561,
+      "TOMATO": 200
+    }
+  },
+  "w1_v15stack_race44.py": {
+    "n_trajectories": 71,
+    "wins": 65,
+    "losses": 6,
+    "ties": 0,
+    "win_rate": 0.915,
+    "final_bank_mean": 98991.2,
+    "final_bank_median": 97576.0,
+    "final_bank_stdev": 23132.4,
+    "final_bank_min": 55969.0,
+    "final_bank_max": 142877.0,
+    "opponent_bank_mean": 91071.5,
+    "n_bought_land": 71,
+    "n_bought_land_denominator": 71,
+    "buy_land_day_mean": 6,
+    "buy_land_day_median": 6,
+    "buy_land_count_distribution": {
+      "2": 55,
+      "3": 16
+    },
+    "animal_species_ever_bought_count": {
+      "COW": 71,
+      "SHEEP": 71,
+      "GOOSE": 48
+    },
+    "animal_species_ever_bought_denominator": 71,
+    "animal_species_first_day_mean": {
+      "COW": 0,
+      "SHEEP": 0,
+      "GOOSE": 8.4
+    },
+    "peak_crew_mean": 13.2,
+    "peak_crew_median": 13,
+    "peak_crew_max_observed": 15,
+    "cash_trough_d3_7_mean": 214.7,
+    "cash_trough_d3_7_denominator": 71,
+    "cash_trough_day_mode": [
+      3,
+      70
+    ],
+    "sell_orders_per_day_by_phase_mean_REQUESTED": {
+      "opening_d0_2": 2.34,
+      "d3_7_trough_window": 6.66,
+      "d8_14": 8.65,
+      "d15_21": 12.86,
+      "d22_29": 18.54
+    },
+    "dominant_crop_shift_d3_to_d9_count": 71,
+    "dominant_crop_shift_denominator": 71,
+    "plant_orders_REQUESTED_totals_by_crop": {
+      "WHEAT": 10917,
+      "MELON": 852,
+      "STRAWBERRY": 2343,
+      "CARROT": 2856,
+      "TOMATO": 110
+    }
+  }
+}

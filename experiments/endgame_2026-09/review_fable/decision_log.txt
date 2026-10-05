@@ -1,0 +1,447 @@
+Kaggriculture and Washamba Bots
+A plain-language guide to the competition, how it is judged, what kind of problem it is, what the field is doing, and our own strategies, progress, and agents above 2,000
+Prepared for Stephane, Washamba Bots. Compiled 22 September 2026, revised 23 September 2026 with the latest team analysis. Seven days remain to the 30 September final submission.
+The 23 September revision adds a new leaderboard, the fresh top-six replay corpus, and the engine re-simulation that overturned two earlier recommendations; see the update sections near the end of Part 3.
+Sources are numbered [n] in the text and listed in full at the end. They include the official Kaggle competition pages [1][2], the kaggle-environments engine and README [3], the Kaggle simulation-competitions guide [4], our own repository and docs [8], our project memos [9], the 21 September and 23 September replay-corpus work [10][14], the engine re-simulation and corrections [15], the 23 September leaderboard snapshot [13], the build plan [16], and the community Discord channel export [12]. Where a number is time-sensitive it is dated.
+Part 1. What Kaggriculture is
+Kaggriculture is a two-player farming simulation run on Kaggle, hosted by Kaggle and set as a featured simulation competition [1]. Each player designs, builds and deploys an autonomous agent that manages a virtual farm across one 30-day season and competes head to head against other teams' agents on a live leaderboard. It is a simulation competition, which means there is no fixed training set and no test set; instead every agent you submit plays live games against other agents, and the final placing is set by one large tournament after the season of submissions closes [1]. The prize pool is 50,000 dollars, paid as 5,000 dollars each to the top ten teams. The competition started on 29 July 2026, the entry and team-merger deadline is 23 September 2026, the final submission deadline is 30 September 2026, and scoring then continues from about 1 October to 15 October until the leaderboard converges, at which point it is final [1]. As of 22 September there are 9,816 teams and 20,971 entrants [1].
+The core loop and the win condition
+A season is 720 turns long, made of 30 days with 24 turns in each day. On every turn a player can move units around the board, buy seeds or animals, plant, water, harvest, feed and care for animals, build coops and pastures, hire hands, buy land, and place buy or sell orders on a shared market [3]. The winner is simply whoever holds the most coins at turn 720. Two things follow from this and shape everything the team has done. First, unsold inventory is worth nothing at the end; only banked cash counts, so anything still sitting in the shed or on a tile at the final whistle is wasted. Second, because both players trade on one shared market, your own selling moves the prices your opponent sees, and the market is thin enough that a single large order moves the price against you.
+The board and the land
+Each player has a 10 by 10 grid of tiles divided into four 5 by 5 quadrants. You begin owning only one quadrant, that is 25 tiles, and you can buy the neighbouring quadrants for an increasing fee of 1,000, then 2,000, then 4,000 coins, up to the full 100 tiles. Each tile can hold one plant, one weed, or one coop or pasture, or it can be empty. Locked tiles that you have not bought are passable, so a unit can walk across them, but any tile action on a locked tile does nothing. Weeds spawn at random on empty owned tiles and must be cleared with a DIG action. The shed sits at the centre of the board and is not a tile; it holds up to 100 non-seed items, and anything above that cap is discarded with no warning [3].
+Crops and animals
+There are five crops and three animals, plus fertilizer. The table below is the object table from the official engine [3]. Yield per tile per day, for crops, is total units harvested divided by the days the tile is occupied when watered daily and harvested at peak; for animals it is the steady production rate once the first yield lands.
+Type
+Yield
+Seed cost
+Base price
+First yield
+Max yield
+Per tile/day
+Wheat
+One-time
+10
+25
+2 days
+6 (4 unfert.)
+0.80
+Carrot
+One-time
+20
+35
+2 days
+4 (3 unfert.)
+0.75
+Tomato
+Ongoing
+50
+60
+8 days
+4
+0.33
+Strawberry
+Ongoing
+100
+120
+10 days
+4
+0.24
+Melon
+One-time
+80
+250
+10 days
+6
+0.55
+Goose / Egg
+Ongoing
+300
+50
+4 days
+4 held
+1.00
+Cow / Milk
+Ongoing
+400
+160
+8 days
+6 held
+0.50
+Sheep / Wool
+Ongoing
+500
+200
+6 days
+6 held
+0.33
+Fertilizer
+n/a
+100
+market
+n/a
+n/a
+n/a
+A few things about this table are not obvious and matter for strategy. Wheat and carrot only reach their listed maximum yield of 6 and 4 with fertilizer; watering alone peaks at 4 and 3. Melon reaches its cap of 6 by age 10 under daily watering, so ages 11 and 12 add nothing. Tomato and strawberry are ongoing but not indefinite; they fire only four scheduled yields and then decay into a weed. The three animals keep producing for as long as they are fed. Wheat is doubly important because it is the only thing that feeds animals, and it is also the only product besides fertilizer that you can buy back from the market [3].
+The upkeep rules that quietly decide games
+Every plant must be watered at least every other day, and every animal must be fed every day using wheat. Miss two days in a row and a plant turns into a weed, or an animal escapes and is gone for good. There is no grace period for a fresh planting; a seed planted and left unwatered that same day becomes a weed that night. A newly placed animal does survive its first day unfed. Fertilizer doubles a plant's per-day yield bonus for three days, but only on days the plant is also watered. The CARE action banks a bonus per day on days an animal is both fed and cared for, paid out on the animal's next production day if it is fed that day, then reset [3]. The team learned that a maintenance action gated on a counter the action itself clears will oscillate; feeding only when an animal had already missed a meal produced an every-other-day rhythm that threw away most of the CARE bank, and fixing it to feed daily roughly doubled egg output [8].
+Actions, and why hiring is the highest-return action
+On each turn every unit, the main farmer and each hired hand, takes one action: movement, tile actions (plant, water, harvest, fertilize, dig, build), shed actions (pickup, drop, place), or animal actions (feed, harvest, collect fertilizer, care). Separately, each turn a player can submit up to ten market orders, and any beyond ten are silently dropped: buy seed, buy animal, buy product (only wheat and fertilizer can be bought back), sell, hire, and buy land [3]. Only pickup and drop need a unit to stand next to the shed; every market order including selling and hiring executes from anywhere on the board. Hired hands vanish at the end of each day and must be re-hired every morning, and hiring cost follows the Fibonacci sequence within a day and resets each morning, so the first hand costs 1, the second 1, the third 2, the fourth 3, and so on. Four hands cost only 7 coins for a day. Because a single farmer's upkeep capacity caps income, cheap hands that keep more tiles alive are the single highest-return mechanic in the game, and any cash gate placed in front of hiring is almost certainly mispriced [8].
+The market and how prices move
+The market has unlimited seeds and animals at fixed prices, but sell prices move dynamically and persist across days. Every product starts at a market inventory of 10,000 units, so inventory effectively never runs out; the price equals the base at 10,000, rises as inventory falls, and falls as players sell. Orders are processed one unit at a time and concurrently across both players, so two large simultaneous sell orders push the price down against each other. The sell price is quoted before your sale and the buy price after your purchase, so an immediate buy then sell nets exactly zero and there is no same-day arbitrage [3]. The important detail is that each product has its own price shape, and the shape matters more than the base price. Premium goods, base above 100 (strawberry, melon, milk, wool), crash toward the 1-coin floor fast on oversupply and must be sold in spread-out slices; staples absorb gluts far better. The table gives the base, the anchor throughput T, and the shape on each side [3].
+Resource
+Base
+T
+Below shape
+Above shape
+P at I0+T
+P at I0+2T
+Wheat
+25
+400
+sqrt 0.80
+log 0.20
+20
+19
+Carrot
+35
+450
+hinge 1.00
+sqrt 0.70
+10
+1
+Tomato
+60
+200
+hinge 0.40
+sqrt 0.60
+24
+9
+Strawberry
+120
+100
+sqrt 0.70
+linear 1.60
+1
+1
+Melon
+250
+300
+log 0.20
+sq 3.60
+1
+1
+Egg
+50
+332
+hinge 0.40
+log 0.20
+40
+39
+Milk
+160
+122
+sqrt 0.60
+linear 1.60
+1
+1
+Wool
+200
+105
+sqrt 0.60
+sq 3.20
+1
+1
+Fertilizer
+100
+200
+linear 0.40
+linear 0.40
+60
+20
+Read the last two columns and the premium-crop problem is plain: selling one throughput unit of melon past the baseline already takes it to the 1-coin floor, while wheat only drifts from 25 to 20. The static curve is a floor and not a budget, because the town consumes inventory every day and the market recovers between sales, which is why spreading sales over time works rather than throttling a crop [3][8].
+The town: where demand actually comes from
+Demand is created by the town centre and by shops. The town centre consumes one of every product except fertilizer once per day, flat all season. Shops unlock every three days, drawn at random with replacement from eight shop types, up to eight instances, and once unlocked a shop stays. Each shop instance consumes one of every product it wants every four turns, and a single-product shop consumes at double rate, so one unlocked shop is worth roughly six town centres [3]. Demand is therefore wildly uneven and depends on which shops happen to unlock. Fertilizer is in no shop and is not eaten by the town centre, so nothing consumes it; its only value is the cash timing of selling the free units animals produce. Melon is in no shop either, so its only sink is the town centre's one unit a day. Worth knowing: bakeries and brunch spots take eggs, pet cafes take carrots at double rate, yarn stores take wool at double rate, and pizza, ice cream and smoothie shops take milk [3].
+Turn order, the agent's observation, and the hard constraints
+Each turn the engine validates actions, records both players' unit actions as simultaneous, processes the market queue one unit at a time, applies town consumption, and updates the day, prices, banks and farm [3]. An agent is a Python function that receives an observation and returns a farmer action, a list of hand actions, and a list of market orders. The observation gives the day and hour, both players' public farm state, the shared market inventory and prices, the town's unlocked shops, and the player's own private shed, seeds and inventories; you can see the opponent's farm but never their shed. The constraints are the real filter, because breaking one silently ruins a submission. An agent must be a single self-contained file of at most 100 megabytes, it gets about one second per turn with a 60-second overage bank for the whole episode which rules out deep per-turn search, it has no network access mid-match, and per-episode compute is about 8 gigabytes of disk, 6.5 gigabytes of memory and 1.6 virtual CPUs [1][3]. Five submissions a day are allowed, only the latest two stay active, and the scoring ignores the size of the margin entirely, counting only win, tie or loss [1].
+How a season actually plays out
+Put together, a strong game has a clear arc. In the opening, roughly days 0 to 11, a player spends almost all of its infrastructure budget: it buys the two land quadrants to reach 75 tiles, builds coops and pastures and places a herd, ramps its hired crew into double digits, and plants the crops whose timing is fixed, melon early because its market crashes and needs to be sold before it recovers, and strawberry in a narrow window because it is an ongoing crop planted once per tile. From about day 10 the middle game is production and selling: the crew waters, harvests, feeds and cares, and the player sells heavily and continuously into the town's daily demand and the unlocked shops, spreading premium sales so as not to crash their own price. The endgame is liquidation: because unsold stock scores nothing at turn 720, a player empties the shed into the last demand ticks in the best order it can. Throughout, the game is contested rather than solitaire, because both farms sell into one order book, so the same sale earns less when the opponent is dumping at the same time, and a large share of skill is timing sales into moments when the opponent is not. This arc is not in the rules; it is what the team measured the top of the ladder actually doing across many replays [8][10].
+Part 2. What kind of problem this is, and how it is judged
+This part answers three questions directly: what kind of work Kaggriculture actually is, whether software engineering, AI agents, machine learning or algorithms; how Kaggle ranks teams and what engine sits behind it; and what real-world problems this kind of game stands in for, and why it is likely to exist at all.
+Software engineering, AI agents, machine learning, or algorithms: it is all of them, in a specific mix
+The honest answer is that Kaggriculture is not one discipline; it is an autonomous-agent decision problem that draws on all four, and the useful thing is to see how the weight is distributed, because that is what tells you where effort pays. The problem is, at its core, sequential decision-making by an agent in a two-player, partially observable, non-stationary, competitive environment with a shared market. That framing is the AI-agents and game-theory part, and it is the spine of everything. On top of that spine, four kinds of work attach, and the competition rewards them unevenly.
+Software engineering is a larger share than newcomers expect. The agent must be a single self-contained file that emits a legal action every turn inside a one-second budget, never crashes on an odd but legal state, and passes a self-play validation episode or it is rejected outright [1]. Beyond the agent, almost all of our own hours went into engineering the evaluation harness, the paired-comparison and head-to-head and self-play benchmarks, the offline gate, the replay pullers and the reconstruction tooling, because in a game with no fixed test set the thing that most often fooled us was a bad measurement, not a bad idea [8]. The community shows the same pattern: participants reimplement the engine in faster languages purely to run more self-play, which is performance engineering, not strategy [12].
+Algorithms and operations research are the highest-value work that actually fits inside the agent, because the one-second budget rules out heavy learning at inference. The classical toolkit maps cleanly onto the parts: shortest-path routing (Dijkstra or A star) to move units, optimal task assignment (the Hungarian algorithm) to allocate a turn's crew to tasks, optimal-stopping rules for when to harvest and when to sell, a newsvendor inventory rule for how much to hold versus dump given that inventory is worthless at the end, small linear or integer programs run offline to set crew size and crop mix, and a minimax mixed strategy over a few profiles so a single scraped replay cannot neutralise you. These are exact, cheap, standard-library, and they are where our own algorithm map says the largest un-taken gains still sit [8].
+Machine learning is real but deliberately bounded by the budget. It fits offline and in light forms: a shallow gradient-boosted ranker exported to plain Python to choose among a few precomputed continuations, a small classifier to guess the opponent's family from public state, and evolutionary or Bayesian search (for example CMA-ES) to tune a dozen continuous knobs against a realistic opponent panel overnight. Heavy end-to-end reinforcement learning over raw actions, and behaviour cloning of raw actions, are documented in our own analysis as poor fits for the time and compute available, and the community's own experience so far agrees, as the next part shows [8][12]. Large language models are not a viable in-agent policy under these constraints, but they are widely used as tooling, to port code, analyse replays and reverse-engineer strong agents [12].
+So the weighting, for this competition and this season, is roughly: the problem is an AI-agents and game-theory problem at its core; the winning entries are dominated by strong offline strategy engineering plus disciplined empirical measurement; classical algorithms are the best-value layer inside the agent; machine learning pays offline and in light exported forms; and pure software and performance engineering is a bigger supporting share than the word competition suggests. It is everything, but not in equal parts.
+How Kaggle ranks teams, and the engine behind it
+The ranking is a live skill-rating system, not a score you compute once. Each day a team can submit up to five agents, and each submission plays episodes, meaning full 720-turn games, against other agents on the ladder that have a similar rating [1]. When your agent wins a game, meaning it has the most coins at turn 720, its rating goes up; when it loses, its rating goes down; ties pull two ratings toward each other. How much the rating moves depends on the gap between the two players, so beating a higher-rated agent moves you more than beating a weaker one, and, the single most important design choice, the size of the coin margin does not affect the rating change at all: only the win, tie or loss counts [1]. A new submission is seeded at a default rating and, because ratings start uncertain and settle over many games, an early reading carries little information; our own measurement of the ladder found a byte-identical agent drifting by more than a hundred points across a day, and its rating falling several points per episode as the field around it was replaced [8].
+Two rules shape how the team must use the ladder. Only the latest two submissions per team stay active for matchmaking and final scoring, and only your best-scoring bot is shown on the leaderboard, though you can track the rest on your submissions page [1]. When you upload, a validation episode is run where your agent plays a copy of itself, and if that fails the submission is marked as an error rather than joining the pool [1]. At the deadline, submissions lock, games keep running for about two weeks to reduce uncertainty, and a final Bradley-Terry tournament over those episodes produces the final leaderboard [1]. Bradley-Terry is the statistical model that estimates each agent's strength from the pattern of pairwise wins and losses, which is exactly why the coin margin is irrelevant and why our whole strategy is built around winning games rather than winning them by a lot [1][8].
+The engine underneath is kaggle-environments, Kaggle's open-source Python framework for simulation competitions; Kaggriculture is one environment inside it, and the same framework runs games such as Halite, Lux AI and ConnectX [3][5][6][7]. The environment is a Python interpreter that holds the full game state, applies both agents' actions in the fixed turn order, moves the market, and emits each player's observation; given a fixed seed it is deterministic, and every finished game is saved as a replay JSON that anyone can download for analysis [3][4]. That last property is why the copying meta exists at all: because every ladder game publishes a full replay, a strong agent's exact action stream is visible to the whole field within a day, and can be replayed by others [8][12].
+What this game stands in for, and why it likely exists
+Kaggle states the intent plainly. It describes Kaggriculture as modelling the same dynamics found in real-world supply chains, dynamic market pricing and industrial resource allocation under uncertainty, and calls the game, in its own words, a high-fidelity sandbox for training AI to solve complex enterprise operations [1]. Read against the mechanics, that is a fair description rather than marketing, and the correspondences are specific.
+Supply-chain and inventory management: the shed cap, the fact that unsold stock is worthless at the deadline, and the choice of how much to hold versus sell are the classic newsvendor and perishable-inventory problem.
+Dynamic pricing and market-making in a thin market: prices move against your own orders, premium goods crash on oversupply, and you must time and split sales, which is the core of algorithmic trading and market impact.
+Labour scheduling and resource allocation: assigning a limited crew to competing tasks each turn under a hiring-cost curve is a workforce and job-shop scheduling problem.
+Capital investment under uncertainty: buying land and animals early for a payoff that lands much later, without draining the cash you need to survive the early trough, is long-horizon capital budgeting.
+Competitive economics: two firms selling into one market where each one's output depresses the other's price is an oligopoly, and the winning move is often to make the opponent poorer rather than yourself richer, which our own selling work confirmed [8].
+As for why the game exists at all, simulation competitions like this serve two purposes at once. For Kaggle and its partners, they are a way to crowdsource and benchmark approaches to hard sequential decision problems, and to generate a public dataset of self-play and emergent strategy, in the same lineage as earlier environments such as Halite and Lux AI [5][6][7]. For participants, the farm is a stand-in that is cheap to simulate and easy to score, but whose underlying problem, allocating scarce resources over a long horizon in a competitive market under uncertainty, is exactly the shape of real operations problems, which is what makes skill here transferable [1].
+Part 3. Washamba Bots: strategies, progress, and the best agents
+This part is our own record: how the team works, the one scoring fact that governs every decision, the two families of agent we have built, the route-generation story behind every jump above 2,000, the specific agents that crossed 2,000 and whether they are on GitHub, what made them perform, what failed including Atlas and Switchboard, what the top-five replay corpus taught us, and where we stand today against the live leaderboard [8][9][10].
+The team and how we work
+Washamba Bots is Stephane as team lead, who built the entire backbone, architecture and evaluation harness that the others build on, with Peter Kibet on routes and execution (GitHub Spidey-Acer), Billy Mwangi on economy and the data pipeline (GitHub BillyMwangiDev), and Kevin Munene. The public repository is github.com/Kinjuriu/washamba_bots [8]. The working pattern is that Stephane directs strategy and hands detailed prompts to Sonnet in VS Code to execute, then verifies the outputs, and the discipline throughout is to measure before believing and to write down what failed as carefully as what worked [8][9].
+The one scoring fact that governs everything
+Because rating is win, tie or loss with margin ignored [1], the leaderboard is a relative skill rating, not a measure of money earned, and the team measured the correlation between rating and bank margin at about 0.002 [8]. Two consequences follow. First, since the field has converged on copying the strongest public agents, most top matches are near-ties, and copying a strong agent ties you rather than beating you, so rank comes from winning the near-ties. Second, when you are behind against an opponent a higher-variance line wins more often, and because a bigger loss scores no worse than a small one, widening variance when behind is free; the right way to rank candidate continuations is by the probability of beating the opponent, not by mean margin [8].
+Two families of agent we have built
+Our work splits into two families, and the difference is the most useful thing to understand about our progress [8][9].
+The first family is the from-scratch economy agent, main.py, called nikaangukia_meroni. It is a deterministic rule-based farmer that harvests, waters, reclaims weeds, plants, sells on thresholds, and rolls out animals and land carefully. An enormous amount of correct, well-measured economic learning lives in this agent, and it is where almost all of our mechanics knowledge came from. Its problem is that on the ladder it plateaued in the high 200s to low 600s, because the built-in opponents it was tuned against never sell, so every local number it produced was inflated relative to a contested market [8].
+The second family is the route agents, also called tape agents. A route agent replays a precomputed 720-turn build order that a strong team tuned offline, wrapped in cheap runtime guards, and selects among a handful of these recorded routes by reading the first few shop unlocks. This family is the one that scored above 2,000. It works precisely because of the one-second budget: since live search is ruled out, an agent that replays a strong precomputed trajectory with light logic beats an agent that reasons from scratch under the clock. Every one of our jumps above 2,000 came from adopting a stronger route, not from improving the from-scratch farmer [8].
+The route-generation story: the single biggest lever
+The through-line of our climb is that a route-generation upgrade is worth roughly ten times any parameter you can tune inside a fixed route. Tuning a sell lead on an old route was worth about 1,000 to 1,300 coins; moving to the next route generation was worth eight to eleven thousand, and about 600 rating points [8].
+Step
+What changed
+Measured effect
+v16 to v20
+Adopted boatlee's v20 multi-route agent as the base
++8,855 bank, won 18 of 24
+v20 to Moon
+Moved to the route_moon route family
++730 bank, won 14 of 16
+Moon tuning
+MD front-run lead and a global price floor gate
++598 and +474, won 22 of 24
+Adopt yhay router
+Forked the #3 team's public tape router
+1,850 to 2,472 rating, rank 689 to 59
+Family splice
+Spliced the #2 team's schedule onto the router's yarn tapes
++9,533 bank, won 47 of 17
+The clearest moment was adopting the yhay81 public router on 30 August, a pure tape replayer of ten schedules scraped from top teams, selected by the first shop unlocks, sharing an identical opening through step 143. Submitted unmodified it took us from rating 1,850 and rank 689 to rating 2,472 and rank 59 of about 6,600 in one day, winning 29 of 34 games, and it inverted the bank relationship: every earlier submission banked less than its opponents, and this one banked 17 percent more against a harder field [8]. The lesson we wrote down is to check whether the ceiling you are optimising under is the ceiling of your approach or only the ceiling of your starting point.
+The best agents above 2,000, and whether they are on GitHub
+Below are the agents that crossed a 2,000 rating, with the score of record and whether the file is pushed to the shared repository. The GitHub column answers a question that keeps costing us: several of the highest scorers were never pushed, so the team cannot build on them or test them locally. Scores are peaks or first-run readings; see the note after on why they do not hold on resubmission [8].
+Agent
+Rating of record
+On GitHub?
+What it is
+router_fam_yarn.py
+2,722 (31 Aug peak)
+Yes, in agents/
+Family opening spliced onto yhay yarn tapes
+route_v20.py
+2,578 best score
+Yes, in agents/ and experiments/
+boatlee v20 multi-route base
+router_yhay.py
+2,472 (submission 55891543)
+Yes, in agents/
+The #3 team's ten-tape public router
+router_yuan_nf.py
+2,432 (3 Sep peak)
+No, never pushed
+Route generation six, Yuan800 shrunk opening flip
+washamba_base_v1.py
+2,145 (21 Sep, active)
+No, never pushed
+Peter's current strongest base
+router_yuan_cov.py
+2,130
+No, never pushed
+Route coverage: filled all 26 missing shop keys
+router_yuan.py
+2,114
+No, never pushed
+Yuan800 route-keyed plan from 63 public replays
+router_yuan_margin.py
+2,060
+No, never pushed
+Margin levers: seed cap plus sells-first order
+router_am.py
+route generation six
+No, never pushed
+ActiveMusyoku route-keyed plan from 47 replays
+The agents Peter pushed, fam_yarn, the yhay router, and the v20 and Moon bases, are in the repo. The entire yuan family, router_am, and the current active base washamba_base_v1 are not in the repo at all, which is the recurring blocker our own docs flag: the team keeps building on a stale base because the strongest agents live only on Peter's machine and the Kaggle submissions page [8]. For context, meta_lead3.py at 1,755 is our best hand-tuned v16 agent, in the repo, and sits below 2,000 because it is a route generation behind.
+Why those scores do not survive a resubmission
+The agents above scored above 2,000 on their first run against the field that existed on their submission date, and the same code resubmitted weeks later scores about a thousand points lower. This is not a bug and the engine is unchanged; it is the field moving underneath a frozen tape [8].
+Agent
+First run
+Resubmitted unchanged
+router_fam_yarn.py
+2,722 (31 Aug)
+1,352 (9 Sep)
+router_yuan_nf.py
+2,432 (3 Sep)
+1,298 (13 Sep)
+In early September router_yuan_nf banked 95,621 against opponents banking 81,043 and won 61 percent; by mid-September it banked 88,360 while a field now rated around 1,400 out-banked it and it won 34 percent [8]. A byte-identical agent drifts down as the field is replaced. So above 2,000 is a first-run, current-field phenomenon, and holding a tape does not hold a rating. The good news is that the lever is repeatable: each first-run peak came from adopting the strongest public route of that week.
+What we did that made those agents perform well
+The concrete list, in rough order of how much each was worth [8].
+Change the base to the strongest current public route generation. The dominant lever by an order of magnitude, worth eight to eleven thousand coins and about 600 rating points each time, against one to thirteen hundred for any parameter inside a route.
+Fit the constraints honestly. A precomputed route with cheap runtime guards beats a from-scratch reasoner because the one-second budget rules out live search; the winning agents think offline and execute cheaply.
+Match the winning economic shape measured from top-ladder replays: two quadrants to 75 tiles on days 6 to 11, a nine to eighteen animal cow-and-sheep herd on a twelve to fifteen hand crew, melon early then stopped, strawberry once per tile in a narrow window, wheat continuously, carrot as a late filler, never tomato, heavy selling from day 10, wheat bought back as a standing feed line, and fertilizing your own crops.
+Stack the small edges that survive on a re-planning base: the premium front-run sell lead (one step to three, then per item to six for strawberry and wool), the global minimum-price sell gate (about +474, which works by making the opponent poorer, not us richer), route coverage, and the family splice onto the yarn tapes (about +9,533).
+Use the yhay router design that made splicing possible: ten tapes selected by the first shop unlocks, all sharing a 100 percent identical opening through step 143, so a stronger opening can be handed over to the chosen tape at the branch point.
+Hold the submission discipline: one frozen control and one candidate live at once, submit as soon as a candidate clears the offline gate, read at about episode 60, never compare two submissions at different episode counts or fields, and design candidates around the free variance lever.
+Strategies and ideas that failed
+An honest record of what did not work [8].
+The from-scratch farmer hit a ladder ceiling in the high 200s to low 600s: the built-ins never sell, so the local harness flattered it, and the real gap was that it was an entire route generation behind the field.
+Overlays on a recorded tape almost all failed. Six overlays (a minimum-price sell gate, weed repair, tape remaps, a deferred-purchase cash guard, a hire retry, an action re-pack) failed or came out inconclusive, because a recorded route has no live state to correct, so every overlay is a perturbation not a repair; the later steps assume the exact cash, positions and inventory the recording had. Only overlays that repair what the script already intended are safe.
+A long list of economy levers on the from-scratch agent were measured dead ends, each for a specific reason: a second sheep that starves in the days 3 to 7 cash trough, land and crew tested one at a time when they only pay together, per-item sell floors against price curves that are cliffs, a selling-cadence model that lost twice, four attempts at tomato and strawberry scoring, diversifying off melon, smaller melon slices, a herd-scaled cash floor, and a fertilizer arbitrage that is structurally break-even. The recurring causes were moving one knob while its dependency was pinned, and counting requested orders instead of trades that landed.
+The policy-selector direction stalled on missing data. A selector that ranks state-compatible continuations was architecturally validated (router_selector proven byte-identical to fam_yarn), but never produced a genuinely different candidate, because the counterfactual labels it needs do not exist in downloaded replays and must be manufactured with the local engine.
+Why Atlas failed, and why Switchboard is likely to fail too
+Atlas is the recent from-scratch-style submission, and it failed for four structural reasons [8]. First, it chases a median checkpoint state derived from 41 trajectories of one opponent family, which produces an incoherent herd and crop mix that no real winner ever held, because a median of many strategies is not itself a strategy. Second, it reproduces the winners' physical assets without the selling mechanism that generated their bank, so it looks like a strong farm but does not convert. Third, it front-loads spending with no cash buffer, so it stalls in the early cash trough. On the current ladder Atlas sits below 500, banks about 42,000, and goes roughly even against opponents rated around 476; it does not lower the team score because only the better of the two active submissions counts, but it holds a slot.
+Switchboard is a selector that falls back to Atlas in almost every context, which is the fourth reason and the direct answer to your question: because Switchboard inherits Atlas's structure wherever it falls through to it, it carries all of Atlas's defects, so the prediction that Switchboard is likely to fail for the same reasons is well founded rather than a guess. There is a second, independent reason: our own algorithm map notes that a lookup or switchboard that plays the single best response to the estimated opponent is exactly the thing that gets punished when the estimate is wrong or the field shifts. The cleaner alternative is a minimax mixed strategy over a small set of our own profiles, which cannot be neutralised by one scraped replay, but that is offline work rather than a submission for this week [8].
+What the top five players' replay corpus told us
+To learn from the best agents directly, we reconstructed the recent games of the current top five, DSM, Majkel1337, ymg_aq, Unknown Mother-Goose and Vadim Vasilenko: 270 unique episodes and 300 trajectories, 60 games each, pulled on 20 to 21 September [10]. One process caveat: the puller rewrites its manifest each run and the live top-60 window advanced between the manifest pull and the download, so the set settled at 270 rather than the 272 first quoted; the downloaded set is internally consistent, zero missing and zero corrupt. The findings [10]:
+The top five are not tapes; they re-plan every turn. No two of the 300 trajectories, even two games from the same submission, produced a byte-identical action stream, and same-submission pairs agreed on only about 5 to 16 percent of turns. This is the corpus-level confirmation of why our frozen tapes are now being beaten.
+Their openings, by contrast, are fixed and personal: every one of the 95 exact-opening families through turn 72 belongs entirely to a single player's own deterministic opening, and none is shared across two of the five, so each top agent has its own hard-coded opening and then diverges reactively.
+The routes converge then scatter: the largest exact-prefix family at turn 144 is only 6 of 300, so by the first checkpoint almost every game is already unique, and near-identical games first diverge right after the checkpoints, at turns 145, 146 and 151 to 159.
+The sobering part for our selector plan: at the literal-action bar nothing repeats enough to serve as ready-made continuation material, and checkpoint-compatible groups are the exception, with the largest compatible group at either checkpoint only three games out of 300. The compatible suffixes a ranker would choose among barely exist naturally and would have to be manufactured with the local engine. The one reusable material is the deterministic openings.
+Update, 23 September: the leaderboard turned over
+Since the 21 September corpus above, the top of the ladder has almost completely changed. A fresh leaderboard snapshot on 23 September at 15:34 UTC shows a new top six, and only DSM and Unknown Mother-Goose survive from the five we had studied two days earlier; Majkel1337, ymg_aq and Vadim Vasilenko have all fallen out, and Boey is the new leader [13]. Our own active pair on this date is two agents from the current public tape family, called W0 and W1: W0 has reached about 2,424, our best result since the tapes stopped working, and W1 is a few hours younger at about 2,018 with a 65 to 6 record against a mostly weaker field, so the two are not comparable until they have played the same number of games [15][16].
+Rank
+Team
+Rating
+1
+Boey
+3,098.2
+2
+M & M & P & Q
+3,059.5
+3
+DSM
+3,056.7
+4
+Unknown Mother-Goose
+3,045.1
+5
+DECEM
+3,026.6
+6
+吃白饭的大肥鱼
+3,005.8
+To learn from this new top, we reconstructed a fresh corpus of their recent games, 337 unique episodes and 360 trajectories, all within the previous 24 hours, and then re-simulated 78 of those games exactly through the engine with every traded unit logged, which is what makes the numbers in this update exact rather than estimated [14][15].
+The definitive finding: the top of the ladder is reactive, and our whole family is tape
+The single most important result of the 23 September work is that the top six do not play tapes; they react to the board every turn, and our entire lineage does play tapes. Three lines of evidence establish it [15][16].
+Every public agent is one family. v15stack, the current public frontier at a public score of about 2,666 to 2,681, together with V57, K0013 and Fieldcraft, all open with the identical tape, five hires and two cows and two sheep by turn 2, and none of the top six share it. The top six DSM, DECEM and Unknown Mother-Goose instead share an opening of their own, one cow and five wheat on turn 1, so they most likely descend from one common ancestor that is not in the public tape family.
+Their recorded moves do not transfer. We tried building v15stack-style route tapes out of today's top-six games, keyed by the first two shops, and they collapse on a new seed: against W0 over twenty games each, DSM routes went 6 to 14, DECEM routes 4 to 16, and Boey routes 0 to 20. A reactive agent's actions are answers to one specific board, so they are worthless replayed on a different one.
+On a faithful panel, we lose by a lot. Replaying a top-six game as the opponent on its own seat and seed reproduces the original bank closely, and on the 38 of 80 games where that reproduction stays faithful, W0 loses 32 of 38 with a median margin of about minus 21,700. That number is the real distance from our tape ceiling to the top.
+Our own band confirms the same thing from the other side. In W0's games against opponents rated 2,200 and up, every product's revenue lands within one to three percent of the opponent's, which is the signature of a mirror; the 2,000 to 2,500 band is full of v15stack copies playing each other to near-exact ties [15].
+Where the 21,000-coin gap actually is
+Against tape-family opponents the top six win 79 games to 1, by a median of about 21,000 coins, and because we logged every traded unit we can say where that money comes from rather than guessing. It is two things, better prices on the same volume and more output in markets nobody else fights over, and it is earned early [15].
+Source of the gap (top six vs tape family, per game)
+Worth about
+Premium price, same volume: wool at 135 vs 78 per unit
++4,600
+Premium price, same volume: strawberry at 133 vs 106 per unit
++3,500
+More output, uncrowded market: eggs (about 6 geese vs 2)
++5,800
+More output, uncrowded market: tomatoes (about 19 seeds vs 2)
++5,600
+More output, uncrowded market: carrots
++5,000
+More output, uncrowded market: wheat
++4,600
+Melon, the one market where the tapes do better
+-4,000
+The pattern is that the top six build a broader, better-fed economy, roughly six geese instead of two, more tomato and carrot tiles and one more cow, and they feed their wheat and spread their fertilizer rather than dumping both, then sell the premium goods at higher prices and slightly ahead of the opponent. It shows up as an early-revenue gap: across days 0 to 9 the top six bank about 21,500 against the tape family's 12,500. The earlier corpus said the same thing in softer terms, that winners hold about one more goose, cow and tomato tile by day 12, and that the whole gap is premium revenue, with the cash lead becoming predictive from day 18 [16].
+Two corrections that change what to build
+Two earlier recommendations were re-checked against the engine and did not hold, which matters because both would have wasted a submission [15].
+Boey's selling rate is a red herring. Boey issues five to thirteen times more sell orders per day than any other top team, from day 0, which looked like the headline lesson. Re-simulated exactly, Boey buys and sells three to four thousand wheat units a game at the same average price, about 39 bought and 39 sold, plus about a thousand fertilizer each way, and its net income from wheat and fertilizer, about 21 to 27 thousand, is the same as DSM, Mother-Goose and our own W0. The thousands of orders are churn that earns nothing, most likely there to make Boey's replays useless to copy, so copying the order rate would copy noise.
+The cash-buffer advice pointed at the wrong file. The suggested lever, a minimum cash reserve for seed buying, lives in main.py, and we do not submit main.py; our uploaded agents are v15stack, which has no such setting. And W1 is not worse than W0; it is younger and has met weaker opponents, and the two can only be compared at an equal episode count.
+Where we stand, and the two-track plan
+The honest conclusion is that tweaking a v15stack tape cannot close a 21,000-coin gap, and v15stack already contains most of the market ideas we had, recorded route tapes, a shop router, about forty patch layers, and a market layer that forecasts and races the opponent's premium sales. So there are two tracks, and they are different projects [15][16].
+Rating now, inside the tape ceiling. The tape family tops out around 2,600 to 2,700, which is both what the community reports and what our own round-robin shows, and v15stack mirror games are exact ties, so a small asymmetric edge turns those ties into wins. That is the W1 idea: W1 is v15stack with one constant changed, a deeper premium-sale reservation, and it wins the mirror by a small but real margin. The next layers, each behind a flag so that off is byte-identical to the base, are to detect a v15stack-lineage opponent and sell premium one slot earlier, to hold fertilizer for strawberry and tomato, to keep more wheat as feed, to add one more goose or cow by day 12, and to stop feeding animals whose product cannot sell before turn 720.
+The path to 3,000, a reactive agent. The only way to the top is an agent that builds and sells reactively the way the top six do, more geese and tomatoes and carrots, premium sales timed ahead of the opponent, measured against the top-six replay panel rather than the built-in opponents. The fastest start is to find the public ancestor of the shared DSM, DECEM and Mother-Goose opening, if one exists, and build on it; a Sonnet pass is set up to fingerprint every public notebook's first two turns against that opening.
+On timing, the plan is to keep uploading for ladder readings until 27 September and to hold the strongest candidate until the final day, because anything uploaded earlier can be copied and nobody can submit after the deadline; the last two uploads become the October tournament pair. And we do not retire a climbing agent for a weaker new one: each upload drops one of W0 and W1 while they are still gaining, so a new candidate has to beat them in the harness first [16].
+Part 4. What the field is doing: a qualitative analysis of the community
+This part is a qualitative analysis of the competition's community Discord channel, from an export of 532 messages by 67 participants [12]. It is qualitative rather than quantitative on purpose: because agent source code is private and a submission's replay shows only actions, not the method behind them, we cannot measure from the outside which agent uses which approach. What we can do is read what people say they are doing, classify the methods and languages that appear, and note the recurring debates. Treat every performance figure below as a self-reported claim from the channel, not a measured result.
+The central debate: tapes versus heuristics versus reinforcement learning
+The channel is organised around one argument, which is which of three approaches actually wins. The three camps are clear, and so is the uneasy consensus about where each one tops out [12].
+Tapes, the dominant meta. Participants describe a tape as taking the actions straight out of a public replay JSON and replaying them as your own agent, completely unreactive, with optional logic patched in later. It is widely acknowledged as what most of the crowd submits, and criticised in the same breath, one participant noting that the tape meta means people submit actions that do not make sense. The recurring self-reported ceiling for a pure tape is about 2,500 to 2,700; one participant reports 2,789 by a tape that just tries to beat the mirror.
+Heuristics, what the current top is said to run. Several participants state that the top players right now use heuristic, rule-based agents, hand-written conditional logic. The debate here is whether heuristics alone are enough or whether machine learning is needed to go further, with one participant framing it as an architecture problem rather than a parameter-tuning one, and noting a large skill gap between tapes and the average heuristic.
+Reinforcement learning, the ambitious minority. A visible group is training agents, mostly PPO, some warm-started with imitation learning, one using neural evolution. The mood is that RL has a higher ceiling in principle but is hard in practice: participants report that tuning one part degrades another, that a pure RL agent regressed and could not beat the tape it was cloned from, and one blunt summary that if tapes do not work RL is even worse so far. The honest state of the channel is that nobody has publicly shown RL clearly beating the tape ceiling yet, though several expect it is what is required to pass roughly 2,600.
+A classification of the methods discussed
+The table classifies the approaches that appear in the channel, with the self-reported performance where one was given [12].
+Approach
+What it is, in the channel's terms
+Self-reported standing
+Tape / replay
+Replay a top agent's recorded action stream as your own, unreactive, optionally patched
+Dominant meta; ceiling ~2,500-2,700; one claim of 2,789
+Heuristic / rule-based
+Hand-written conditional logic and macros
+Said to be what the current top runs; strong but seen as an architecture problem
+Reinforcement learning (PPO)
+Train a policy by self-play, sometimes warm-started by imitation
+Active minority; higher ceiling claimed, not yet shown beating tapes
+Imitation / behaviour cloning
+Learn to copy a tape's actions, as an RL warm start
+Reached tape level at best; RL on top regressed
+Evolutionary / neural-evolution
+Evolve policy parameters
+Minority; one report stuck around 800
+Stochastic / OR modelling
+Model the economy mathematically and pick the rational move
+Proposed, early, speculative
+LLM as tooling (not in-agent)
+Use GPT or Claude to port code, analyse and reverse-engineer replays, improve heuristics
+Common as a productivity tool; not a submitted policy
+One cross-cutting point the channel makes repeatedly is worth pulling out, because it matches our own findings exactly: a strong agent is submitted and climbs fast, its replays are then studied, most likely with LLM assistance, and it is reverse-engineered into a slightly better agent, which restarts the cycle. That is the copying-and-convergence dynamic our own docs describe from the inside, seen here from the outside [8][12].
+Languages and tooling
+On languages, the channel confirms what you saw: Python is the default, and a minority reach for faster languages, but almost always to speed up the environment for self-play and RL training rather than to write a faster agent, since the agent itself only gets one second a turn [12].
+Language or tool
+How it is used in the channel
+Notes
+Python
+Default for both the agent and local testing; standard library plus math
+Most participants; one on Python 3.14.x
+Rust
+Reimplement the engine for far faster RL rollouts
+One reports a 44x speedup over the Python baseline; wrapper overhead then dominates
+C++
+Faster environment for strategy testing
+One built a C++ version with Claude and shared a notebook
+Go
+Reimplement the engine and build tooling
+One remade it in Go and wrote a replay viewer
+NumPy / CUDA
+Vectorise the tile-dictionary engine; GPU-accelerate RL environments
+Raised with the host as a possible engine refactor; dictionaries seen as the bottleneck
+GPUs
+RL training hardware
+RTX 5090 and RTX 4060 mentioned
+LLMs (GPT / Claude)
+Port engines, analyse and reverse-engineer replays, improve heuristics
+Used as tooling by many, not as the in-agent policy
+The tooling story has one clear signal in it: the bottleneck people optimise is training throughput, not agent inference. A participant who rewrote the engine in Rust for a 44x speedup reported that it stopped mattering once the RL update itself, not the simulation, became the limit, which is a useful warning for us if we ever go down the RL path, because it says the engine speed is not where the difficulty lives [12].
+What the community view tells us
+Three things are worth carrying back into our own plan. First, the outside view and our inside view agree that the tape meta has a ceiling around 2,600 and that the true top of the ladder is reactive, which is exactly what our top-five corpus reconstruction found and what our field snapshot measured [8][10][12]. Second, no one in the channel has publicly cracked reactive RL yet, so the gap above 2,600 is genuinely open rather than solved-in-private-and-obvious, which slightly raises the value of a well-engineered reactive base like the V56 adoption we are proposing [8][12]. Third, the community treats LLMs the way we do, as a tool for porting code and analysing replays rather than as an agent, which is a small validation that our own workflow is on the right track [12].
+Appendix A. Analysis ideas to brainstorm next
+You asked for a running list of analysis ideas for the project we start after this document. These are seeds for that conversation, split into the qualitative study of the community and the quantitative study of the replays and ladder. None of these is started yet; they are here so we can pick from them together.
+Qualitative analysis ideas (the community and the discourse)
+Code and theme the full Discord export properly: tag every message by approach (tape, heuristic, RL, tooling), by sentiment about each approach, and by topic (market, animals, engine, ratings), then report the distribution of what the field talks about and how opinion shifts over time toward the deadline.
+Map the reverse-engineering cycle as a narrative: trace, from the channel and the public Code tab, how a strong public notebook appears, gets copied, and is superseded, to characterise the meta as a social process rather than only a technical one.
+Build a taxonomy of publicly shared notebooks and agents on the Kaggle Code tab, classified by approach and licence, as a companion to the Discord read, since shared code is the one place method is visible.
+Interview-style synthesis: collate the strongest self-reported claims (the tape ceiling, the RL difficulty, the market being under-contested) and treat them as hypotheses to test against our own measurements.
+Quantitative analysis ideas (replays and the ladder)
+Behavioural fingerprinting from replays: since we cannot see code, cluster agents by observable behaviour, meaning reactivity (how much an agent's actions vary across seeds), land and animal timing, sell cadence and market share, to infer approach families from the outside; a highly reactive agent is unlikely to be a tape.
+A reactivity metric as a tape detector: quantify self-agreement across a submission's own games, which our corpus work shows separates tapes (high agreement) from reactive agents (low agreement), and apply it across the top of the ladder to estimate how much of the top is still tapes.
+A performance-versus-approach table built the only honest way available, by pairing our behavioural inference with public leaderboard ratings, clearly labelled as inferred, so it becomes an evidence-weighted picture rather than a guess.
+Market-contestedness study: measure, across many replays, how much of each product's demand is captured by each player and how often premium prices hit the floor, to test the community claim that the market is under-contested and quantify the opportunity.
+Ladder-dynamics study: track rating trajectories of a set of submissions to quantify field drift, the episode count at which a rating stabilises, and how fast a frozen tape decays, turning our anecdotes into measured curves.
+References
+[1] Kaggle. Kaggriculture, competition Overview, Evaluation and Ranking System, Timeline, Prizes, and How to Play. https://www.kaggle.com/competitions/kaggriculture (accessed 22 September 2026).
+[2] Kaggle. Kaggriculture, Leaderboard. https://www.kaggle.com/competitions/kaggriculture/leaderboard (accessed 22 September 2026).
+[3] Kaggle. kaggle-environments, Kaggriculture environment: engine (kaggriculture.py), README and configuration. https://github.com/Kaggle/kaggle-environments/tree/master/kaggle_environments/envs/kaggriculture (accessed 22 September 2026).
+[4] Kaggle. kaggle-cli, Simulation Competitions guide. https://github.com/Kaggle/kaggle-cli/blob/main/docs/simulation_competitions.md (accessed 22 September 2026).
+[5] Kaggle Simulations hub. https://www.kaggle.com/simulations (accessed 22 September 2026).
+[6] Kaggle. Halite by Two Sigma (simulation competition, kaggle-environments lineage). https://www.kaggle.com/competitions/halite (accessed 22 September 2026).
+[7] Lux AI Challenge (comparable simulation competition). https://www.lux-ai.org/ (accessed 22 September 2026).
+[8] Washamba Bots team repository: github.com/Kinjuriu/washamba_bots. Internal docs used here include CLAUDE.md, docs/ROUTE_GENERATIONS.md, docs/REPLAY_ANALYSIS.md, docs/ROADMAP.md, docs/CHECKPOINTS.md, docs/FIELD_SNAPSHOT_2026-09-21.md, and agents/README.md (repository state 22 September 2026).
+[9] Washamba Bots project knowledge: State of Play primer and the Kaggriculture decision memo (project docs, 7 to 8 September 2026); the algorithm map for Kaggriculture agents (21 September 2026).
+[10] Replay-corpus reconstruction of the current top five players (DSM, Majkel1337, ymg_aq, Unknown Mother-Goose, Vadim Vasilenko), 270 episodes and 300 trajectories, produced with Sonnet, 20 to 21 September 2026.
+[11] Official competition citation: Bovard Doerschuk-Tiberi, Domino Weir, and Maria Cruz. Kaggriculture. https://www.kaggle.com/competitions/kaggriculture, 2026. Kaggle.
+[12] Kaggriculture community Discord channel, export of 532 messages by 67 participants (channel 1532437466588381274), provided by the team on 22 September 2026. Attributed viewpoints are paraphrased self-reports, not measured results.
+[13] Kaggriculture leaderboard snapshot, 23 September 2026 15:34 UTC (kaggle competitions leaderboard, cross-checked against the ListEpisodes teams payload to resolve each team's active submission).
+[14] Fresh top-six replay-corpus decision report (Sonnet), 337 unique episodes and 360 trajectories from the current top six, 23 September 2026 (episodes/20260923T153431Z_top6/).
+[15] Engine re-simulation and corrections, top6-findings-2026-09-23.md (78 games re-simulated through kaggle-environments 1.32.7 with every traded unit logged), 23 September 2026.
+[16] Washamba Bots build plan, 23 September 2026: W0 and W1, the flagged candidate layers, the submission timing, and the 270-game premium-revenue findings (build-plan-2026-09-23.md).

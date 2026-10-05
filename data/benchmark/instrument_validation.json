@@ -1,0 +1,115 @@
+{
+ "truth": {
+  "v2.0_engine": 354.2,
+  "v5_land": 556.9,
+  "v3_solvent": 571.8,
+  "v2_lean": 599.2,
+  "baseline": 519.4,
+  "v2.3_scale": 634.8,
+  "v5.0_planner": 650.9,
+  "v2.7_horizon": 657.6,
+  "v2.6_frontrun": 661.6
+ },
+ "instruments": {
+  "v2.0_engine": {
+   "n": 136,
+   "beat_history": 0.03676470588235294,
+   "beat_ghost": 0.022058823529411766,
+   "contested_bank": 31520.5,
+   "floor": 1882.0,
+   "pool_winrate": 0.14166666666666666,
+   "idle_bank": 50179.5
+  },
+  "v5_land": {
+   "n": 136,
+   "beat_history": 0.051470588235294115,
+   "beat_ghost": 0.03676470588235294,
+   "contested_bank": 16856.0,
+   "floor": 19.0,
+   "pool_winrate": 0.30277777777777776
+  },
+  "v3_solvent": {
+   "n": 136,
+   "beat_history": 0.03676470588235294,
+   "beat_ghost": 0.03676470588235294,
+   "contested_bank": 11745.5,
+   "floor": 3.0,
+   "pool_winrate": 0.5,
+   "idle_bank": 67409.0
+  },
+  "v2_lean": {
+   "n": 136,
+   "beat_history": 0.03676470588235294,
+   "beat_ghost": 0.03676470588235294,
+   "contested_bank": 13674.5,
+   "floor": 10.0,
+   "pool_winrate": 0.4861111111111111
+  },
+  "baseline": {
+   "n": 136,
+   "beat_history": 0.03676470588235294,
+   "beat_ghost": 0.029411764705882353,
+   "contested_bank": 8711.5,
+   "floor": 26.0,
+   "pool_winrate": 0.17777777777777778
+  },
+  "v2.3_scale": {
+   "n": 136,
+   "beat_history": 0.09558823529411764,
+   "beat_ghost": 0.04411764705882353,
+   "contested_bank": 39720.5,
+   "floor": 1182.0,
+   "pool_winrate": 0.5916666666666667,
+   "idle_bank": 79339.0
+  },
+  "v5.0_planner": {
+   "n": 136,
+   "beat_history": 0.09558823529411764,
+   "beat_ghost": 0.03676470588235294,
+   "contested_bank": 42471.0,
+   "floor": 12047.0
+  },
+  "v2.7_horizon": {
+   "n": 136,
+   "beat_history": 0.13970588235294118,
+   "beat_ghost": 0.04411764705882353,
+   "contested_bank": 40695.5,
+   "floor": 15249.0
+  },
+  "v2.6_frontrun": {
+   "n": 136,
+   "beat_history": 0.10294117647058823,
+   "beat_ghost": 0.04411764705882353,
+   "contested_bank": 35341.0,
+   "floor": 5859.0,
+   "pool_winrate": 0.8833333333333333,
+   "idle_bank": 79824.0
+  }
+ },
+ "spearman": {
+  "pool_winrate": {
+   "rho": 0.9642857142857143,
+   "n": 7
+  },
+  "beat_history": {
+   "rho": 0.8481406178489861,
+   "n": 9
+  },
+  "beat_ghost": {
+   "rho": 0.877792041388237,
+   "n": 9
+  },
+  "contested_bank": {
+   "rho": 0.6666666666666666,
+   "n": 9
+  },
+  "idle_bank": {
+   "rho": 1.0,
+   "n": 4
+  },
+  "floor": {
+   "rho": 0.55,
+   "n": 9
+  }
+ }
+}

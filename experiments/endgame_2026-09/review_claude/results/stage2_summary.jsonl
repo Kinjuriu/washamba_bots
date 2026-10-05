@@ -1,0 +1,7 @@
+{"cand": "s00", "n": 113, "cand_pts": 66, "w3_pts": 67, "diff": -1, "up": 0, "down": 1, "mean_margin_change": -2, "errors": 0, "params": {"V9_CARROT_LAST_DAY": 20}}
+{"cand": "s01", "n": 113, "cand_pts": 64, "w3_pts": 67, "diff": -3, "up": 0, "down": 3, "mean_margin_change": -53, "errors": 0, "params": {"V9_HERD_MIN_WOOL": 120, "_OR2_SLOT_MARGIN": 4.0, "V9_FERT_FIRST_DAY": 18}}
+{"cand": "s02", "n": 113, "cand_pts": 67, "w3_pts": 67, "diff": 0, "up": 0, "down": 0, "mean_margin_change": 0, "errors": 0, "params": {"V9_HERD_MIN_WOOL": 120, "_Y_MARGIN": -2}}
+{"cand": "s03", "n": 113, "cand_pts": 67, "w3_pts": 67, "diff": 0, "up": 0, "down": 0, "mean_margin_change": 0, "errors": 0, "params": {"_CA_CASH": 400}}
+{"cand": "s04", "n": 113, "cand_pts": 65, "w3_pts": 67, "diff": -2, "up": 0, "down": 2, "mean_margin_change": -52, "errors": 0, "params": {"_Y_MARGIN": -10, "_HD2_RATIO": 1.15, "V9_FERT_FIRST_DAY": 18}}
+{"cand": "s05", "n": 113, "cand_pts": 67, "w3_pts": 67, "diff": 0, "up": 0, "down": 0, "mean_margin_change": 16, "errors": 0, "params": {"V9_RACE_DEFAULT": 48, "V9_HERD_MIN_WOOL": 120}}
+{"cand": "s06", "n": 113, "cand_pts": 67, "w3_pts": 67, "diff": 0, "up": 1, "down": 1, "mean_margin_change": -15, "errors": 0, "params": {"_CS_RATIO": 1.5, "_SR_MARGIN": 4}}

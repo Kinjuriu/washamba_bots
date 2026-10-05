@@ -1,0 +1,3 @@
+Apache-2.0 public source; original notices remain embedded in main.py.
+Direct source: https://www.kaggle.com/code/guruprasaathas111/kaggriculture-top-2-master-engine-v4
+Downloaded 2026-09-27; no policy edits.

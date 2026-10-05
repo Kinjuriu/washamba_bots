@@ -1,0 +1,10 @@
+banks [96073.0, 96073.0] wall_s 3.6 per-agent-turn_ms 2.5
+WOOL       s0:  99u@ 55.4 buy   0u | s1:  99u@ 55.4 buy   0u
+STRAWBERRY s0: 247u@154.4 buy   0u | s1: 247u@154.4 buy   0u
+MILK       s0: 241u@ 98.2 buy   0u | s1: 241u@ 98.2 buy   0u
+EGG        s0:  87u@ 59.2 buy   0u | s1:  87u@ 59.2 buy   0u
+MELON      s0:  72u@198.2 buy   0u | s1:  72u@198.2 buy   0u
+TOMATO     s0:   0u@  0.0 buy   0u | s1:   0u@  0.0 buy   0u
+CARROT     s0:  89u@ 27.5 buy   0u | s1:  89u@ 27.5 buy   0u
+WHEAT      s0: 435u@ 39.2 buy 137u | s1: 435u@ 39.2 buy 137u
+FERTILIZER s0: 328u@ 47.8 buy  86u | s1: 328u@ 47.8 buy  86u

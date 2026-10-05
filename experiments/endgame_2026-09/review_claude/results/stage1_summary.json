@@ -1,0 +1,46 @@
+[
+ {
+  "cand": "pr63",
+  "n": 222,
+  "cand_pts": 148,
+  "w3_pts": 133.5,
+  "diff": 14.5,
+  "up": 21,
+  "down": 6,
+  "mean_margin_change": 237,
+  "errors": 0
+ },
+ {
+  "cand": "w4",
+  "n": 90,
+  "cand_pts": 63,
+  "w3_pts": 66,
+  "diff": -3,
+  "up": 1,
+  "down": 4,
+  "mean_margin_change": -11,
+  "errors": 0
+ },
+ {
+  "cand": "combo",
+  "n": 222,
+  "cand_pts": 150,
+  "w3_pts": 133.5,
+  "diff": 16.5,
+  "up": 33,
+  "down": 16,
+  "mean_margin_change": 190,
+  "errors": 0
+ },
+ {
+  "cand": "hf_early",
+  "n": 222,
+  "cand_pts": 138.5,
+  "w3_pts": 133.5,
+  "diff": 5.0,
+  "up": 20,
+  "down": 15,
+  "mean_margin_change": 17,
+  "errors": 0
+ }
+]

@@ -1,0 +1,6 @@
+C1 identity: PASS
+C1 smoke seed101: [88733.0, 107725.0, 'DONE', 'DONE'] (base [96073.0, 96073.0] )
+C1 smoke seed102: [102939.0, 133887.0, 'DONE', 'DONE'] (base [104236.0, 104236.0] )
+C2 identity: PASS
+C2 smoke seed101: [75265.0, 92129.0, 'DONE', 'DONE'] (base [96073.0, 96073.0] )
+C2 smoke seed102: [100298.0, 136463.0, 'DONE', 'DONE'] (base [104236.0, 104236.0] )

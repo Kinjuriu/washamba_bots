@@ -1,0 +1,3326 @@
+{
+ "engine": "1.32.7 installed, 1.32.6 rows vendored from PR 1399",
+ "old_rows_verified_against_install": true,
+ "hinge_gain": 8.0,
+ "changed": [
+  "CARROT",
+  "TOMATO",
+  "EGG"
+ ],
+ "curves": [
+  {
+   "item": "CARROT",
+   "scarcity": 0,
+   "knee": 450,
+   "past_knee": false,
+   "price_1326": 35,
+   "price_1327": 35,
+   "ratio": 1.0
+  },
+  {
+   "item": "CARROT",
+   "scarcity": 100,
+   "knee": 450,
+   "past_knee": false,
+   "price_1326": 40,
+   "price_1327": 43,
+   "ratio": 1.075
+  },
+  {
+   "item": "CARROT",
+   "scarcity": 200,
+   "knee": 450,
+   "past_knee": false,
+   "price_1326": 41,
+   "price_1327": 51,
+   "ratio": 1.2439024390243902
+  },
+  {
+   "item": "CARROT",
+   "scarcity": 300,
+   "knee": 450,
+   "past_knee": false,
+   "price_1326": 42,
+   "price_1327": 58,
+   "ratio": 1.380952380952381
+  },
+  {
+   "item": "CARROT",
+   "scarcity": 450,
+   "knee": 450,
+   "past_knee": false,
+   "price_1326": 42,
+   "price_1327": 70,
+   "ratio": 1.6666666666666667
+  },
+  {
+   "item": "CARROT",
+   "scarcity": 600,
+   "knee": 450,
+   "past_knee": true,
+   "price_1326": 42,
+   "price_1327": 113,
+   "ratio": 2.6904761904761907
+  },
+  {
+   "item": "CARROT",
+   "scarcity": 1000,
+   "knee": 450,
+   "past_knee": true,
+   "price_1326": 43,
+   "price_1327": 531,
+   "ratio": 12.348837209302326
+  },
+  {
+   "item": "CARROT",
+   "scarcity": 2000,
+   "knee": 450,
+   "past_knee": true,
+   "price_1326": 44,
+   "price_1327": 3513,
+   "ratio": 79.8409090909091
+  },
+  {
+   "item": "TOMATO",
+   "scarcity": 0,
+   "knee": 200,
+   "past_knee": false,
+   "price_1326": 60,
+   "price_1327": 60,
+   "ratio": 1.0
+  },
+  {
+   "item": "TOMATO",
+   "scarcity": 100,
+   "knee": 200,
+   "past_knee": false,
+   "price_1326": 72,
+   "price_1327": 72,
+   "ratio": 1.0
+  },
+  {
+   "item": "TOMATO",
+   "scarcity": 200,
+   "knee": 200,
+   "past_knee": false,
+   "price_1326": 84,
+   "price_1327": 84,
+   "ratio": 1.0
+  },
+  {
+   "item": "TOMATO",
+   "scarcity": 300,
+   "knee": 200,
+   "past_knee": true,
+   "price_1326": 96,
+   "price_1327": 144,
+   "ratio": 1.5
+  },
+  {
+   "item": "TOMATO",
+   "scarcity": 450,
+   "knee": 200,
+   "past_knee": true,
+   "price_1326": 114,
+   "price_1327": 414,
+   "ratio": 3.6315789473684212
+  },
+  {
+   "item": "TOMATO",
+   "scarcity": 600,
+   "knee": 200,
+   "past_knee": true,
+   "price_1326": 132,
+   "price_1327": 900,
+   "ratio": 6.818181818181818
+  },
+  {
+   "item": "TOMATO",
+   "scarcity": 1000,
+   "knee": 200,
+   "past_knee": true,
+   "price_1326": 180,
+   "price_1327": 3252,
+   "ratio": 18.066666666666666
+  },
+  {
+   "item": "TOMATO",
+   "scarcity": 2000,
+   "knee": 200,
+   "past_knee": true,
+   "price_1326": 300,
+   "price_1327": 15852,
+   "ratio": 52.84
+  },
+  {
+   "item": "EGG",
+   "scarcity": 0,
+   "knee": 332,
+   "past_knee": false,
+   "price_1326": 50,
+   "price_1327": 50,
+   "ratio": 1.0
+  },
+  {
+   "item": "EGG",
+   "scarcity": 100,
+   "knee": 332,
+   "past_knee": false,
+   "price_1326": 56,
+   "price_1327": 56,
+   "ratio": 1.0
+  },
+  {
+   "item": "EGG",
+   "scarcity": 200,
+   "knee": 332,
+   "past_knee": false,
+   "price_1326": 62,
+   "price_1327": 62,
+   "ratio": 1.0
+  },
+  {
+   "item": "EGG",
+   "scarcity": 300,
+   "knee": 332,
+   "past_knee": false,
+   "price_1326": 68,
+   "price_1327": 68,
+   "ratio": 1.0
+  },
+  {
+   "item": "EGG",
+   "scarcity": 450,
+   "knee": 332,
+   "past_knee": true,
+   "price_1326": 77,
+   "price_1327": 97,
+   "ratio": 1.2597402597402598
+  },
+  {
+   "item": "EGG",
+   "scarcity": 600,
+   "knee": 332,
+   "past_knee": true,
+   "price_1326": 86,
+   "price_1327": 190,
+   "ratio": 2.2093023255813953
+  },
+  {
+   "item": "EGG",
+   "scarcity": 1000,
+   "knee": 332,
+   "past_knee": true,
+   "price_1326": 110,
+   "price_1327": 758,
+   "ratio": 6.890909090909091
+  },
+  {
+   "item": "EGG",
+   "scarcity": 2000,
+   "knee": 332,
+   "past_knee": true,
+   "price_1326": 170,
+   "price_1327": 4209,
+   "ratio": 24.758823529411764
+  }
+ ],
+ "unchanged_products_that_moved": [],
+ "dominance": {
+  "CARROT": {
+   "worst_delta": -2,
+   "at_scarcity": 3,
+   "upto": 3000
+  },
+  "TOMATO": {
+   "worst_delta": 0,
+   "at_scarcity": null,
+   "upto": 3000
+  },
+  "EGG": {
+   "worst_delta": 0,
+   "at_scarcity": null,
+   "upto": 3000
+  }
+ },
+ "reachability": [
+  {
+   "corpus": "field",
+   "item": "WHEAT",
+   "knee": 400,
+   "episodes": 120,
+   "deepest_scarcity": 853,
+   "median_scarcity": 478,
+   "p75_scarcity": 578,
+   "p90_scarcity": 660,
+   "scarcity_by_episode": [
+    225,
+    229,
+    273,
+    278,
+    286,
+    300,
+    300,
+    301,
+    304,
+    312,
+    313,
+    316,
+    317,
+    321,
+    323,
+    324,
+    326,
+    331,
+    340,
+    344,
+    348,
+    352,
+    363,
+    363,
+    364,
+    367,
+    380,
+    383,
+    386,
+    388,
+    388,
+    391,
+    396,
+    404,
+    404,
+    406,
+    411,
+    417,
+    417,
+    420,
+    421,
+    426,
+    426,
+    427,
+    429,
+    434,
+    436,
+    437,
+    439,
+    439,
+    439,
+    440,
+    442,
+    446,
+    452,
+    457,
+    457,
+    473,
+    476,
+    477,
+    479,
+    479,
+    492,
+    496,
+    499,
+    499,
+    500,
+    507,
+    509,
+    511,
+    514,
+    515,
+    515,
+    516,
+    517,
+    520,
+    523,
+    528,
+    529,
+    531,
+    537,
+    544,
+    545,
+    546,
+    555,
+    561,
+    561,
+    565,
+    569,
+    578,
+    579,
+    580,
+    581,
+    584,
+    587,
+    592,
+    593,
+    610,
+    612,
+    613,
+    620,
+    621,
+    622,
+    632,
+    634,
+    657,
+    660,
+    660,
+    681,
+    682,
+    687,
+    690,
+    697,
+    697,
+    704,
+    745,
+    778,
+    836,
+    852,
+    853
+   ],
+   "episodes_past_knee": 87,
+   "frac_past_knee": 0.725,
+   "turns_past_knee": 51815,
+   "turns": 216619,
+   "max_price_observed": 54,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  },
+  {
+   "corpus": "field",
+   "item": "CARROT",
+   "knee": 450,
+   "episodes": 120,
+   "deepest_scarcity": 968,
+   "median_scarcity": 316,
+   "p75_scarcity": 468,
+   "p90_scarcity": 572,
+   "scarcity_by_episode": [
+    25,
+    25,
+    25,
+    25,
+    25,
+    25,
+    25,
+    25,
+    25,
+    25,
+    25,
+    25,
+    25,
+    25,
+    25,
+    28,
+    28,
+    30,
+    55,
+    98,
+    105,
+    126,
+    141,
+    142,
+    144,
+    147,
+    152,
+    161,
+    164,
+    174,
+    177,
+    180,
+    192,
+    195,
+    195,
+    195,
+    198,
+    198,
+    203,
+    204,
+    213,
+    225,
+    231,
+    231,
+    231,
+    233,
+    242,
+    246,
+    249,
+    249,
+    252,
+    255,
+    262,
+    266,
+    267,
+    267,
+    285,
+    285,
+    303,
+    314,
+    318,
+    318,
+    322,
+    324,
+    335,
+    339,
+    339,
+    342,
+    342,
+    342,
+    342,
+    342,
+    348,
+    357,
+    357,
+    357,
+    359,
+    365,
+    386,
+    392,
+    413,
+    413,
+    429,
+    440,
+    444,
+    447,
+    452,
+    464,
+    464,
+    468,
+    468,
+    474,
+    479,
+    491,
+    498,
+    500,
+    504,
+    504,
+    505,
+    518,
+    519,
+    519,
+    552,
+    554,
+    555,
+    557,
+    572,
+    572,
+    573,
+    594,
+    607,
+    624,
+    627,
+    654,
+    662,
+    673,
+    699,
+    699,
+    717,
+    968
+   ],
+   "episodes_past_knee": 34,
+   "frac_past_knee": 0.2833333333333333,
+   "turns_past_knee": 8737,
+   "turns": 216619,
+   "max_price_observed": 481,
+   "price_at_deepest_1326": 43,
+   "price_at_deepest_1327": 481
+  },
+  {
+   "corpus": "field",
+   "item": "TOMATO",
+   "knee": 200,
+   "episodes": 120,
+   "deepest_scarcity": 660,
+   "median_scarcity": 219,
+   "p75_scarcity": 300,
+   "p90_scarcity": 390,
+   "scarcity_by_episode": [
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    66,
+    84,
+    84,
+    84,
+    84,
+    84,
+    85,
+    102,
+    102,
+    102,
+    102,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    138,
+    138,
+    138,
+    138,
+    138,
+    156,
+    156,
+    156,
+    156,
+    174,
+    174,
+    174,
+    192,
+    192,
+    192,
+    192,
+    192,
+    192,
+    192,
+    192,
+    210,
+    210,
+    210,
+    210,
+    210,
+    210,
+    228,
+    228,
+    228,
+    228,
+    228,
+    228,
+    228,
+    228,
+    246,
+    246,
+    246,
+    246,
+    246,
+    246,
+    264,
+    264,
+    264,
+    264,
+    264,
+    264,
+    282,
+    282,
+    282,
+    282,
+    282,
+    282,
+    300,
+    300,
+    300,
+    300,
+    300,
+    300,
+    300,
+    300,
+    300,
+    300,
+    318,
+    318,
+    318,
+    318,
+    336,
+    336,
+    336,
+    336,
+    354,
+    372,
+    372,
+    390,
+    390,
+    408,
+    408,
+    408,
+    426,
+    426,
+    462,
+    498,
+    516,
+    516,
+    588,
+    660
+   ],
+   "episodes_past_knee": 66,
+   "frac_past_knee": 0.55,
+   "turns_past_knee": 27602,
+   "turns": 216619,
+   "max_price_observed": 1155,
+   "price_at_deepest_1326": 139,
+   "price_at_deepest_1327": 1155
+  },
+  {
+   "corpus": "field",
+   "item": "STRAWBERRY",
+   "knee": 100,
+   "episodes": 120,
+   "deepest_scarcity": 343,
+   "median_scarcity": 129,
+   "p75_scarcity": 183,
+   "p90_scarcity": 238,
+   "scarcity_by_episode": [
+    14,
+    14,
+    16,
+    16,
+    16,
+    16,
+    21,
+    21,
+    33,
+    40,
+    40,
+    44,
+    50,
+    54,
+    54,
+    57,
+    57,
+    58,
+    59,
+    59,
+    59,
+    64,
+    72,
+    72,
+    75,
+    75,
+    76,
+    76,
+    76,
+    77,
+    80,
+    81,
+    82,
+    82,
+    90,
+    91,
+    93,
+    93,
+    93,
+    93,
+    93,
+    93,
+    95,
+    100,
+    100,
+    103,
+    108,
+    111,
+    111,
+    111,
+    112,
+    113,
+    113,
+    114,
+    118,
+    125,
+    125,
+    126,
+    126,
+    129,
+    129,
+    131,
+    132,
+    136,
+    136,
+    141,
+    144,
+    147,
+    147,
+    148,
+    148,
+    150,
+    150,
+    150,
+    152,
+    157,
+    162,
+    162,
+    162,
+    164,
+    164,
+    165,
+    167,
+    168,
+    168,
+    169,
+    172,
+    175,
+    182,
+    183,
+    188,
+    192,
+    198,
+    202,
+    203,
+    204,
+    207,
+    222,
+    222,
+    222,
+    224,
+    224,
+    224,
+    225,
+    225,
+    232,
+    236,
+    238,
+    242,
+    243,
+    244,
+    250,
+    255,
+    261,
+    266,
+    268,
+    300,
+    301,
+    328,
+    343
+   ],
+   "episodes_past_knee": 75,
+   "frac_past_knee": 0.625,
+   "turns_past_knee": 49100,
+   "turns": 216619,
+   "max_price_observed": 276,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  },
+  {
+   "corpus": "field",
+   "item": "MELON",
+   "knee": 300,
+   "episodes": 120,
+   "deepest_scarcity": 11,
+   "median_scarcity": 11,
+   "p75_scarcity": 11,
+   "p90_scarcity": 11,
+   "scarcity_by_episode": [
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11
+   ],
+   "episodes_past_knee": 0,
+   "frac_past_knee": 0.0,
+   "turns_past_knee": 0,
+   "turns": 216619,
+   "max_price_observed": 272,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  },
+  {
+   "corpus": "field",
+   "item": "EGG",
+   "knee": 332,
+   "episodes": 120,
+   "deepest_scarcity": 678,
+   "median_scarcity": 228,
+   "p75_scarcity": 336,
+   "p90_scarcity": 426,
+   "scarcity_by_episode": [
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    66,
+    66,
+    84,
+    102,
+    102,
+    102,
+    102,
+    102,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    120,
+    138,
+    138,
+    138,
+    156,
+    156,
+    156,
+    156,
+    156,
+    156,
+    156,
+    156,
+    174,
+    174,
+    174,
+    174,
+    174,
+    174,
+    192,
+    192,
+    192,
+    192,
+    192,
+    192,
+    210,
+    210,
+    210,
+    210,
+    228,
+    228,
+    228,
+    228,
+    228,
+    228,
+    228,
+    228,
+    228,
+    228,
+    228,
+    246,
+    246,
+    246,
+    246,
+    246,
+    246,
+    246,
+    264,
+    264,
+    264,
+    264,
+    264,
+    264,
+    282,
+    282,
+    282,
+    282,
+    300,
+    300,
+    300,
+    336,
+    336,
+    336,
+    336,
+    336,
+    336,
+    336,
+    336,
+    336,
+    336,
+    354,
+    372,
+    372,
+    390,
+    408,
+    408,
+    408,
+    408,
+    426,
+    426,
+    426,
+    426,
+    444,
+    462,
+    462,
+    480,
+    498,
+    516,
+    516,
+    552,
+    678
+   ],
+   "episodes_past_knee": 31,
+   "frac_past_knee": 0.25833333333333336,
+   "turns_past_knee": 7110,
+   "turns": 216619,
+   "max_price_observed": 265,
+   "price_at_deepest_1326": 91,
+   "price_at_deepest_1327": 265
+  },
+  {
+   "corpus": "field",
+   "item": "MILK",
+   "knee": 122,
+   "episodes": 120,
+   "deepest_scarcity": 253,
+   "median_scarcity": 29,
+   "p75_scarcity": 50,
+   "p90_scarcity": 93,
+   "scarcity_by_episode": [
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9,
+    10,
+    14,
+    14,
+    22,
+    22,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    24,
+    24,
+    24,
+    24,
+    27,
+    27,
+    27,
+    27,
+    27,
+    27,
+    32,
+    32,
+    32,
+    32,
+    33,
+    33,
+    33,
+    34,
+    37,
+    40,
+    40,
+    41,
+    41,
+    41,
+    41,
+    41,
+    42,
+    42,
+    42,
+    45,
+    45,
+    45,
+    45,
+    46,
+    46,
+    46,
+    50,
+    50,
+    50,
+    50,
+    50,
+    51,
+    51,
+    51,
+    52,
+    52,
+    52,
+    55,
+    62,
+    68,
+    68,
+    69,
+    69,
+    70,
+    84,
+    86,
+    90,
+    93,
+    94,
+    99,
+    103,
+    104,
+    110,
+    110,
+    120,
+    147,
+    152,
+    153,
+    203,
+    253
+   ],
+   "episodes_past_knee": 5,
+   "frac_past_knee": 0.041666666666666664,
+   "turns_past_knee": 2231,
+   "turns": 216619,
+   "max_price_observed": 298,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  },
+  {
+   "corpus": "field",
+   "item": "WOOL",
+   "knee": 105,
+   "episodes": 120,
+   "deepest_scarcity": 608,
+   "median_scarcity": 7,
+   "p75_scarcity": 89,
+   "p90_scarcity": 250,
+   "scarcity_by_episode": [
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    8,
+    11,
+    12,
+    14,
+    24,
+    28,
+    34,
+    42,
+    43,
+    46,
+    50,
+    50,
+    51,
+    53,
+    54,
+    56,
+    58,
+    70,
+    86,
+    86,
+    89,
+    89,
+    102,
+    105,
+    107,
+    107,
+    113,
+    118,
+    120,
+    127,
+    138,
+    143,
+    163,
+    167,
+    179,
+    179,
+    191,
+    194,
+    236,
+    250,
+    270,
+    302,
+    316,
+    339,
+    339,
+    352,
+    420,
+    430,
+    430,
+    446,
+    466,
+    608
+   ],
+   "episodes_past_knee": 28,
+   "frac_past_knee": 0.23333333333333334,
+   "turns_past_knee": 18205,
+   "turns": 216619,
+   "max_price_observed": 255,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  },
+  {
+   "corpus": "field",
+   "item": "FERTILIZER",
+   "knee": 200,
+   "episodes": 120,
+   "deepest_scarcity": 0,
+   "median_scarcity": 0,
+   "p75_scarcity": 0,
+   "p90_scarcity": 0,
+   "scarcity_by_episode": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "episodes_past_knee": 0,
+   "frac_past_knee": 0.0,
+   "turns_past_knee": 0,
+   "turns": 216619,
+   "max_price_observed": 100,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  },
+  {
+   "corpus": "ours",
+   "item": "WHEAT",
+   "knee": 400,
+   "episodes": 40,
+   "deepest_scarcity": 644,
+   "median_scarcity": 383,
+   "p75_scarcity": 452,
+   "p90_scarcity": 550,
+   "scarcity_by_episode": [
+    243,
+    247,
+    247,
+    255,
+    265,
+    269,
+    287,
+    294,
+    297,
+    305,
+    315,
+    317,
+    323,
+    340,
+    348,
+    353,
+    363,
+    367,
+    378,
+    381,
+    386,
+    398,
+    421,
+    424,
+    427,
+    439,
+    442,
+    445,
+    446,
+    452,
+    483,
+    518,
+    519,
+    541,
+    542,
+    550,
+    558,
+    594,
+    604,
+    644
+   ],
+   "episodes_past_knee": 18,
+   "frac_past_knee": 0.45,
+   "turns_past_knee": 6307,
+   "turns": 58780,
+   "max_price_observed": 50,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  },
+  {
+   "corpus": "ours",
+   "item": "CARROT",
+   "knee": 450,
+   "episodes": 40,
+   "deepest_scarcity": 786,
+   "median_scarcity": 345,
+   "p75_scarcity": 480,
+   "p90_scarcity": 642,
+   "scarcity_by_episode": [
+    30,
+    30,
+    30,
+    30,
+    30,
+    66,
+    84,
+    120,
+    120,
+    138,
+    138,
+    174,
+    210,
+    246,
+    246,
+    318,
+    318,
+    318,
+    336,
+    336,
+    354,
+    354,
+    354,
+    372,
+    390,
+    390,
+    408,
+    408,
+    480,
+    480,
+    498,
+    570,
+    588,
+    606,
+    642,
+    642,
+    678,
+    696,
+    732,
+    786
+   ],
+   "episodes_past_knee": 12,
+   "frac_past_knee": 0.3,
+   "turns_past_knee": 3294,
+   "turns": 58780,
+   "max_price_observed": 252,
+   "price_at_deepest_1326": 43,
+   "price_at_deepest_1327": 252
+  },
+  {
+   "corpus": "ours",
+   "item": "TOMATO",
+   "knee": 200,
+   "episodes": 40,
+   "deepest_scarcity": 570,
+   "median_scarcity": 192,
+   "p75_scarcity": 282,
+   "p90_scarcity": 444,
+   "scarcity_by_episode": [
+    30,
+    30,
+    30,
+    30,
+    30,
+    30,
+    66,
+    66,
+    66,
+    102,
+    102,
+    138,
+    138,
+    138,
+    138,
+    138,
+    138,
+    156,
+    174,
+    192,
+    192,
+    228,
+    246,
+    246,
+    246,
+    264,
+    264,
+    282,
+    282,
+    282,
+    300,
+    318,
+    390,
+    408,
+    426,
+    444,
+    462,
+    498,
+    516,
+    570
+   ],
+   "episodes_past_knee": 19,
+   "frac_past_knee": 0.475,
+   "turns_past_knee": 7400,
+   "turns": 58780,
+   "max_price_observed": 786,
+   "price_at_deepest_1326": 128,
+   "price_at_deepest_1327": 786
+  },
+  {
+   "corpus": "ours",
+   "item": "STRAWBERRY",
+   "knee": 100,
+   "episodes": 40,
+   "deepest_scarcity": 226,
+   "median_scarcity": 107,
+   "p75_scarcity": 148,
+   "p90_scarcity": 184,
+   "scarcity_by_episode": [
+    24,
+    40,
+    42,
+    49,
+    49,
+    60,
+    60,
+    60,
+    67,
+    76,
+    84,
+    85,
+    88,
+    94,
+    94,
+    94,
+    94,
+    100,
+    103,
+    103,
+    112,
+    112,
+    118,
+    119,
+    121,
+    121,
+    121,
+    130,
+    136,
+    148,
+    156,
+    157,
+    157,
+    175,
+    175,
+    184,
+    184,
+    194,
+    211,
+    226
+   ],
+   "episodes_past_knee": 22,
+   "frac_past_knee": 0.55,
+   "turns_past_knee": 5957,
+   "turns": 58780,
+   "max_price_observed": 246,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  },
+  {
+   "corpus": "ours",
+   "item": "MELON",
+   "knee": 300,
+   "episodes": 40,
+   "deepest_scarcity": 11,
+   "median_scarcity": 11,
+   "p75_scarcity": 11,
+   "p90_scarcity": 11,
+   "scarcity_by_episode": [
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11,
+    11
+   ],
+   "episodes_past_knee": 0,
+   "frac_past_knee": 0.0,
+   "turns_past_knee": 0,
+   "turns": 58780,
+   "max_price_observed": 272,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  },
+  {
+   "corpus": "ours",
+   "item": "EGG",
+   "knee": 332,
+   "episodes": 40,
+   "deepest_scarcity": 570,
+   "median_scarcity": 156,
+   "p75_scarcity": 264,
+   "p90_scarcity": 372,
+   "scarcity_by_episode": [
+    30,
+    30,
+    66,
+    66,
+    66,
+    66,
+    84,
+    84,
+    102,
+    102,
+    102,
+    102,
+    120,
+    120,
+    120,
+    120,
+    138,
+    138,
+    156,
+    156,
+    156,
+    174,
+    192,
+    192,
+    210,
+    210,
+    228,
+    246,
+    264,
+    264,
+    282,
+    282,
+    300,
+    300,
+    336,
+    372,
+    390,
+    390,
+    498,
+    570
+   ],
+   "episodes_past_knee": 6,
+   "frac_past_knee": 0.15,
+   "turns_past_knee": 1331,
+   "turns": 58780,
+   "max_price_observed": 167,
+   "price_at_deepest_1326": 84,
+   "price_at_deepest_1327": 167
+  },
+  {
+   "corpus": "ours",
+   "item": "MILK",
+   "knee": 122,
+   "episodes": 40,
+   "deepest_scarcity": 358,
+   "median_scarcity": 54,
+   "p75_scarcity": 72,
+   "p90_scarcity": 139,
+   "scarcity_by_episode": [
+    9,
+    9,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    28,
+    28,
+    35,
+    35,
+    35,
+    40,
+    40,
+    46,
+    53,
+    56,
+    64,
+    69,
+    69,
+    69,
+    71,
+    71,
+    71,
+    71,
+    72,
+    92,
+    107,
+    107,
+    107,
+    130,
+    139,
+    181,
+    254,
+    268,
+    358
+   ],
+   "episodes_past_knee": 6,
+   "frac_past_knee": 0.15,
+   "turns_past_knee": 3510,
+   "turns": 58780,
+   "max_price_observed": 324,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  },
+  {
+   "corpus": "ours",
+   "item": "WOOL",
+   "knee": 105,
+   "episodes": 40,
+   "deepest_scarcity": 847,
+   "median_scarcity": 28,
+   "p75_scarcity": 199,
+   "p90_scarcity": 271,
+   "scarcity_by_episode": [
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    50,
+    54,
+    55,
+    82,
+    117,
+    117,
+    163,
+    164,
+    199,
+    199,
+    200,
+    200,
+    203,
+    204,
+    235,
+    271,
+    307,
+    347,
+    574,
+    847
+   ],
+   "episodes_past_knee": 16,
+   "frac_past_knee": 0.4,
+   "turns_past_knee": 7872,
+   "turns": 58780,
+   "max_price_observed": 258,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  },
+  {
+   "corpus": "ours",
+   "item": "FERTILIZER",
+   "knee": 200,
+   "episodes": 40,
+   "deepest_scarcity": 0,
+   "median_scarcity": 0,
+   "p75_scarcity": 0,
+   "p90_scarcity": 0,
+   "scarcity_by_episode": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "episodes_past_knee": 0,
+   "frac_past_knee": 0.0,
+   "turns_past_knee": 0,
+   "turns": 58780,
+   "max_price_observed": 100,
+   "price_at_deepest_1326": null,
+   "price_at_deepest_1327": null
+  }
+ ],
+ "reprice_value": [
+  {
+   "corpus": "field",
+   "item": "CARROT",
+   "at": "median_scarcity",
+   "scarcity": 316,
+   "units": 100,
+   "knee": 450,
+   "revenue_1326": 4126,
+   "revenue_1327": 5572,
+   "delta": 1446,
+   "ratio": 1.3504604944255938
+  },
+  {
+   "corpus": "field",
+   "item": "CARROT",
+   "at": "p75_scarcity",
+   "scarcity": 468,
+   "units": 100,
+   "knee": 450,
+   "revenue_1326": 4200,
+   "revenue_1327": 6758,
+   "delta": 2558,
+   "ratio": 1.609047619047619
+  },
+  {
+   "corpus": "field",
+   "item": "CARROT",
+   "at": "p90_scarcity",
+   "scarcity": 572,
+   "units": 100,
+   "knee": 450,
+   "revenue_1326": 4200,
+   "revenue_1327": 8408,
+   "delta": 4208,
+   "ratio": 2.001904761904762
+  },
+  {
+   "corpus": "field",
+   "item": "CARROT",
+   "at": "deepest_scarcity",
+   "scarcity": 968,
+   "units": 100,
+   "knee": 450,
+   "revenue_1326": 4300,
+   "revenue_1327": 41109,
+   "delta": 36809,
+   "ratio": 9.560232558139536
+  },
+  {
+   "corpus": "field",
+   "item": "TOMATO",
+   "at": "median_scarcity",
+   "scarcity": 219,
+   "units": 100,
+   "knee": 200,
+   "revenue_1326": 8034,
+   "revenue_1327": 8046,
+   "delta": 12,
+   "ratio": 1.001493651979089
+  },
+  {
+   "corpus": "field",
+   "item": "TOMATO",
+   "at": "p75_scarcity",
+   "scarcity": 300,
+   "units": 100,
+   "knee": 200,
+   "revenue_1326": 9006,
+   "revenue_1327": 10633,
+   "delta": 1627,
+   "ratio": 1.1806573395514102
+  },
+  {
+   "corpus": "field",
+   "item": "TOMATO",
+   "at": "p90_scarcity",
+   "scarcity": 390,
+   "units": 100,
+   "knee": 200,
+   "revenue_1326": 10086,
+   "revenue_1327": 19961,
+   "delta": 9875,
+   "ratio": 1.9790799127503471
+  },
+  {
+   "corpus": "field",
+   "item": "TOMATO",
+   "at": "deepest_scarcity",
+   "scarcity": 660,
+   "units": 100,
+   "knee": 200,
+   "revenue_1326": 13326,
+   "revenue_1327": 94609,
+   "delta": 81283,
+   "ratio": 7.09957976887288
+  },
+  {
+   "corpus": "field",
+   "item": "EGG",
+   "at": "median_scarcity",
+   "scarcity": 228,
+   "units": 100,
+   "knee": 332,
+   "revenue_1326": 6075,
+   "revenue_1327": 6075,
+   "delta": 0,
+   "ratio": 1.0
+  },
+  {
+   "corpus": "field",
+   "item": "EGG",
+   "at": "p75_scarcity",
+   "scarcity": 336,
+   "units": 100,
+   "knee": 332,
+   "revenue_1326": 6726,
+   "revenue_1327": 6726,
+   "delta": 0,
+   "ratio": 1.0
+  },
+  {
+   "corpus": "field",
+   "item": "EGG",
+   "at": "p90_scarcity",
+   "scarcity": 426,
+   "units": 100,
+   "knee": 332,
+   "revenue_1326": 7268,
+   "revenue_1327": 7677,
+   "delta": 409,
+   "ratio": 1.056274078150798
+  },
+  {
+   "corpus": "field",
+   "item": "EGG",
+   "at": "deepest_scarcity",
+   "scarcity": 678,
+   "units": 100,
+   "knee": 332,
+   "revenue_1326": 8786,
+   "revenue_1327": 21666,
+   "delta": 12880,
+   "ratio": 2.4659685863874348
+  },
+  {
+   "corpus": "ours",
+   "item": "CARROT",
+   "at": "median_scarcity",
+   "scarcity": 345,
+   "units": 100,
+   "knee": 450,
+   "revenue_1326": 4155,
+   "revenue_1327": 5799,
+   "delta": 1644,
+   "ratio": 1.3956678700361012
+  },
+  {
+   "corpus": "ours",
+   "item": "CARROT",
+   "at": "p75_scarcity",
+   "scarcity": 480,
+   "units": 100,
+   "knee": 450,
+   "revenue_1326": 4200,
+   "revenue_1327": 6862,
+   "delta": 2662,
+   "ratio": 1.6338095238095238
+  },
+  {
+   "corpus": "ours",
+   "item": "CARROT",
+   "at": "p90_scarcity",
+   "scarcity": 642,
+   "units": 100,
+   "knee": 450,
+   "revenue_1326": 4200,
+   "revenue_1327": 11030,
+   "delta": 6830,
+   "ratio": 2.626190476190476
+  },
+  {
+   "corpus": "ours",
+   "item": "CARROT",
+   "at": "deepest_scarcity",
+   "scarcity": 786,
+   "units": 100,
+   "knee": 450,
+   "revenue_1326": 4290,
+   "revenue_1327": 20690,
+   "delta": 16400,
+   "ratio": 4.822843822843823
+  },
+  {
+   "corpus": "ours",
+   "item": "TOMATO",
+   "at": "median_scarcity",
+   "scarcity": 192,
+   "units": 100,
+   "knee": 200,
+   "revenue_1326": 7710,
+   "revenue_1327": 7710,
+   "delta": 0,
+   "ratio": 1.0
+  },
+  {
+   "corpus": "ours",
+   "item": "TOMATO",
+   "at": "p75_scarcity",
+   "scarcity": 282,
+   "units": 100,
+   "knee": 200,
+   "revenue_1326": 8790,
+   "revenue_1327": 9688,
+   "delta": 898,
+   "ratio": 1.1021615472127417
+  },
+  {
+   "corpus": "ours",
+   "item": "TOMATO",
+   "at": "p90_scarcity",
+   "scarcity": 444,
+   "units": 100,
+   "knee": 200,
+   "revenue_1326": 10734,
+   "revenue_1327": 29291,
+   "delta": 18557,
+   "ratio": 2.7288056642444567
+  },
+  {
+   "corpus": "ours",
+   "item": "TOMATO",
+   "at": "deepest_scarcity",
+   "scarcity": 570,
+   "units": 100,
+   "knee": 200,
+   "revenue_1326": 12246,
+   "revenue_1327": 61951,
+   "delta": 49705,
+   "ratio": 5.058876367793565
+  },
+  {
+   "corpus": "ours",
+   "item": "EGG",
+   "at": "median_scarcity",
+   "scarcity": 156,
+   "units": 100,
+   "knee": 332,
+   "revenue_1326": 5641,
+   "revenue_1327": 5641,
+   "delta": 0,
+   "ratio": 1.0
+  },
+  {
+   "corpus": "ours",
+   "item": "EGG",
+   "at": "p75_scarcity",
+   "scarcity": 264,
+   "units": 100,
+   "knee": 332,
+   "revenue_1326": 6292,
+   "revenue_1327": 6292,
+   "delta": 0,
+   "ratio": 1.0
+  },
+  {
+   "corpus": "ours",
+   "item": "EGG",
+   "at": "p90_scarcity",
+   "scarcity": 372,
+   "units": 100,
+   "knee": 332,
+   "revenue_1326": 6943,
+   "revenue_1327": 6976,
+   "delta": 33,
+   "ratio": 1.0047529886216333
+  },
+  {
+   "corpus": "ours",
+   "item": "EGG",
+   "at": "deepest_scarcity",
+   "scarcity": 570,
+   "units": 100,
+   "knee": 332,
+   "revenue_1326": 8135,
+   "revenue_1327": 13413,
+   "delta": 5278,
+   "ratio": 1.64880147510756
+  }
+ ],
+ "corpora": {
+  "field": [
+   {
+    "episode": "365bc6f6-954b-11f1-981a-0242ac130203",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "\u30ab\u30ef\u30b7\u30ae"
+    ]
+   },
+   {
+    "episode": "049b3924-9552-11f1-a4b1-0242ac130203",
+    "teams": [
+     "RuiFSPinto",
+     "\u30ab\u30ef\u30b7\u30ae"
+    ]
+   },
+   {
+    "episode": "2a54fd0c-9558-11f1-b115-0242ac130204",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "Michael McGrain"
+    ]
+   },
+   {
+    "episode": "c4ad5f3e-955d-11f1-91a3-0242ac130204",
+    "teams": [
+     "Epiphany_Thu",
+     "\u30ab\u30ef\u30b7\u30ae"
+    ]
+   },
+   {
+    "episode": "58705848-9563-11f1-902e-0242ac130203",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "lucaskna"
+    ]
+   },
+   {
+    "episode": "0df5c526-956a-11f1-93ec-0242ac130204",
+    "teams": [
+     "Teddy Tennant",
+     "\u30ab\u30ef\u30b7\u30ae"
+    ]
+   },
+   {
+    "episode": "a43418c6-956f-11f1-8117-0242ac130203",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "Hajime Tamura"
+    ]
+   },
+   {
+    "episode": "66c99f7e-95a6-11f1-bc03-0242ac130202",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "Trex"
+    ]
+   },
+   {
+    "episode": "aa1cf628-95d2-11f1-a6e3-0242ac130204",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "MilanJoshi"
+    ]
+   },
+   {
+    "episode": "05bdd33e-95f2-11f1-b660-0242ac130204",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "Syed Muhammad Gillani"
+    ]
+   },
+   {
+    "episode": "d1d276d8-961e-11f1-9c75-0242ac130203",
+    "teams": [
+     "Steve421471",
+     "\u30ab\u30ef\u30b7\u30ae"
+    ]
+   },
+   {
+    "episode": "0c356dea-965f-11f1-bb7f-0242ac130203",
+    "teams": [
+     "Hamed Seyed-allaei",
+     "\u30ab\u30ef\u30b7\u30ae"
+    ]
+   },
+   {
+    "episode": "029d4c84-96a6-11f1-81f4-0242ac130203",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "researchstudio.site"
+    ]
+   },
+   {
+    "episode": "daad9f18-96f9-11f1-9013-0242ac130204",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "Yusuke Hayashi"
+    ]
+   },
+   {
+    "episode": "da4e84da-976a-11f1-b43e-0242ac130203",
+    "teams": [
+     "researchstudio.site",
+     "\u30ab\u30ef\u30b7\u30ae"
+    ]
+   },
+   {
+    "episode": "f467d752-97b2-11f1-b8be-0242ac130202",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "Furious Monk"
+    ]
+   },
+   {
+    "episode": "fe0ba704-980f-11f1-9600-0242ac130202",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "researchstudio.site"
+    ]
+   },
+   {
+    "episode": "aafc5c6e-984d-11f1-b392-0242ac130203",
+    "teams": [
+     "\u30ab\u30ef\u30b7\u30ae",
+     "Utkarsh #2"
+    ]
+   },
+   {
+    "episode": "b92558d4-9890-11f1-ade0-0242ac130202",
+    "teams": [
+     "Thomas Tschinkel",
+     "\u30ab\u30ef\u30b7\u30ae"
+    ]
+   },
+   {
+    "episode": "488f6838-96ad-11f1-96ba-0242ac130204",
+    "teams": [
+     "\u5cb8\u672c\u6e67\u58eb\u90ce",
+     "cloud farm"
+    ]
+   },
+   {
+    "episode": "6c01bee6-96b3-11f1-b174-0242ac130202",
+    "teams": [
+     "cloud farm",
+     "Rikito Kanda"
+    ]
+   },
+   {
+    "episode": "0382e1be-96b9-11f1-b007-0242ac130204",
+    "teams": [
+     "Masashi Nishimoto",
+     "cloud farm"
+    ]
+   },
+   {
+    "episode": "b93dedb8-96bf-11f1-a21b-0242ac130202",
+    "teams": [
+     "vladee",
+     "cloud farm"
+    ]
+   },
+   {
+    "episode": "c0d0dbf8-96c4-11f1-95c9-0242ac130203",
+    "teams": [
+     "cloud farm",
+     "StrugglerK"
+    ]
+   },
+   {
+    "episode": "e652d11e-96ca-11f1-b990-0242ac130203",
+    "teams": [
+     "Kaito Fukami",
+     "cloud farm"
+    ]
+   },
+   {
+    "episode": "d62eb156-96e6-11f1-8a8f-0242ac130202",
+    "teams": [
+     "Yubo WANG",
+     "cloud farm"
+    ]
+   },
+   {
+    "episode": "43a29abc-971a-11f1-8883-0242ac130203",
+    "teams": [
+     "lol-hiker",
+     "cloud farm"
+    ]
+   },
+   {
+    "episode": "934b3dd4-974d-11f1-871b-0242ac130202",
+    "teams": [
+     "\u0418\u0422\u041c\u041e\u041d\u0418 \u0410\u041d\u0410\u041b\u042c\u041d\u0418\u041a\u0418 AI B2B67 SaaS",
+     "MD. Nazmus Sakib Anik"
+    ]
+   },
+   {
+    "episode": "e7ba5996-976f-11f1-adca-0242ac130202",
+    "teams": [
+     "\u3081\u3081\u3063\u3061",
+     "\u0418\u0422\u041c\u041e\u041d\u0418 \u0410\u041d\u0410\u041b\u042c\u041d\u0418\u041a\u0418 AI B2B67 SaaS"
+    ]
+   },
+   {
+    "episode": "1f97d83a-97a6-11f1-8208-0242ac130203",
+    "teams": [
+     "\u3081\u3081\u3063\u3061",
+     "\u0418\u0422\u041c\u041e\u041d\u0418 \u0410\u041d\u0410\u041b\u042c\u041d\u0418\u041a\u0418 AI B2B67 SaaS"
+    ]
+   },
+   {
+    "episode": "b66eb538-97e4-11f1-b6f3-0242ac130203",
+    "teams": [
+     "\u0418\u0422\u041c\u041e\u041d\u0418 \u0410\u041d\u0410\u041b\u042c\u041d\u0418\u041a\u0418 AI B2B67 SaaS",
+     "Utkarsh #2"
+    ]
+   },
+   {
+    "episode": "fc73941a-980f-11f1-af47-0242ac130202",
+    "teams": [
+     "Ignat",
+     "\u0418\u0422\u041c\u041e\u041d\u0418 \u0410\u041d\u0410\u041b\u042c\u041d\u0418\u041a\u0418 AI B2B67 SaaS"
+    ]
+   },
+   {
+    "episode": "9e125ee0-983e-11f1-ac19-0242ac130202",
+    "teams": [
+     "\u0418\u0422\u041c\u041e\u041d\u0418 \u0410\u041d\u0410\u041b\u042c\u041d\u0418\u041a\u0418 AI B2B67 SaaS",
+     "Ignat"
+    ]
+   },
+   {
+    "episode": "8b95d33e-985f-11f1-b7e0-0242ac130202",
+    "teams": [
+     "Junichiro Morita",
+     "\u0418\u0422\u041c\u041e\u041d\u0418 \u0410\u041d\u0410\u041b\u042c\u041d\u0418\u041a\u0418 AI B2B67 SaaS"
+    ]
+   },
+   {
+    "episode": "b3ed047a-988b-11f1-ad3c-0242ac130202",
+    "teams": [
+     "\u0418\u0422\u041c\u041e\u041d\u0418 \u0410\u041d\u0410\u041b\u042c\u041d\u0418\u041a\u0418 AI B2B67 SaaS",
+     "jasonstillchasin"
+    ]
+   },
+   {
+    "episode": "99ae1df4-96e4-11f1-ab9f-0242ac130203",
+    "teams": [
+     "This cat is called Fumi",
+     "Mohamed abdelrazik"
+    ]
+   },
+   {
+    "episode": "c296ad8e-96ea-11f1-b177-0242ac130203",
+    "teams": [
+     "Mohamed abdelrazik",
+     "RuiFSPinto"
+    ]
+   },
+   {
+    "episode": "74b27dc6-96f1-11f1-933a-0242ac130202",
+    "teams": [
+     "Kaito Fukami",
+     "Mohamed abdelrazik"
+    ]
+   },
+   {
+    "episode": "098c2fdc-96f7-11f1-a3b7-0242ac130203",
+    "teams": [
+     "Kers Aoyagi",
+     "Mohamed abdelrazik"
+    ]
+   },
+   {
+    "episode": "a243b7f4-96fc-11f1-bce5-0242ac130203",
+    "teams": [
+     "MalelizarazoP",
+     "Mohamed abdelrazik"
+    ]
+   },
+   {
+    "episode": "c7e9ee50-9702-11f1-9e44-0242ac130203",
+    "teams": [
+     "MD. Nazmus Sakib Anik",
+     "Mohamed abdelrazik"
+    ]
+   },
+   {
+    "episode": "d82c715e-972d-11f1-882e-0242ac130203",
+    "teams": [
+     "Suda",
+     "Mohamed abdelrazik"
+    ]
+   },
+   {
+    "episode": "dd07648a-976a-11f1-9131-0242ac130203",
+    "teams": [
+     "Mohamed abdelrazik",
+     "\u0418\u0422\u041c\u041e\u041d\u0418 \u0410\u041d\u0410\u041b\u042c\u041d\u0418\u041a\u0418 AI B2B67 SaaS"
+    ]
+   },
+   {
+    "episode": "ba967386-979d-11f1-9734-0242ac130204",
+    "teams": [
+     "researchstudio.site",
+     "Mohamed abdelrazik"
+    ]
+   },
+   {
+    "episode": "13f71d22-97d5-11f1-b1d2-0242ac130202",
+    "teams": [
+     "researchstudio.site",
+     "Mohamed abdelrazik"
+    ]
+   },
+   {
+    "episode": "6743e508-981d-11f1-92cd-0242ac130203",
+    "teams": [
+     "Suda",
+     "Mohamed abdelrazik"
+    ]
+   },
+   {
+    "episode": "326cb2b6-9849-11f1-a3fb-0242ac130204",
+    "teams": [
+     "Mohamed abdelrazik",
+     "researchstudio.site"
+    ]
+   },
+   {
+    "episode": "22276368-9878-11f1-a6ac-0242ac130204",
+    "teams": [
+     "Mohamed abdelrazik",
+     "MrKiwi"
+    ]
+   },
+   {
+    "episode": "f84bafae-98ae-11f1-a97a-0242ac130203",
+    "teams": [
+     "Tomas Escobar Rivera",
+     "Mohamed abdelrazik"
+    ]
+   },
+   {
+    "episode": "d39daf58-971a-11f1-9230-0242ac130203",
+    "teams": [
+     "Yonatan Nemtsov",
+     "Masataka Suzuki"
+    ]
+   },
+   {
+    "episode": "6a0d7630-9720-11f1-8e6b-0242ac130202",
+    "teams": [
+     "Masataka Suzuki",
+     "Tran H Hoang"
+    ]
+   },
+   {
+    "episode": "90517a5c-9726-11f1-a1ea-0242ac130203",
+    "teams": [
+     "Sakthei",
+     "Masataka Suzuki"
+    ]
+   },
+   {
+    "episode": "26eeb380-972c-11f1-85a3-0242ac130203",
+    "teams": [
+     "Filip Strza\u0142ka",
+     "Masataka Suzuki"
+    ]
+   },
+   {
+    "episode": "4b9caf92-9732-11f1-86e1-0242ac130204",
+    "teams": [
+     "Masataka Suzuki",
+     "yotsutose"
+    ]
+   },
+   {
+    "episode": "7795e25c-9738-11f1-bf46-0242ac130202",
+    "teams": [
+     "Masataka Suzuki",
+     "Hak"
+    ]
+   },
+   {
+    "episode": "47b4e5f8-9754-11f1-bb42-0242ac130202",
+    "teams": [
+     "Patrick Chan",
+     "Masataka Suzuki"
+    ]
+   },
+   {
+    "episode": "c3bbae4c-976e-11f1-80d8-0242ac130203",
+    "teams": [
+     "binghua_123",
+     "Masataka Suzuki"
+    ]
+   },
+   {
+    "episode": "2b2eb39c-978a-11f1-b17e-0242ac130204",
+    "teams": [
+     "housssaamos",
+     "Masataka Suzuki"
+    ]
+   },
+   {
+    "episode": "f552a7d2-97b2-11f1-ab41-0242ac130204",
+    "teams": [
+     "Masataka Suzuki",
+     "Forrest"
+    ]
+   },
+   {
+    "episode": "30da7858-97e9-11f1-b47f-0242ac130203",
+    "teams": [
+     "Masataka Suzuki",
+     "Keisuke"
+    ]
+   },
+   {
+    "episode": "fa870d16-982e-11f1-9f9d-0242ac130202",
+    "teams": [
+     "Kiki",
+     "Masataka Suzuki"
+    ]
+   },
+   {
+    "episode": "f363cc7e-9854-11f1-842f-0242ac130202",
+    "teams": [
+     "Thomas Tschinkel",
+     "Masataka Suzuki"
+    ]
+   },
+   {
+    "episode": "fc06dd00-9884-11f1-b788-0242ac130202",
+    "teams": [
+     "Wufang Hong",
+     "Masataka Suzuki"
+    ]
+   },
+   {
+    "episode": "b58ea958-98ba-11f1-be20-0242ac130204",
+    "teams": [
+     "Dmitry Larko",
+     "Masataka Suzuki"
+    ]
+   },
+   {
+    "episode": "503b7ca4-977d-11f1-8fa5-0242ac130202",
+    "teams": [
+     "Jeki Wan Taufik",
+     "Raj Aryan"
+    ]
+   },
+   {
+    "episode": "78e34dac-9783-11f1-9d2f-0242ac130203",
+    "teams": [
+     "Jeki Wan Taufik",
+     "CornHub Premium"
+    ]
+   },
+   {
+    "episode": "0d6f4764-9789-11f1-a9c1-0242ac130202",
+    "teams": [
+     "tong00",
+     "Jeki Wan Taufik"
+    ]
+   },
+   {
+    "episode": "c2123496-978f-11f1-b01a-0242ac130202",
+    "teams": [
+     "Jeki Wan Taufik",
+     "Yvonne."
+    ]
+   },
+   {
+    "episode": "ea4abb58-9795-11f1-885c-0242ac130204",
+    "teams": [
+     "Victor @ Tufa Labs",
+     "Jeki Wan Taufik"
+    ]
+   },
+   {
+    "episode": "9ea80db6-979c-11f1-a7d7-0242ac130202",
+    "teams": [
+     "Ignat",
+     "Jeki Wan Taufik"
+    ]
+   },
+   {
+    "episode": "28a6d3f0-97be-11f1-ac8a-0242ac130204",
+    "teams": [
+     "Jeki Wan Taufik",
+     "Furious Monk"
+    ]
+   },
+   {
+    "episode": "d3775b96-97f6-11f1-a3fa-0242ac130203",
+    "teams": [
+     "Ignat",
+     "Jeki Wan Taufik"
+    ]
+   },
+   {
+    "episode": "f7b4bb9c-982e-11f1-a8a0-0242ac130202",
+    "teams": [
+     "Suda",
+     "Jeki Wan Taufik"
+    ]
+   },
+   {
+    "episode": "aa62b0ba-9860-11f1-a0f6-0242ac130202",
+    "teams": [
+     "Jeki Wan Taufik",
+     "Shadow"
+    ]
+   },
+   {
+    "episode": "ca686e14-9887-11f1-b30d-0242ac130204",
+    "teams": [
+     "Jeki Wan Taufik",
+     "Ignat"
+    ]
+   },
+   {
+    "episode": "a678d5c4-98b0-11f1-9bca-0242ac130203",
+    "teams": [
+     "Thomas Tschinkel",
+     "Jeki Wan Taufik"
+    ]
+   },
+   {
+    "episode": "9da3ca68-979c-11f1-b59a-0242ac130202",
+    "teams": [
+     "GUGUGAGA",
+     "ROBERT SSEBAMBULIDDE"
+    ]
+   },
+   {
+    "episode": "c4280414-97a2-11f1-8eca-0242ac130204",
+    "teams": [
+     "GUGUGAGA",
+     "Swachhith B"
+    ]
+   },
+   {
+    "episode": "5c4e39b6-97a8-11f1-a78b-0242ac130203",
+    "teams": [
+     "GUGUGAGA",
+     "tully_boss"
+    ]
+   },
+   {
+    "episode": "7f6d2456-97ae-11f1-ba63-0242ac130203",
+    "teams": [
+     "GUGUGAGA",
+     "Tagir Analyzes"
+    ]
+   },
+   {
+    "episode": "3209c2b2-97b5-11f1-9a26-0242ac130203",
+    "teams": [
+     "GUGUGAGA",
+     "Aman Prakash"
+    ]
+   },
+   {
+    "episode": "effd4720-97bb-11f1-a1fe-0242ac130202",
+    "teams": [
+     "GUGUGAGA",
+     "senkin13"
+    ]
+   },
+   {
+    "episode": "1f23ae62-97cc-11f1-aedf-0242ac130204",
+    "teams": [
+     "GUGUGAGA",
+     "shinamonmon"
+    ]
+   },
+   {
+    "episode": "f633fb9e-980a-11f1-bc37-0242ac130202",
+    "teams": [
+     "GUGUGAGA",
+     "Suda"
+    ]
+   },
+   {
+    "episode": "f9d8e24a-982e-11f1-88ec-0242ac130204",
+    "teams": [
+     "Epiphany_Thu",
+     "GUGUGAGA"
+    ]
+   },
+   {
+    "episode": "34348d80-9849-11f1-83d4-0242ac130203",
+    "teams": [
+     "GUGUGAGA",
+     "\u3081\u3081\u3063\u3061"
+    ]
+   },
+   {
+    "episode": "d9984ea2-986b-11f1-ac05-0242ac130204",
+    "teams": [
+     "GUGUGAGA",
+     "Suda"
+    ]
+   },
+   {
+    "episode": "e0f8a090-9896-11f1-9238-0242ac130203",
+    "teams": [
+     "Jeki Wan Taufik",
+     "GUGUGAGA"
+    ]
+   },
+   {
+    "episode": "c3cc5972-97c8-11f1-b452-0242ac130202",
+    "teams": [
+     "yutoAb",
+     "Kostiantyn Isaienkov"
+    ]
+   },
+   {
+    "episode": "e9af96f8-97ce-11f1-8e1c-0242ac130203",
+    "teams": [
+     "Kostiantyn Isaienkov",
+     "Nguy\u1ec5n H\u1eefu C\u00f4ng"
+    ]
+   },
+   {
+    "episode": "80559ad0-97d4-11f1-aaba-0242ac130203",
+    "teams": [
+     "Kostiantyn Isaienkov",
+     "ra5anchor"
+    ]
+   },
+   {
+    "episode": "376687ba-97db-11f1-9533-0242ac130204",
+    "teams": [
+     "Nealdarkdarkdark",
+     "Kostiantyn Isaienkov"
+    ]
+   },
+   {
+    "episode": "ea12195a-97e1-11f1-916d-0242ac130203",
+    "teams": [
+     "MalelizarazoP",
+     "Kostiantyn Isaienkov"
+    ]
+   },
+   {
+    "episode": "a35b883c-97e8-11f1-8d50-0242ac130203",
+    "teams": [
+     "Kostiantyn Isaienkov",
+     "Mengfei Li"
+    ]
+   },
+   {
+    "episode": "c5a6ddbe-97ee-11f1-a949-0242ac130202",
+    "teams": [
+     "Kostiantyn Isaienkov",
+     "GUGUGAGA"
+    ]
+   },
+   {
+    "episode": "9aaa608c-981a-11f1-9cd8-0242ac130204",
+    "teams": [
+     "Kostiantyn Isaienkov",
+     "Suda"
+    ]
+   },
+   {
+    "episode": "7a4c6b06-983c-11f1-8e8f-0242ac130204",
+    "teams": [
+     "Jeki Wan Taufik",
+     "Kostiantyn Isaienkov"
+    ]
+   },
+   {
+    "episode": "8b17476c-985f-11f1-912a-0242ac130203",
+    "teams": [
+     "Kostiantyn Isaienkov",
+     "Utkarsh #2"
+    ]
+   },
+   {
+    "episode": "0ae0fd2e-988f-11f1-9d18-0242ac130203",
+    "teams": [
+     "Thomas Tschinkel",
+     "Kostiantyn Isaienkov"
+    ]
+   },
+   {
+    "episode": "b0f5992c-97cc-11f1-80c3-0242ac130202",
+    "teams": [
+     "Utkarsh #2",
+     "Docker container"
+    ]
+   },
+   {
+    "episode": "43e9113c-97d2-11f1-aea2-0242ac130204",
+    "teams": [
+     "Soumalya Mandal",
+     "Utkarsh #2"
+    ]
+   },
+   {
+    "episode": "69e125fe-97d8-11f1-85db-0242ac130203",
+    "teams": [
+     "Utkarsh #2",
+     "ko9ma"
+    ]
+   },
+   {
+    "episode": "1e3eb920-97df-11f1-a386-0242ac130203",
+    "teams": [
+     "MtN",
+     "Utkarsh #2"
+    ]
+   },
+   {
+    "episode": "b66eb538-97e4-11f1-b6f3-0242ac130203",
+    "teams": [
+     "\u0418\u0422\u041c\u041e\u041d\u0418 \u0410\u041d\u0410\u041b\u042c\u041d\u0418\u041a\u0418 AI B2B67 SaaS",
+     "Utkarsh #2"
+    ]
+   },
+   {
+    "episode": "6d317052-97eb-11f1-90be-0242ac130203",
+    "teams": [
+     "Utkarsh #2",
+     "coolin666"
+    ]
+   },
+   {
+    "episode": "eae85536-97f2-11f1-8510-0242ac130204",
+    "teams": [
+     "MD. Nazmus Sakib Anik",
+     "Utkarsh #2"
+    ]
+   },
+   {
+    "episode": "9d663146-982b-11f1-9bb2-0242ac130204",
+    "teams": [
+     "researchstudio.site",
+     "Utkarsh #2"
+    ]
+   },
+   {
+    "episode": "2c2a3528-9857-11f1-b6d3-0242ac130202",
+    "teams": [
+     "Ueddy",
+     "Utkarsh #2"
+    ]
+   },
+   {
+    "episode": "242f51b6-9878-11f1-9460-0242ac130203",
+    "teams": [
+     "Ueddy",
+     "Utkarsh #2"
+    ]
+   },
+   {
+    "episode": "8e484890-98ab-11f1-99b0-0242ac130204",
+    "teams": [
+     "Utkarsh #2",
+     "MACvengers"
+    ]
+   },
+   {
+    "episode": "d24daa78-9840-11f1-99cb-0242ac130204",
+    "teams": [
+     "Aman Gupta",
+     "Junichiro Morita"
+    ]
+   },
+   {
+    "episode": "6b05ce44-9846-11f1-9e82-0242ac130202",
+    "teams": [
+     "Felis",
+     "Junichiro Morita"
+    ]
+   },
+   {
+    "episode": "1b613048-984d-11f1-9200-0242ac130203",
+    "teams": [
+     "Junichiro Morita",
+     "durgesh dere"
+    ]
+   },
+   {
+    "episode": "427d1d1c-9853-11f1-85b1-0242ac130203",
+    "teams": [
+     "Junichiro Morita",
+     "Nick Styles"
+    ]
+   },
+   {
+    "episode": "68b60bbe-9859-11f1-99d9-0242ac130204",
+    "teams": [
+     "Mengfei Li",
+     "Junichiro Morita"
+    ]
+   },
+   {
+    "episode": "6d86f086-985e-11f1-b149-0242ac130204",
+    "teams": [
+     "Junichiro Morita",
+     "\u5cb8\u672c\u6e67\u58eb\u90ce"
+    ]
+   },
+   {
+    "episode": "5252e268-9870-11f1-95d5-0242ac130204",
+    "teams": [
+     "Kostiantyn Isaienkov",
+     "Junichiro Morita"
+    ]
+   },
+   {
+    "episode": "f2e3c1a8-9892-11f1-946c-0242ac130204",
+    "teams": [
+     "Junichiro Morita",
+     "Mohamed abdelrazik"
+    ]
+   },
+   {
+    "episode": "82805dc6-9893-11f1-9efa-0242ac130202",
+    "teams": [
+     "Thomas Tschinkel",
+     "Lucky"
+    ]
+   },
+   {
+    "episode": "1a04d24e-9899-11f1-a684-0242ac130202",
+    "teams": [
+     "Tianfang Li",
+     "Thomas Tschinkel"
+    ]
+   }
+  ],
+  "ours": [
+   {
+    "episode": "92522233",
+    "opponent": "Sathwik Chinthakayala"
+   },
+   {
+    "episode": "92519330",
+    "opponent": "20237208_\u9ec4\u5955\u607a"
+   },
+   {
+    "episode": "92510973",
+    "opponent": "cloud farm"
+   },
+   {
+    "episode": "92508109",
+    "opponent": "ShiviWhivi"
+   },
+   {
+    "episode": "92506372",
+    "opponent": "ibrahim"
+   },
+   {
+    "episode": "92496074",
+    "opponent": "cracker_1_war"
+   },
+   {
+    "episode": "92494239",
+    "opponent": "Sergey Bryansky"
+   },
+   {
+    "episode": "92486881",
+    "opponent": "22307110257-\u5f20\u626c"
+   },
+   {
+    "episode": "92479488",
+    "opponent": "Amine zeDDouk"
+   },
+   {
+    "episode": "92471900",
+    "opponent": "Mika Kohinata68"
+   },
+   {
+    "episode": "92465409",
+    "opponent": "wen chong yu"
+   },
+   {
+    "episode": "92464368",
+    "opponent": "MaxChen303"
+   },
+   {
+    "episode": "92457778",
+    "opponent": "Deniz"
+   },
+   {
+    "episode": "92457896",
+    "opponent": "Muhammad Imran"
+   },
+   {
+    "episode": "92456923",
+    "opponent": "ichnixhelle"
+   },
+   {
+    "episode": "92455124",
+    "opponent": "Sayandeep Ghosh"
+   },
+   {
+    "episode": "92454111",
+    "opponent": "Ali"
+   },
+   {
+    "episode": "92453214",
+    "opponent": "yasu"
+   },
+   {
+    "episode": "92453178",
+    "opponent": "sky machine"
+   },
+   {
+    "episode": "92448749",
+    "opponent": "Junichiro Morita"
+   },
+   {
+    "episode": "92446823",
+    "opponent": "Andrey Naymushin"
+   },
+   {
+    "episode": "92444952",
+    "opponent": "Yent\u00fcr"
+   },
+   {
+    "episode": "92443300",
+    "opponent": "Shadow"
+   },
+   {
+    "episode": "92434847",
+    "opponent": "HireMe"
+   },
+   {
+    "episode": "92433725",
+    "opponent": "Ahmet Erdem Pamuk"
+   },
+   {
+    "episode": "92431884",
+    "opponent": "Yent\u00fcr"
+   },
+   {
+    "episode": "92423651",
+    "opponent": "Jince"
+   },
+   {
+    "episode": "92421884",
+    "opponent": "Mohamed abdelrazik"
+   },
+   {
+    "episode": "92420951",
+    "opponent": "Jacob Alstrup"
+   },
+   {
+    "episode": "92421056",
+    "opponent": "Ankit Hemant Lade"
+   },
+   {
+    "episode": "92418142",
+    "opponent": "Araik Tamazian"
+   },
+   {
+    "episode": "92414365",
+    "opponent": "Sean Zhang"
+   },
+   {
+    "episode": "92412549",
+    "opponent": "Dandan Li"
+   },
+   {
+    "episode": "92409701",
+    "opponent": "kevin park"
+   },
+   {
+    "episode": "92409676",
+    "opponent": "CoorDi"
+   },
+   {
+    "episode": "92407934",
+    "opponent": "Salem Ali"
+   },
+   {
+    "episode": "92406865",
+    "opponent": "ominteam"
+   },
+   {
+    "episode": "92398496",
+    "opponent": "Dimas Pasha Akrilian"
+   },
+   {
+    "episode": "92397651",
+    "opponent": "Kers Aoyagi"
+   },
+   {
+    "episode": "92393037",
+    "opponent": "sukeke"
+   }
+  ]
+ }
+}

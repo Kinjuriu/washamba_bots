@@ -1,0 +1,38 @@
+10/240 games
+20/240 games
+30/240 games
+40/240 games
+50/240 games
+60/240 games
+70/240 games
+80/240 games
+90/240 games
+100/240 games
+110/240 games
+120/240 games
+130/240 games
+140/240 games
+150/240 games
+160/240 games
+170/240 games
+180/240 games
+190/240 games
+200/240 games
+210/240 games
+220/240 games
+230/240 games
+240/240 games
+
+candidate vs opponent: W-L-T (mean margin)
+       early vs hsv3         18-2-0  points 0.900  mean +631
+       early vs v57          18-2-0  points 0.900  mean +1051
+       early vs w0           17-3-0  points 0.850  mean +1049
+       early vs w3           18-2-0  points 0.900  mean +358
+        min3 vs hsv3         14-6-0  points 0.700  mean +240
+        min3 vs v57          16-4-0  points 0.800  mean +822
+        min3 vs w0           17-3-0  points 0.850  mean +1110
+        min3 vs w3           18-2-0  points 0.900  mean +394
+     nomelon vs hsv3         16-4-0  points 0.800  mean +406
+     nomelon vs v57          16-4-0  points 0.800  mean +897
+     nomelon vs w0           17-3-0  points 0.850  mean +1145
+     nomelon vs w3           16-4-0  points 0.800  mean +257

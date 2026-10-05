@@ -1,0 +1,67 @@
+{
+ "pool": "/Users/davidestevez/WORK/projects/kaggriculture/sparring/recent_pool.json.zz",
+ "matchups": 40,
+ "tests": [
+  {
+   "test": "V1 null",
+   "expected": "IDENTICAL",
+   "got": "IDENTICAL",
+   "pass": true,
+   "identical_games": true,
+   "n": 40,
+   "wins": 39,
+   "win_rate": 0.975,
+   "median_margin": 5408.5,
+   "mu_over_sigma": 0.9440405899752247,
+   "paired_median": 0.0,
+   "paired_p": 1.0,
+   "note": "a paired instrument must return exactly zero here"
+  },
+  {
+   "test": "V2 identity",
+   "expected": "IDENTICAL",
+   "got": "IDENTICAL",
+   "pass": true,
+   "identical_games": true,
+   "n": 40,
+   "wins": 39,
+   "win_rate": 0.975,
+   "median_margin": 5408.5,
+   "mu_over_sigma": 0.9440405899752247,
+   "paired_median": 0.0,
+   "paired_p": 1.0,
+   "note": "tests the gate and the measure together"
+  },
+  {
+   "test": "V3 power",
+   "expected": "WORSE",
+   "got": "WORSE",
+   "pass": true,
+   "identical_games": false,
+   "n": 40,
+   "wins": 0,
+   "win_rate": 0.0,
+   "median_margin": -113598.5,
+   "mu_over_sigma": -3.8458595401771274,
+   "paired_median": -118222.0,
+   "paired_p": 1.8189894035458565e-12,
+   "note": "it starves the plan of the wheat its own animals eat"
+  },
+  {
+   "test": "V4 retrodiction",
+   "expected": "BETTER",
+   "got": "BETTER",
+   "pass": true,
+   "identical_games": false,
+   "n": 40,
+   "wins": 39,
+   "win_rate": 0.975,
+   "median_margin": 5408.5,
+   "mu_over_sigma": 0.9440405899752247,
+   "paired_median": 1128.5,
+   "paired_p": 4.2277022657799534e-05,
+   "note": "concurrent ladder reading: 2,849.4 against 2,529.6"
+  }
+ ],
+ "all_pass": true
+}

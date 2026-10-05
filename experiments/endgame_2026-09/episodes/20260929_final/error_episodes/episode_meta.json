@@ -1,0 +1,48 @@
+[
+  {
+    "episode_id": 115091156,
+    "create_time": "2026-09-29 05:10:43.931000",
+    "end_time": "2026-09-29 08:08:57.868000",
+    "state": "ERRORED",
+    "type": "EPISODE_TYPE_PUBLIC",
+    "agents": [
+      {
+        "submission_id": 56654082,
+        "index": 0,
+        "reward": 0.0,
+        "team_name": "stochar",
+        "team_id": 16924433
+      },
+      {
+        "submission_id": 56645467,
+        "index": 1,
+        "reward": 0.0,
+        "team_name": "washamba_bots",
+        "team_id": 16675684
+      }
+    ]
+  },
+  {
+    "episode_id": 115114335,
+    "create_time": "2026-09-29 06:06:47.891000",
+    "end_time": "2026-09-29 08:07:59.350000",
+    "state": "ERRORED",
+    "type": "EPISODE_TYPE_PUBLIC",
+    "agents": [
+      {
+        "submission_id": 56654797,
+        "index": 0,
+        "reward": 0.0,
+        "team_name": "Andrey Chankin",
+        "team_id": 16709468
+      },
+      {
+        "submission_id": 56645467,
+        "index": 1,
+        "reward": 0.0,
+        "team_name": "washamba_bots",
+        "team_id": 16675684
+      }
+    ]
+  }
+]

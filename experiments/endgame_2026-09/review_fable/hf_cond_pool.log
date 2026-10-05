@@ -1,0 +1,14 @@
+10/80 games
+20/80 games
+30/80 games
+40/80 games
+50/80 games
+60/80 games
+70/80 games
+80/80 games
+
+candidate vs opponent: W-L-T (mean margin)
+        cond vs hsv3         15-5-0  points 0.750  mean +378
+        cond vs v57          16-4-0  points 0.800  mean +1040
+        cond vs w0           19-1-0  points 0.950  mean +1053
+        cond vs w3           12-8-0  points 0.600  mean -88

@@ -1,0 +1,286 @@
+{
+  "n_losses": 17,
+  "losses": [
+    {
+      "episode_id": "112912515",
+      "opponent": "Matsu",
+      "opponent_rating": "2532.4",
+      "our_bank": "93709",
+      "opp_bank": "94757",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "Matsu",
+        "opponent_rating": "2532.4"
+      }
+    },
+    {
+      "episode_id": "112904178",
+      "opponent": "alex chilton",
+      "opponent_rating": "2537.0",
+      "our_bank": "76792",
+      "opp_bank": "77023",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "alex chilton",
+        "opponent_rating": "2537.0"
+      }
+    },
+    {
+      "episode_id": "112903025",
+      "opponent": "michael duong",
+      "opponent_rating": "2597.1",
+      "our_bank": "118160",
+      "opp_bank": "118301",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "michael duong",
+        "opponent_rating": "2597.1"
+      }
+    },
+    {
+      "episode_id": "112897148",
+      "opponent": "sAIzeria Harness",
+      "opponent_rating": "2570.4",
+      "our_bank": "115154",
+      "opp_bank": "115479",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "sAIzeria Harness",
+        "opponent_rating": "2570.4"
+      }
+    },
+    {
+      "episode_id": "112895849",
+      "opponent": "quantara.cv",
+      "opponent_rating": "2665.0",
+      "our_bank": "70629",
+      "opp_bank": "72565",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "quantara.cv",
+        "opponent_rating": "2665.0"
+      }
+    },
+    {
+      "episode_id": "112883079",
+      "opponent": "HD h Joratos",
+      "opponent_rating": "2668.6",
+      "our_bank": "62349",
+      "opp_bank": "64076",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "HD h Joratos",
+        "opponent_rating": "2668.6"
+      }
+    },
+    {
+      "episode_id": "112881897",
+      "opponent": "m&m",
+      "opponent_rating": "2567.8",
+      "our_bank": "88831",
+      "opp_bank": "89504",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "m&m",
+        "opponent_rating": "2567.8"
+      }
+    },
+    {
+      "episode_id": "112880728",
+      "opponent": "T.Uehira",
+      "opponent_rating": "2510.2",
+      "our_bank": "79824",
+      "opp_bank": "81002",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "T.Uehira",
+        "opponent_rating": "2510.2"
+      }
+    },
+    {
+      "episode_id": "112874919",
+      "opponent": "QQ Farming",
+      "opponent_rating": "2523.8",
+      "our_bank": "104322",
+      "opp_bank": "105308",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "QQ Farming",
+        "opponent_rating": "2523.8"
+      }
+    },
+    {
+      "episode_id": "112868723",
+      "opponent": "Hello San Francisco",
+      "opponent_rating": "2780.0",
+      "our_bank": "114029",
+      "opp_bank": "116494",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "Hello San Francisco",
+        "opponent_rating": "2780.0"
+      }
+    },
+    {
+      "episode_id": "112867796",
+      "opponent": "Saravanan Jaichandaran",
+      "opponent_rating": "2586.1",
+      "our_bank": "115358",
+      "opp_bank": "116488",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "Saravanan Jaichandaran",
+        "opponent_rating": "2586.1"
+      }
+    },
+    {
+      "episode_id": "112866645",
+      "opponent": "Netanel Keidar",
+      "opponent_rating": "2628.3",
+      "our_bank": "142829",
+      "opp_bank": "143788",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "Netanel Keidar",
+        "opponent_rating": "2628.3"
+      }
+    },
+    {
+      "episode_id": "112865485",
+      "opponent": "Rairo Mukamuri",
+      "opponent_rating": "2535.1",
+      "our_bank": "111415",
+      "opp_bank": "112714",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "Rairo Mukamuri",
+        "opponent_rating": "2535.1"
+      }
+    },
+    {
+      "episode_id": "112864304",
+      "opponent": "batuhan kalem",
+      "opponent_rating": "2569.8",
+      "our_bank": "99852",
+      "opp_bank": "100706",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "batuhan kalem",
+        "opponent_rating": "2569.8"
+      }
+    },
+    {
+      "episode_id": "112861962",
+      "opponent": "xiao xiongwei",
+      "opponent_rating": "2689.1",
+      "our_bank": "101956",
+      "opp_bank": "105172",
+      "day_opp_led_by_3000": {
+        "day": 26,
+        "margin": 3040.0,
+        "opponent": "xiao xiongwei",
+        "opponent_rating": "2689.1"
+      }
+    },
+    {
+      "episode_id": "112860799",
+      "opponent": "KKY",
+      "opponent_rating": "2504.1",
+      "our_bank": "88396",
+      "opp_bank": "89308",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "KKY",
+        "opponent_rating": "2504.1"
+      }
+    },
+    {
+      "episode_id": "112857280",
+      "opponent": "kazuki morikawa",
+      "opponent_rating": "2590.6",
+      "our_bank": "83171",
+      "opp_bank": "83541",
+      "day_opp_led_by_3000": {
+        "day": null,
+        "margin": null,
+        "opponent": "kazuki morikawa",
+        "opponent_rating": "2590.6"
+      }
+    }
+  ],
+  "product_revenue_us": {
+    "WHEAT": 437319.0,
+    "FERTILIZER": 255084.0,
+    "WOOL": 337005.0,
+    "MILK": 325685.0,
+    "CARROT": 120475.0,
+    "MELON": 244523.0,
+    "EGG": 66581.0,
+    "STRAWBERRY": 493568.0,
+    "TOMATO": 70725.0
+  },
+  "product_revenue_opp": {
+    "WHEAT": 721539.0,
+    "FERTILIZER": 266706.0,
+    "WOOL": 337506.0,
+    "MILK": 327304.0,
+    "MELON": 243584.0,
+    "EGG": 66248.0,
+    "STRAWBERRY": 500470.0,
+    "CARROT": 114628.0,
+    "TOMATO": 83672.0
+  },
+  "product_delta_ranked": [
+    [
+      "WHEAT",
+      -284220.0
+    ],
+    [
+      "TOMATO",
+      -12947.0
+    ],
+    [
+      "FERTILIZER",
+      -11622.0
+    ],
+    [
+      "STRAWBERRY",
+      -6902.0
+    ],
+    [
+      "MILK",
+      -1619.0
+    ],
+    [
+      "WOOL",
+      -501.0
+    ],
+    [
+      "EGG",
+      333.0
+    ],
+    [
+      "MELON",
+      939.0
+    ],
+    [
+      "CARROT",
+      5847.0
+    ]
+  ]
+}

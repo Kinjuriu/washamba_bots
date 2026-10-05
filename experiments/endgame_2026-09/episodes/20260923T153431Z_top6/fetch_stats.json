@@ -1,0 +1,146 @@
+[
+  {
+    "name": "Boey",
+    "submission_id": 56484772,
+    "rank": 1,
+    "rating": 3098.2,
+    "total_episodes_returned_by_api": 96,
+    "type_counts": {
+      "EPISODE_TYPE_PUBLIC": 95,
+      "EPISODE_TYPE_VALIDATION": 1
+    },
+    "state_counts": {
+      "COMPLETED": 96
+    },
+    "excluded_validation_selfplay": 1,
+    "excluded_other_type": 0,
+    "excluded_not_completed": 0,
+    "competitive_available": 95,
+    "selected_for_sample": 60,
+    "shortfall": 0,
+    "newest_end_time": "2026-09-23T15:32:00.276551Z",
+    "oldest_end_time": "2026-09-23T08:32:36.464119700Z",
+    "within_24h": 60,
+    "within_48h": 60
+  },
+  {
+    "name": "M & M & P & Q",
+    "submission_id": 56464621,
+    "rank": 2,
+    "rating": 3059.5,
+    "total_episodes_returned_by_api": 170,
+    "type_counts": {
+      "EPISODE_TYPE_PUBLIC": 169,
+      "EPISODE_TYPE_VALIDATION": 1
+    },
+    "state_counts": {
+      "COMPLETED": 170
+    },
+    "excluded_validation_selfplay": 1,
+    "excluded_other_type": 0,
+    "excluded_not_completed": 0,
+    "competitive_available": 169,
+    "selected_for_sample": 60,
+    "shortfall": 0,
+    "newest_end_time": "2026-09-23T15:18:06.230969700Z",
+    "oldest_end_time": "2026-09-22T22:57:33.464820300Z",
+    "within_24h": 60,
+    "within_48h": 60
+  },
+  {
+    "name": "DSM",
+    "submission_id": 56489014,
+    "rank": 3,
+    "rating": 3056.7,
+    "total_episodes_returned_by_api": 88,
+    "type_counts": {
+      "EPISODE_TYPE_PUBLIC": 87,
+      "EPISODE_TYPE_VALIDATION": 1
+    },
+    "state_counts": {
+      "COMPLETED": 88
+    },
+    "excluded_validation_selfplay": 1,
+    "excluded_other_type": 0,
+    "excluded_not_completed": 0,
+    "competitive_available": 87,
+    "selected_for_sample": 60,
+    "shortfall": 0,
+    "newest_end_time": "2026-09-23T15:32:00.276551Z",
+    "oldest_end_time": "2026-09-23T10:55:19.392975400Z",
+    "within_24h": 60,
+    "within_48h": 60
+  },
+  {
+    "name": "Unknown Mother-Goose",
+    "submission_id": 56478145,
+    "rank": 4,
+    "rating": 3045.1,
+    "total_episodes_returned_by_api": 120,
+    "type_counts": {
+      "EPISODE_TYPE_PUBLIC": 119,
+      "EPISODE_TYPE_VALIDATION": 1
+    },
+    "state_counts": {
+      "COMPLETED": 120
+    },
+    "excluded_validation_selfplay": 1,
+    "excluded_other_type": 0,
+    "excluded_not_completed": 0,
+    "competitive_available": 119,
+    "selected_for_sample": 60,
+    "shortfall": 0,
+    "newest_end_time": "2026-09-23T15:34:28.086462300Z",
+    "oldest_end_time": "2026-09-23T04:44:09.932093300Z",
+    "within_24h": 60,
+    "within_48h": 60
+  },
+  {
+    "name": "DECEM",
+    "submission_id": 56489091,
+    "rank": 5,
+    "rating": 3026.6,
+    "total_episodes_returned_by_api": 93,
+    "type_counts": {
+      "EPISODE_TYPE_PUBLIC": 92,
+      "EPISODE_TYPE_VALIDATION": 1
+    },
+    "state_counts": {
+      "COMPLETED": 93
+    },
+    "excluded_validation_selfplay": 1,
+    "excluded_other_type": 0,
+    "excluded_not_completed": 0,
+    "competitive_available": 92,
+    "selected_for_sample": 60,
+    "shortfall": 0,
+    "newest_end_time": "2026-09-23T15:09:04.706328200Z",
+    "oldest_end_time": "2026-09-23T11:14:24.788967500Z",
+    "within_24h": 60,
+    "within_48h": 60
+  },
+  {
+    "name": "吃白饭的大肥鱼",
+    "submission_id": 56483899,
+    "rank": 6,
+    "rating": 3005.8,
+    "total_episodes_returned_by_api": 99,
+    "type_counts": {
+      "EPISODE_TYPE_PUBLIC": 98,
+      "EPISODE_TYPE_VALIDATION": 1
+    },
+    "state_counts": {
+      "COMPLETED": 99
+    },
+    "excluded_validation_selfplay": 1,
+    "excluded_other_type": 0,
+    "excluded_not_completed": 0,
+    "competitive_available": 98,
+    "selected_for_sample": 60,
+    "shortfall": 0,
+    "newest_end_time": "2026-09-23T15:32:42.387251Z",
+    "oldest_end_time": "2026-09-23T07:48:50.809549700Z",
+    "within_24h": 60,
+    "within_48h": 60
+  }
+]

@@ -1,0 +1,5 @@
+player,submission_id,submitter,n_competitive,n_validation,n_failed_or_incomplete,wins,losses,ties,win_rate,bank_margin_mean,bank_margin_min,bank_margin_max,close_loss_within_2500_count,rating_first,rating_last
+w1_v15stack_race44.py,56491123,Stephane Njoki,71,1,0,65,6,0,0.915,7919.7,-14021.0,74169.0,5,672.1492537698298,2018.0695527219398
+w0_v15stack_control.py,56487592,Stephane Njoki,93,1,0,62,27,4,0.667,4118.3,-25517.0,113160.0,22,693.7386995452832,2423.797114669578
+washamba_base_v1_fork.py,56483603,Peter Kibet,78,1,0,62,16,0,0.795,7404.5,-18619.0,123012.0,11,686.4730407889101,1959.1457890332854
+washamba_base_v2.py,56483595,Peter Kibet,48,1,0,37,11,0,0.771,11357.8,-13985.0,116024.0,8,675.6981167602443,1854.5518866831262

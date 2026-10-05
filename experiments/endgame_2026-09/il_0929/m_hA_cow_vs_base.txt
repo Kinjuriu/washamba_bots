@@ -1,0 +1,2 @@
+hA_cow.py vs tetsu_step1009_full.py: W-L-T 0-28-4 points 0.062 mean margin -9556 n=32 errors=0 non-DONE=0
+BATCH1_DONE

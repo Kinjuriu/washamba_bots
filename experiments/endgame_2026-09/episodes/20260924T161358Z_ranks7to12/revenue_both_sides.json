@@ -1,0 +1,150 @@
+{
+  "Kaggledew Valley": {
+    "n": 8,
+    "us": {
+      "WHEAT": 124208,
+      "FERTILIZER": 108647,
+      "CARROT": 28070,
+      "WOOL": 98362,
+      "MILK": 214175,
+      "MELON": 119584,
+      "EGG": 73166,
+      "STRAWBERRY": 285496,
+      "TOMATO": 31512
+    },
+    "opp": {
+      "WHEAT": 167688,
+      "FERTILIZER": 105094,
+      "WOOL": 95822,
+      "MILK": 205280,
+      "MELON": 128663,
+      "EGG": 57774,
+      "STRAWBERRY": 267338,
+      "CARROT": 48422,
+      "TOMATO": 29280
+    }
+  },
+  "Azat Akhtyamov": {
+    "n": 8,
+    "us": {
+      "WHEAT": 149470,
+      "FERTILIZER": 85440,
+      "WOOL": 94749,
+      "MILK": 167958,
+      "MELON": 92454,
+      "STRAWBERRY": 276756,
+      "CARROT": 79562
+    },
+    "opp": {
+      "WHEAT": 126638,
+      "FERTILIZER": 150911,
+      "WOOL": 85743,
+      "MILK": 141440,
+      "MELON": 132288,
+      "EGG": 45547,
+      "STRAWBERRY": 238266,
+      "CARROT": 56615,
+      "TOMATO": 99515
+    }
+  },
+  "THIRD FARM CLUB": {
+    "n": 8,
+    "us": {
+      "WHEAT": 119925,
+      "FERTILIZER": 111366,
+      "WOOL": 175315,
+      "EGG": 70260,
+      "MILK": 164425,
+      "MELON": 119613,
+      "CARROT": 56921,
+      "STRAWBERRY": 167763,
+      "TOMATO": 45467
+    },
+    "opp": {
+      "WHEAT": 282437,
+      "FERTILIZER": 139120,
+      "WOOL": 172245,
+      "MILK": 175592,
+      "MELON": 127836,
+      "EGG": 21539,
+      "STRAWBERRY": 175557,
+      "CARROT": 32379,
+      "TOMATO": 26667
+    }
+  },
+  "Arda Ceylan": {
+    "n": 8,
+    "us": {
+      "WHEAT": 146116,
+      "FERTILIZER": 107443,
+      "WOOL": 194816,
+      "MILK": 157506,
+      "MELON": 89424,
+      "STRAWBERRY": 215534,
+      "EGG": 62791,
+      "TOMATO": 62316,
+      "CARROT": 46196
+    },
+    "opp": {
+      "WHEAT": 175379,
+      "FERTILIZER": 97007,
+      "WOOL": 168941,
+      "MILK": 160863,
+      "MELON": 130737,
+      "EGG": 32211,
+      "STRAWBERRY": 205995,
+      "TOMATO": 35248,
+      "CARROT": 32294
+    }
+  },
+  "mtmr_s1": {
+    "n": 8,
+    "us": {
+      "WHEAT": 125156,
+      "FERTILIZER": 98712,
+      "WOOL": 155452,
+      "MILK": 211898,
+      "MELON": 130592,
+      "STRAWBERRY": 292332,
+      "TOMATO": 57943,
+      "CARROT": 60619,
+      "EGG": 54838
+    },
+    "opp": {
+      "WHEAT": 150627,
+      "FERTILIZER": 109917,
+      "WOOL": 150559,
+      "MILK": 216029,
+      "MELON": 115010,
+      "STRAWBERRY": 253109,
+      "EGG": 59390,
+      "TOMATO": 27972,
+      "CARROT": 50981
+    }
+  },
+  "TheEggman": {
+    "n": 8,
+    "us": {
+      "WHEAT": 142890,
+      "FERTILIZER": 97669,
+      "WOOL": 167242,
+      "MILK": 159424,
+      "MELON": 92427,
+      "EGG": 56680,
+      "STRAWBERRY": 267348,
+      "CARROT": 63767,
+      "TOMATO": 87805
+    },
+    "opp": {
+      "WHEAT": 113571,
+      "FERTILIZER": 97392,
+      "WOOL": 166589,
+      "MILK": 166214,
+      "MELON": 130729,
+      "EGG": 19091,
+      "STRAWBERRY": 269497,
+      "CARROT": 50717,
+      "TOMATO": 51393
+    }
+  }
+}

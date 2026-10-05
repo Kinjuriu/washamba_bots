@@ -1,0 +1,386 @@
+[
+  {
+    "rank": 1,
+    "name": "DECEM",
+    "team_id": 16623559,
+    "rating": 3054.5,
+    "primary_submission": 56601866,
+    "primary_public_score": 3054.5,
+    "all_active_submissions": [
+      {
+        "id": 56601866,
+        "date_submitted": "2026-09-27 07:18:29.137000",
+        "public_score": 3054.5,
+        "completed_episodes": 81
+      },
+      {
+        "id": 56595297,
+        "date_submitted": "2026-09-27 02:23:46.477000",
+        "public_score": 2956.3,
+        "completed_episodes": 102
+      }
+    ],
+    "completed_episodes_available": 81,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  },
+  {
+    "rank": 2,
+    "name": "Boey",
+    "team_id": 16915014,
+    "rating": 3027.9,
+    "primary_submission": 56521745,
+    "primary_public_score": 3027.9,
+    "all_active_submissions": [
+      {
+        "id": 56521745,
+        "date_submitted": "2026-09-24 12:57:23.870000",
+        "public_score": 3027.9,
+        "completed_episodes": 342
+      },
+      {
+        "id": 56484772,
+        "date_submitted": "2026-09-23 06:08:10.517000",
+        "public_score": 1597.4,
+        "completed_episodes": 446
+      }
+    ],
+    "completed_episodes_available": 342,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  },
+  {
+    "rank": 3,
+    "name": "M & M & P & Q",
+    "team_id": 16681125,
+    "rating": 2983.3,
+    "primary_submission": 56594027,
+    "primary_public_score": 2983.3,
+    "all_active_submissions": [
+      {
+        "id": 56594027,
+        "date_submitted": "2026-09-27 01:17:07.347000",
+        "public_score": 2983.3,
+        "completed_episodes": 105
+      },
+      {
+        "id": 56607039,
+        "date_submitted": "2026-09-27 11:19:43.713000",
+        "public_score": 1937.2,
+        "completed_episodes": 17
+      }
+    ],
+    "completed_episodes_available": 105,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  },
+  {
+    "rank": 4,
+    "name": "Majkel1337",
+    "team_id": 16718819,
+    "rating": 2965.5,
+    "primary_submission": 56577255,
+    "primary_public_score": 2965.5,
+    "all_active_submissions": [
+      {
+        "id": 56577255,
+        "date_submitted": "2026-09-26 10:48:06.600000",
+        "public_score": 2965.5,
+        "completed_episodes": 174
+      },
+      {
+        "id": 56577122,
+        "date_submitted": "2026-09-26 10:41:20.213000",
+        "public_score": 2916.4,
+        "completed_episodes": 176
+      }
+    ],
+    "completed_episodes_available": 174,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  },
+  {
+    "rank": 5,
+    "name": "Vadim Vasilenko",
+    "team_id": 16770421,
+    "rating": 2951.3,
+    "primary_submission": 56589197,
+    "primary_public_score": 2951.3,
+    "all_active_submissions": [
+      {
+        "id": 56589197,
+        "date_submitted": "2026-09-26 21:25:24.383000",
+        "public_score": 2951.3,
+        "completed_episodes": 131
+      },
+      {
+        "id": 56602695,
+        "date_submitted": "2026-09-27 07:51:35.030000",
+        "public_score": 2928.4,
+        "completed_episodes": 78
+      }
+    ],
+    "completed_episodes_available": 131,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  },
+  {
+    "rank": 6,
+    "name": "Unknown Mother-Goose",
+    "team_id": 16730612,
+    "rating": 2933.9,
+    "primary_submission": 56593706,
+    "primary_public_score": 2933.9,
+    "all_active_submissions": [
+      {
+        "id": 56593706,
+        "date_submitted": "2026-09-27 01:02:16.697000",
+        "public_score": 2933.9,
+        "completed_episodes": 114
+      },
+      {
+        "id": 56608595,
+        "date_submitted": "2026-09-27 12:31:02.813000",
+        "public_score": 600.0,
+        "completed_episodes": 0
+      }
+    ],
+    "completed_episodes_available": 114,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  },
+  {
+    "rank": 7,
+    "name": "Fourth Quadrant",
+    "team_id": 16667959,
+    "rating": 2917.4,
+    "primary_submission": 56590425,
+    "primary_public_score": 2917.4,
+    "all_active_submissions": [
+      {
+        "id": 56590425,
+        "date_submitted": "2026-09-26 22:46:41.417000",
+        "public_score": 2917.4,
+        "completed_episodes": 122
+      },
+      {
+        "id": 56590418,
+        "date_submitted": "2026-09-26 22:45:58.840000",
+        "public_score": 2801.1,
+        "completed_episodes": 124
+      }
+    ],
+    "completed_episodes_available": 122,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  },
+  {
+    "rank": 8,
+    "name": "Just A game on your lips",
+    "team_id": 16657750,
+    "rating": 2907.5,
+    "primary_submission": 56602011,
+    "primary_public_score": 2907.5,
+    "all_active_submissions": [
+      {
+        "id": 56602011,
+        "date_submitted": "2026-09-27 07:23:41.840000",
+        "public_score": 2907.5,
+        "completed_episodes": 87
+      },
+      {
+        "id": 56593470,
+        "date_submitted": "2026-09-27 00:50:20.140000",
+        "public_score": 2859.2,
+        "completed_episodes": 109
+      }
+    ],
+    "completed_episodes_available": 87,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  },
+  {
+    "rank": 9,
+    "name": "Anton Tikhonov",
+    "team_id": 16628664,
+    "rating": 2887.0,
+    "primary_submission": 56587629,
+    "primary_public_score": 2887.0,
+    "all_active_submissions": [
+      {
+        "id": 56587629,
+        "date_submitted": "2026-09-26 19:49:17.803000",
+        "public_score": 2887.0,
+        "completed_episodes": 133
+      },
+      {
+        "id": 56602878,
+        "date_submitted": "2026-09-27 07:59:43.660000",
+        "public_score": 2877.4,
+        "completed_episodes": 80
+      }
+    ],
+    "completed_episodes_available": 133,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  },
+  {
+    "rank": 10,
+    "name": "KawattaTaido",
+    "team_id": 16654697,
+    "rating": 2885.0,
+    "primary_submission": 56590457,
+    "primary_public_score": 2885.0,
+    "all_active_submissions": [
+      {
+        "id": 56590457,
+        "date_submitted": "2026-09-26 22:48:52.267000",
+        "public_score": 2885.0,
+        "completed_episodes": 115
+      },
+      {
+        "id": 56540457,
+        "date_submitted": "2026-09-25 05:00:05.657000",
+        "public_score": 335.6,
+        "completed_episodes": 27
+      }
+    ],
+    "completed_episodes_available": 115,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  },
+  {
+    "rank": 11,
+    "name": "Azat Akhtyamov",
+    "team_id": 16743356,
+    "rating": 2872.7,
+    "primary_submission": 56561951,
+    "primary_public_score": 2872.7,
+    "all_active_submissions": [
+      {
+        "id": 56561951,
+        "date_submitted": "2026-09-25 23:22:35.753000",
+        "public_score": 2872.7,
+        "completed_episodes": 213
+      },
+      {
+        "id": 56561966,
+        "date_submitted": "2026-09-25 23:24:18.740000",
+        "public_score": 2834.8,
+        "completed_episodes": 227
+      }
+    ],
+    "completed_episodes_available": 213,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  },
+  {
+    "rank": 12,
+    "name": "\u6709\u8fa3\u6761\u6709\u6743",
+    "team_id": 16624026,
+    "rating": 2863.3,
+    "primary_submission": 56597625,
+    "primary_public_score": 2863.3,
+    "all_active_submissions": [
+      {
+        "id": 56597625,
+        "date_submitted": "2026-09-27 04:26:41.920000",
+        "public_score": 2863.3,
+        "completed_episodes": 92
+      },
+      {
+        "id": 56586921,
+        "date_submitted": "2026-09-26 19:06:15.647000",
+        "public_score": 2859.1,
+        "completed_episodes": 138
+      }
+    ],
+    "completed_episodes_available": 92,
+    "episodes_sampled": 30,
+    "cell_counts": {
+      "seat0_<2500": 5,
+      "seat0_2500-2800": 5,
+      "seat0_>2800": 5,
+      "seat1_<2500": 5,
+      "seat1_2500-2800": 5,
+      "seat1_>2800": 5
+    }
+  }
+]

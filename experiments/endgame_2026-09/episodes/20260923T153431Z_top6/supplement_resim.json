@@ -1,0 +1,3646 @@
+[
+  {
+    "ep": "112426103",
+    "seat": 0,
+    "name": "Boey",
+    "opp": "Majkel1337",
+    "bank": 109646.0,
+    "opp_bank": 94572.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        2763,
+        96332,
+        2447,
+        86390
+      ],
+      "FERTILIZER": [
+        1123,
+        43074,
+        876,
+        29864
+      ],
+      "WOOL": [
+        377,
+        51184,
+        0,
+        0
+      ],
+      "EGG": [
+        91,
+        4062,
+        0,
+        0
+      ],
+      "MILK": [
+        86,
+        5543,
+        0,
+        0
+      ],
+      "MELON": [
+        66,
+        13570,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        158,
+        19237,
+        0,
+        0
+      ],
+      "CARROT": [
+        320,
+        14865,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 41484,
+      "sell_d10": 143932,
+      "sell_d20": 62451
+    },
+    "spend": {
+      "BUY_SEED_WHEAT": 1630,
+      "BUY_ANIMAL_SHEEP": 8500,
+      "BUY_SEED_MELON": 880,
+      "BUY_ANIMAL_COW": 1200,
+      "BUY_ANIMAL_GOOSE": 600,
+      "BUY_SEED_STRAWBERRY": 2000,
+      "BUY_SEED_CARROT": 1880
+    }
+  },
+  {
+    "ep": "112426103",
+    "seat": 1,
+    "name": "Majkel1337",
+    "opp": "Boey",
+    "bank": 94572.0,
+    "opp_bank": 109646.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        357,
+        11395,
+        220,
+        7622
+      ],
+      "FERTILIZER": [
+        221,
+        11749,
+        0,
+        0
+      ],
+      "WOOL": [
+        328,
+        41691,
+        0,
+        0
+      ],
+      "MILK": [
+        68,
+        4019,
+        0,
+        0
+      ],
+      "MELON": [
+        66,
+        14121,
+        0,
+        0
+      ],
+      "EGG": [
+        41,
+        1789,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        155,
+        19514,
+        0,
+        0
+      ],
+      "CARROT": [
+        298,
+        13587,
+        0,
+        0
+      ],
+      "TOMATO": [
+        95,
+        7461,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14645,
+      "sell_d10": 68816,
+      "sell_d20": 41865
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 1200,
+      "BUY_ANIMAL_SHEEP": 9000,
+      "BUY_SEED_WHEAT": 1290,
+      "BUY_SEED_MELON": 880,
+      "BUY_SEED_STRAWBERRY": 2100,
+      "BUY_ANIMAL_GOOSE": 300,
+      "BUY_SEED_TOMATO": 700,
+      "BUY_SEED_CARROT": 2060
+    }
+  },
+  {
+    "ep": "112399744",
+    "seat": 0,
+    "name": "Orbital Terraformer",
+    "opp": "Boey",
+    "bank": 99833.0,
+    "opp_bank": 119311.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        455,
+        13379,
+        174,
+        5960
+      ],
+      "FERTILIZER": [
+        202,
+        10481,
+        0,
+        0
+      ],
+      "WOOL": [
+        210,
+        22228,
+        0,
+        0
+      ],
+      "MILK": [
+        168,
+        27787,
+        0,
+        0
+      ],
+      "MELON": [
+        66,
+        14175,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        150,
+        21171,
+        0,
+        0
+      ],
+      "TOMATO": [
+        132,
+        9838,
+        0,
+        0
+      ],
+      "CARROT": [
+        148,
+        6073,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14156,
+      "sell_d10": 60082,
+      "sell_d20": 50894
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 2400,
+      "BUY_ANIMAL_SHEEP": 5500,
+      "BUY_SEED_MELON": 880,
+      "BUY_SEED_WHEAT": 1700,
+      "BUY_SEED_STRAWBERRY": 2000,
+      "BUY_SEED_TOMATO": 850,
+      "BUY_SEED_CARROT": 1080
+    }
+  },
+  {
+    "ep": "112399744",
+    "seat": 1,
+    "name": "Boey",
+    "opp": "Orbital Terraformer",
+    "bank": 119311.0,
+    "opp_bank": 99833.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        2883,
+        94654,
+        2615,
+        87786
+      ],
+      "FERTILIZER": [
+        1192,
+        44035,
+        898,
+        29461
+      ],
+      "WOOL": [
+        270,
+        26573,
+        0,
+        0
+      ],
+      "EGG": [
+        168,
+        7334,
+        0,
+        0
+      ],
+      "MILK": [
+        215,
+        36737,
+        0,
+        0
+      ],
+      "MELON": [
+        66,
+        13464,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        147,
+        24656,
+        0,
+        0
+      ],
+      "CARROT": [
+        261,
+        10828,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 39875,
+      "sell_d10": 128080,
+      "sell_d20": 90326
+    },
+    "spend": {
+      "BUY_SEED_WHEAT": 1660,
+      "BUY_ANIMAL_SHEEP": 6500,
+      "BUY_ANIMAL_COW": 3200,
+      "BUY_SEED_MELON": 880,
+      "BUY_ANIMAL_GOOSE": 1200,
+      "BUY_SEED_STRAWBERRY": 2000,
+      "BUY_SEED_CARROT": 1540
+    }
+  },
+  {
+    "ep": "112404368",
+    "seat": 0,
+    "name": "Boey",
+    "opp": "THIRD FARM CLUB",
+    "bank": 102815.0,
+    "opp_bank": 92971.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        3179,
+        116633,
+        2898,
+        105798
+      ],
+      "FERTILIZER": [
+        927,
+        34280,
+        717,
+        22346
+      ],
+      "WOOL": [
+        73,
+        5778,
+        0,
+        0
+      ],
+      "EGG": [
+        250,
+        10334,
+        0,
+        0
+      ],
+      "MILK": [
+        219,
+        20675,
+        0,
+        0
+      ],
+      "MELON": [
+        78,
+        15093,
+        0,
+        0
+      ],
+      "CARROT": [
+        401,
+        21006,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        189,
+        25708,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 38588,
+      "sell_d10": 120042,
+      "sell_d20": 90877
+    },
+    "spend": {
+      "BUY_SEED_WHEAT": 1420,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_MELON": 1040,
+      "BUY_ANIMAL_COW": 4000,
+      "BUY_ANIMAL_GOOSE": 1800,
+      "BUY_SEED_STRAWBERRY": 2400,
+      "BUY_SEED_CARROT": 2300
+    }
+  },
+  {
+    "ep": "112404368",
+    "seat": 1,
+    "name": "THIRD FARM CLUB",
+    "opp": "Boey",
+    "bank": 92971.0,
+    "opp_bank": 102815.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        413,
+        14463,
+        89,
+        3060
+      ],
+      "FERTILIZER": [
+        257,
+        13382,
+        52,
+        992
+      ],
+      "WOOL": [
+        52,
+        5025,
+        0,
+        0
+      ],
+      "EGG": [
+        287,
+        11827,
+        0,
+        0
+      ],
+      "MILK": [
+        171,
+        16864,
+        0,
+        0
+      ],
+      "MELON": [
+        96,
+        15647,
+        0,
+        0
+      ],
+      "CARROT": [
+        197,
+        9515,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        176,
+        20457,
+        0,
+        0
+      ],
+      "TOMATO": [
+        115,
+        9113,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14706,
+      "sell_d10": 50080,
+      "sell_d20": 51507
+    },
+    "spend": {
+      "BUY_ANIMAL_SHEEP": 2000,
+      "BUY_ANIMAL_COW": 3200,
+      "BUY_SEED_MELON": 1280,
+      "BUY_SEED_WHEAT": 1540,
+      "BUY_ANIMAL_GOOSE": 2400,
+      "BUY_SEED_STRAWBERRY": 2300,
+      "BUY_SEED_TOMATO": 750,
+      "BUY_SEED_CARROT": 1260
+    }
+  },
+  {
+    "ep": "112398313",
+    "seat": 0,
+    "name": "DeeperNet",
+    "opp": "Boey",
+    "bank": 81149.0,
+    "opp_bank": 97924.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        555,
+        17876,
+        175,
+        6231
+      ],
+      "FERTILIZER": [
+        264,
+        10978,
+        2,
+        176
+      ],
+      "WOOL": [
+        205,
+        18128,
+        0,
+        0
+      ],
+      "MILK": [
+        151,
+        8649,
+        0,
+        0
+      ],
+      "MELON": [
+        77,
+        16239,
+        0,
+        0
+      ],
+      "CARROT": [
+        117,
+        4174,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        98,
+        15665,
+        0,
+        0
+      ],
+      "TOMATO": [
+        158,
+        15517,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12032,
+      "sell_d10": 52141,
+      "sell_d20": 43053
+    },
+    "spend": {
+      "BUY_SEED_WHEAT": 1800,
+      "BUY_SEED_MELON": 1040,
+      "BUY_ANIMAL_COW": 2400,
+      "BUY_ANIMAL_SHEEP": 6500,
+      "BUY_SEED_STRAWBERRY": 1300,
+      "BUY_SEED_CARROT": 740,
+      "BUY_SEED_TOMATO": 1100
+    }
+  },
+  {
+    "ep": "112398313",
+    "seat": 1,
+    "name": "Boey",
+    "opp": "DeeperNet",
+    "bank": 97924.0,
+    "opp_bank": 81149.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        3164,
+        105505,
+        2733,
+        92084
+      ],
+      "FERTILIZER": [
+        1222,
+        45348,
+        937,
+        31034
+      ],
+      "WOOL": [
+        229,
+        24687,
+        0,
+        0
+      ],
+      "EGG": [
+        286,
+        13521,
+        0,
+        0
+      ],
+      "MILK": [
+        152,
+        9120,
+        0,
+        0
+      ],
+      "MELON": [
+        60,
+        11873,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        135,
+        22571,
+        0,
+        0
+      ],
+      "CARROT": [
+        227,
+        9032,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 54190,
+      "sell_d10": 114211,
+      "sell_d20": 73256
+    },
+    "spend": {
+      "BUY_SEED_WHEAT": 1940,
+      "BUY_ANIMAL_SHEEP": 5000,
+      "BUY_ANIMAL_COW": 2800,
+      "BUY_SEED_MELON": 800,
+      "BUY_ANIMAL_GOOSE": 2100,
+      "BUY_SEED_STRAWBERRY": 1700,
+      "BUY_SEED_CARROT": 1300
+    }
+  },
+  {
+    "ep": "112495118",
+    "seat": 0,
+    "name": "M & M & P & Q",
+    "opp": "DSM",
+    "bank": 101181.0,
+    "opp_bank": 104164.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        592,
+        17388,
+        84,
+        2815
+      ],
+      "FERTILIZER": [
+        197,
+        11331,
+        0,
+        0
+      ],
+      "WOOL": [
+        116,
+        14590,
+        0,
+        0
+      ],
+      "MILK": [
+        260,
+        23877,
+        0,
+        0
+      ],
+      "MELON": [
+        54,
+        12560,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        208,
+        33268,
+        0,
+        0
+      ],
+      "CARROT": [
+        289,
+        10011,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13848,
+      "sell_d10": 63622,
+      "sell_d20": 45555
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 4800,
+      "BUY_ANIMAL_SHEEP": 2500,
+      "BUY_SEED_MELON": 720,
+      "BUY_SEED_WHEAT": 1920,
+      "BUY_SEED_STRAWBERRY": 3400,
+      "BUY_SEED_CARROT": 1920
+    }
+  },
+  {
+    "ep": "112495118",
+    "seat": 1,
+    "name": "DSM",
+    "opp": "M & M & P & Q",
+    "bank": 104164.0,
+    "opp_bank": 101181.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        501,
+        14403,
+        124,
+        4213
+      ],
+      "FERTILIZER": [
+        229,
+        13173,
+        0,
+        0
+      ],
+      "WOOL": [
+        139,
+        16772,
+        0,
+        0
+      ],
+      "MILK": [
+        160,
+        17029,
+        0,
+        0
+      ],
+      "MELON": [
+        60,
+        12610,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        194,
+        31146,
+        0,
+        0
+      ],
+      "EGG": [
+        185,
+        9218,
+        0,
+        0
+      ],
+      "TOMATO": [
+        203,
+        16491,
+        0,
+        0
+      ],
+      "CARROT": [
+        185,
+        5848,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13886,
+      "sell_d10": 62701,
+      "sell_d20": 60103
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 5200,
+      "BUY_ANIMAL_SHEEP": 3000,
+      "BUY_SEED_MELON": 800,
+      "BUY_SEED_WHEAT": 1860,
+      "BUY_SEED_STRAWBERRY": 2600,
+      "BUY_ANIMAL_GOOSE": 1800,
+      "BUY_SEED_TOMATO": 1450,
+      "BUY_SEED_CARROT": 1200
+    }
+  },
+  {
+    "ep": "112354231",
+    "seat": 0,
+    "name": "Azat Akhtyamov",
+    "opp": "M & M & P & Q",
+    "bank": 130744.0,
+    "opp_bank": 152253.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        406,
+        13234,
+        294,
+        10783
+      ],
+      "FERTILIZER": [
+        324,
+        12340,
+        0,
+        0
+      ],
+      "WOOL": [
+        378,
+        69578,
+        0,
+        0
+      ],
+      "MILK": [
+        190,
+        33419,
+        0,
+        0
+      ],
+      "MELON": [
+        72,
+        14441,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        167,
+        12428,
+        0,
+        0
+      ],
+      "TOMATO": [
+        88,
+        6779,
+        0,
+        0
+      ],
+      "CARROT": [
+        14,
+        527,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14572,
+      "sell_d10": 81951,
+      "sell_d20": 66223
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 2800,
+      "BUY_ANIMAL_SHEEP": 7500,
+      "BUY_SEED_MELON": 960,
+      "BUY_SEED_WHEAT": 1640,
+      "BUY_SEED_STRAWBERRY": 2500,
+      "BUY_SEED_TOMATO": 650,
+      "BUY_SEED_CARROT": 240
+    }
+  },
+  {
+    "ep": "112354231",
+    "seat": 1,
+    "name": "M & M & P & Q",
+    "opp": "Azat Akhtyamov",
+    "bank": 152253.0,
+    "opp_bank": 130744.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        543,
+        16938,
+        126,
+        4378
+      ],
+      "FERTILIZER": [
+        301,
+        12856,
+        0,
+        0
+      ],
+      "WOOL": [
+        464,
+        88419,
+        0,
+        0
+      ],
+      "MILK": [
+        205,
+        35946,
+        0,
+        0
+      ],
+      "MELON": [
+        54,
+        12434,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        161,
+        12358,
+        0,
+        0
+      ],
+      "CARROT": [
+        30,
+        1136,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 16093,
+      "sell_d10": 90079,
+      "sell_d20": 73915
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 3200,
+      "BUY_ANIMAL_SHEEP": 9000,
+      "BUY_SEED_MELON": 720,
+      "BUY_SEED_WHEAT": 1940,
+      "BUY_SEED_STRAWBERRY": 2100,
+      "BUY_SEED_CARROT": 240
+    }
+  },
+  {
+    "ep": "112373912",
+    "seat": 0,
+    "name": "M & M & P & Q",
+    "opp": "Majkel1337",
+    "bank": 108046.0,
+    "opp_bank": 103229.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        539,
+        20265,
+        125,
+        4409
+      ],
+      "FERTILIZER": [
+        180,
+        11468,
+        0,
+        0
+      ],
+      "WOOL": [
+        52,
+        5135,
+        0,
+        0
+      ],
+      "MILK": [
+        248,
+        23036,
+        0,
+        0
+      ],
+      "MELON": [
+        54,
+        12783,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        295,
+        48241,
+        0,
+        0
+      ],
+      "CARROT": [
+        226,
+        9182,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14315,
+      "sell_d10": 66483,
+      "sell_d20": 49312
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 5200,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_MELON": 720,
+      "BUY_SEED_WHEAT": 1460,
+      "BUY_SEED_STRAWBERRY": 3800,
+      "BUY_SEED_CARROT": 1680
+    }
+  },
+  {
+    "ep": "112373912",
+    "seat": 1,
+    "name": "Majkel1337",
+    "opp": "M & M & P & Q",
+    "bank": 103229.0,
+    "opp_bank": 108046.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        437,
+        16364,
+        132,
+        4713
+      ],
+      "FERTILIZER": [
+        185,
+        11754,
+        0,
+        0
+      ],
+      "WOOL": [
+        77,
+        5616,
+        0,
+        0
+      ],
+      "MILK": [
+        221,
+        16084,
+        0,
+        0
+      ],
+      "MELON": [
+        66,
+        13313,
+        0,
+        0
+      ],
+      "EGG": [
+        109,
+        6167,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        281,
+        46080,
+        0,
+        0
+      ],
+      "TOMATO": [
+        92,
+        8113,
+        0,
+        0
+      ],
+      "CARROT": [
+        87,
+        3314,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13903,
+      "sell_d10": 60059,
+      "sell_d20": 52843
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 4400,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_WHEAT": 1550,
+      "BUY_SEED_MELON": 880,
+      "BUY_SEED_STRAWBERRY": 3700,
+      "BUY_ANIMAL_GOOSE": 900,
+      "BUY_SEED_TOMATO": 600,
+      "BUY_SEED_CARROT": 540
+    }
+  },
+  {
+    "ep": "112258610",
+    "seat": 0,
+    "name": "THUNDER THUNDER",
+    "opp": "M & M & P & Q",
+    "bank": 84434.0,
+    "opp_bank": 97515.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        473,
+        16448,
+        113,
+        3840
+      ],
+      "FERTILIZER": [
+        214,
+        13740,
+        34,
+        1880
+      ],
+      "WOOL": [
+        83,
+        4248,
+        0,
+        0
+      ],
+      "MILK": [
+        134,
+        6842,
+        0,
+        0
+      ],
+      "MELON": [
+        48,
+        10717,
+        0,
+        0
+      ],
+      "CARROT": [
+        126,
+        4969,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        267,
+        39082,
+        0,
+        0
+      ],
+      "EGG": [
+        84,
+        5081,
+        0,
+        0
+      ],
+      "TOMATO": [
+        95,
+        6966,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12460,
+      "sell_d10": 48454,
+      "sell_d20": 47179
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 2000,
+      "BUY_ANIMAL_SHEEP": 2500,
+      "BUY_SEED_MELON": 640,
+      "BUY_SEED_WHEAT": 1630,
+      "BUY_SEED_STRAWBERRY": 3500,
+      "BUY_SEED_CARROT": 860,
+      "BUY_SEED_TOMATO": 750,
+      "BUY_ANIMAL_GOOSE": 900
+    }
+  },
+  {
+    "ep": "112258610",
+    "seat": 1,
+    "name": "M & M & P & Q",
+    "opp": "THUNDER THUNDER",
+    "bank": 97515.0,
+    "opp_bank": 84434.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        354,
+        12415,
+        82,
+        2703
+      ],
+      "FERTILIZER": [
+        146,
+        10150,
+        0,
+        0
+      ],
+      "WOOL": [
+        49,
+        6339,
+        0,
+        0
+      ],
+      "MILK": [
+        158,
+        9326,
+        0,
+        0
+      ],
+      "MELON": [
+        54,
+        12527,
+        0,
+        0
+      ],
+      "CARROT": [
+        354,
+        14524,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        320,
+        51363,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12969,
+      "sell_d10": 53499,
+      "sell_d20": 50176
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 2400,
+      "BUY_ANIMAL_SHEEP": 2500,
+      "BUY_SEED_MELON": 720,
+      "BUY_SEED_WHEAT": 1260,
+      "BUY_SEED_STRAWBERRY": 4200,
+      "BUY_SEED_CARROT": 2640
+    }
+  },
+  {
+    "ep": "112481113",
+    "seat": 0,
+    "name": "Unknown Mother-Goose",
+    "opp": "DSM",
+    "bank": 105286.0,
+    "opp_bank": 113209.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        487,
+        15110,
+        219,
+        8047
+      ],
+      "FERTILIZER": [
+        169,
+        10854,
+        0,
+        0
+      ],
+      "WOOL": [
+        53,
+        5253,
+        0,
+        0
+      ],
+      "MILK": [
+        248,
+        30864,
+        0,
+        0
+      ],
+      "MELON": [
+        84,
+        15777,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        337,
+        47378,
+        0,
+        0
+      ],
+      "EGG": [
+        31,
+        1672,
+        0,
+        0
+      ],
+      "CARROT": [
+        129,
+        5094,
+        0,
+        0
+      ],
+      "TOMATO": [
+        8,
+        398,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12947,
+      "sell_d10": 74978,
+      "sell_d20": 44475
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 4800,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_MELON": 1120,
+      "BUY_SEED_WHEAT": 1300,
+      "BUY_SEED_STRAWBERRY": 4600,
+      "BUY_ANIMAL_GOOSE": 300,
+      "BUY_SEED_TOMATO": 50,
+      "BUY_SEED_CARROT": 840
+    }
+  },
+  {
+    "ep": "112481113",
+    "seat": 1,
+    "name": "DSM",
+    "opp": "Unknown Mother-Goose",
+    "bank": 113209.0,
+    "opp_bank": 105286.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        428,
+        14059,
+        142,
+        5062
+      ],
+      "FERTILIZER": [
+        204,
+        12586,
+        0,
+        0
+      ],
+      "WOOL": [
+        46,
+        5220,
+        0,
+        0
+      ],
+      "MILK": [
+        290,
+        35622,
+        0,
+        0
+      ],
+      "MELON": [
+        60,
+        13316,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        332,
+        46741,
+        0,
+        0
+      ],
+      "EGG": [
+        59,
+        3189,
+        0,
+        0
+      ],
+      "CARROT": [
+        300,
+        12235,
+        0,
+        0
+      ],
+      "TOMATO": [
+        52,
+        2944,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13200,
+      "sell_d10": 81280,
+      "sell_d20": 51432
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 6400,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_MELON": 800,
+      "BUY_SEED_WHEAT": 1470,
+      "BUY_SEED_STRAWBERRY": 4400,
+      "BUY_ANIMAL_GOOSE": 600,
+      "BUY_SEED_TOMATO": 350,
+      "BUY_SEED_CARROT": 2040
+    }
+  },
+  {
+    "ep": "112453803",
+    "seat": 0,
+    "name": "DSM",
+    "opp": "Yannik Schiffner",
+    "bank": 97871.0,
+    "opp_bank": 84602.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        600,
+        18438,
+        155,
+        5699
+      ],
+      "FERTILIZER": [
+        221,
+        12576,
+        0,
+        0
+      ],
+      "WOOL": [
+        68,
+        7892,
+        0,
+        0
+      ],
+      "MILK": [
+        158,
+        15233,
+        0,
+        0
+      ],
+      "MELON": [
+        60,
+        13259,
+        0,
+        0
+      ],
+      "EGG": [
+        323,
+        15426,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        256,
+        35800,
+        0,
+        0
+      ],
+      "TOMATO": [
+        111,
+        7165,
+        0,
+        0
+      ],
+      "CARROT": [
+        110,
+        3777,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13155,
+      "sell_d10": 66202,
+      "sell_d20": 50209
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 3200,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_MELON": 800,
+      "BUY_SEED_WHEAT": 1890,
+      "BUY_SEED_STRAWBERRY": 3500,
+      "BUY_ANIMAL_GOOSE": 3000,
+      "BUY_SEED_TOMATO": 800,
+      "BUY_SEED_CARROT": 840
+    }
+  },
+  {
+    "ep": "112453803",
+    "seat": 1,
+    "name": "Yannik Schiffner",
+    "opp": "DSM",
+    "bank": 84602.0,
+    "opp_bank": 97871.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        1933,
+        65247,
+        1640,
+        57058
+      ],
+      "FERTILIZER": [
+        526,
+        34125,
+        313,
+        22090
+      ],
+      "WOOL": [
+        95,
+        6791,
+        0,
+        0
+      ],
+      "EGG": [
+        138,
+        6738,
+        0,
+        0
+      ],
+      "MILK": [
+        219,
+        14632,
+        0,
+        0
+      ],
+      "MELON": [
+        120,
+        18180,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        249,
+        28555,
+        0,
+        0
+      ],
+      "CARROT": [
+        161,
+        5440,
+        0,
+        0
+      ],
+      "TOMATO": [
+        45,
+        2914,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 52272,
+      "sell_d10": 88726,
+      "sell_d20": 41624
+    },
+    "spend": {
+      "BUY_SEED_WHEAT": 1320,
+      "BUY_ANIMAL_SHEEP": 2000,
+      "BUY_SEED_MELON": 1600,
+      "BUY_ANIMAL_COW": 3600,
+      "BUY_ANIMAL_GOOSE": 900,
+      "BUY_SEED_STRAWBERRY": 3300,
+      "BUY_SEED_CARROT": 1220,
+      "BUY_SEED_TOMATO": 300
+    }
+  },
+  {
+    "ep": "112431636",
+    "seat": 0,
+    "name": "tw1nstar",
+    "opp": "DSM",
+    "bank": 85347.0,
+    "opp_bank": 108626.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        412,
+        14036,
+        137,
+        4843
+      ],
+      "FERTILIZER": [
+        340,
+        14531,
+        92,
+        2691
+      ],
+      "WOOL": [
+        87,
+        4287,
+        0,
+        0
+      ],
+      "MILK": [
+        266,
+        34133,
+        0,
+        0
+      ],
+      "MELON": [
+        72,
+        16037,
+        0,
+        0
+      ],
+      "EGG": [
+        93,
+        4208,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        249,
+        19480,
+        0,
+        0
+      ],
+      "CARROT": [
+        97,
+        3952,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13040,
+      "sell_d10": 54895,
+      "sell_d20": 42729
+    },
+    "spend": {
+      "BUY_SEED_WHEAT": 1650,
+      "BUY_ANIMAL_COW": 3600,
+      "BUY_ANIMAL_SHEEP": 2500,
+      "BUY_SEED_MELON": 960,
+      "BUY_SEED_STRAWBERRY": 3300,
+      "BUY_ANIMAL_GOOSE": 900,
+      "BUY_SEED_CARROT": 620
+    }
+  },
+  {
+    "ep": "112431636",
+    "seat": 1,
+    "name": "DSM",
+    "opp": "tw1nstar",
+    "bank": 108626.0,
+    "opp_bank": 85347.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        557,
+        19315,
+        154,
+        5680
+      ],
+      "FERTILIZER": [
+        268,
+        14108,
+        17,
+        892
+      ],
+      "WOOL": [
+        42,
+        6278,
+        0,
+        0
+      ],
+      "MILK": [
+        367,
+        45201,
+        0,
+        0
+      ],
+      "MELON": [
+        60,
+        11409,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        132,
+        15731,
+        0,
+        0
+      ],
+      "CARROT": [
+        161,
+        7150,
+        0,
+        0
+      ],
+      "EGG": [
+        140,
+        6393,
+        0,
+        0
+      ],
+      "TOMATO": [
+        235,
+        17885,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14222,
+      "sell_d10": 65754,
+      "sell_d20": 63494
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 6000,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_MELON": 800,
+      "BUY_SEED_WHEAT": 1980,
+      "BUY_SEED_STRAWBERRY": 1900,
+      "BUY_ANIMAL_GOOSE": 1500,
+      "BUY_SEED_TOMATO": 2200,
+      "BUY_SEED_CARROT": 960
+    }
+  },
+  {
+    "ep": "112463325",
+    "seat": 0,
+    "name": "DSM",
+    "opp": "Arda Ceylan",
+    "bank": 112269.0,
+    "opp_bank": 100437.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        467,
+        17076,
+        151,
+        5479
+      ],
+      "FERTILIZER": [
+        286,
+        14550,
+        8,
+        612
+      ],
+      "WOOL": [
+        222,
+        32881,
+        0,
+        0
+      ],
+      "MILK": [
+        157,
+        14246,
+        0,
+        0
+      ],
+      "MELON": [
+        60,
+        13301,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        177,
+        26780,
+        0,
+        0
+      ],
+      "CARROT": [
+        306,
+        12317,
+        0,
+        0
+      ],
+      "EGG": [
+        182,
+        8343,
+        0,
+        0
+      ],
+      "TOMATO": [
+        114,
+        7642,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 15768,
+      "sell_d10": 74118,
+      "sell_d20": 57250
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 3600,
+      "BUY_ANIMAL_SHEEP": 5000,
+      "BUY_SEED_MELON": 800,
+      "BUY_SEED_WHEAT": 1690,
+      "BUY_SEED_STRAWBERRY": 2300,
+      "BUY_ANIMAL_GOOSE": 1800,
+      "BUY_SEED_TOMATO": 850,
+      "BUY_SEED_CARROT": 1920
+    }
+  },
+  {
+    "ep": "112463325",
+    "seat": 1,
+    "name": "Arda Ceylan",
+    "opp": "DSM",
+    "bank": 100437.0,
+    "opp_bank": 112269.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        395,
+        14685,
+        184,
+        6775
+      ],
+      "FERTILIZER": [
+        210,
+        11120,
+        0,
+        0
+      ],
+      "WOOL": [
+        236,
+        32257,
+        0,
+        0
+      ],
+      "MILK": [
+        153,
+        12088,
+        0,
+        0
+      ],
+      "MELON": [
+        72,
+        14350,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        220,
+        32686,
+        0,
+        0
+      ],
+      "CARROT": [
+        201,
+        7810,
+        0,
+        0
+      ],
+      "TOMATO": [
+        33,
+        2195,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14863,
+      "sell_d10": 65429,
+      "sell_d20": 46899
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 2800,
+      "BUY_ANIMAL_SHEEP": 5000,
+      "BUY_SEED_MELON": 960,
+      "BUY_SEED_WHEAT": 1560,
+      "BUY_SEED_STRAWBERRY": 3300,
+      "BUY_SEED_TOMATO": 250,
+      "BUY_SEED_CARROT": 1680
+    }
+  },
+  {
+    "ep": "112321773",
+    "seat": 0,
+    "name": "Unknown Mother-Goose",
+    "opp": "KawattaTaido",
+    "bank": 114712.0,
+    "opp_bank": 102307.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        480,
+        20060,
+        182,
+        7101
+      ],
+      "FERTILIZER": [
+        251,
+        13614,
+        0,
+        0
+      ],
+      "WOOL": [
+        176,
+        38576,
+        0,
+        0
+      ],
+      "MILK": [
+        67,
+        3460,
+        0,
+        0
+      ],
+      "MELON": [
+        78,
+        12947,
+        0,
+        0
+      ],
+      "EGG": [
+        310,
+        15860,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        249,
+        37591,
+        0,
+        0
+      ],
+      "CARROT": [
+        36,
+        1630,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12811,
+      "sell_d10": 56248,
+      "sell_d20": 74679
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 1600,
+      "BUY_ANIMAL_SHEEP": 5500,
+      "BUY_SEED_MELON": 1200,
+      "BUY_SEED_WHEAT": 1590,
+      "BUY_SEED_STRAWBERRY": 3900,
+      "BUY_ANIMAL_GOOSE": 3000,
+      "BUY_SEED_CARROT": 240
+    }
+  },
+  {
+    "ep": "112321773",
+    "seat": 1,
+    "name": "KawattaTaido",
+    "opp": "Unknown Mother-Goose",
+    "bank": 102307.0,
+    "opp_bank": 114712.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        470,
+        19185,
+        199,
+        7776
+      ],
+      "FERTILIZER": [
+        235,
+        11706,
+        5,
+        303
+      ],
+      "WOOL": [
+        180,
+        33581,
+        0,
+        0
+      ],
+      "MILK": [
+        129,
+        5453,
+        0,
+        0
+      ],
+      "MELON": [
+        78,
+        16780,
+        0,
+        0
+      ],
+      "EGG": [
+        186,
+        9133,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        268,
+        33891,
+        0,
+        0
+      ],
+      "TOMATO": [
+        30,
+        2390,
+        0,
+        0
+      ],
+      "CARROT": [
+        11,
+        488,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 11246,
+      "sell_d10": 50194,
+      "sell_d20": 71167
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 2000,
+      "BUY_ANIMAL_SHEEP": 5000,
+      "BUY_SEED_WHEAT": 1570,
+      "BUY_SEED_MELON": 1040,
+      "BUY_SEED_STRAWBERRY": 4000,
+      "BUY_ANIMAL_GOOSE": 1800,
+      "BUY_SEED_TOMATO": 200,
+      "BUY_SEED_CARROT": 80
+    }
+  },
+  {
+    "ep": "112330292",
+    "seat": 0,
+    "name": "DECEM",
+    "opp": "Unknown Mother-Goose",
+    "bank": 104337.0,
+    "opp_bank": 106614.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        432,
+        17654,
+        122,
+        4493
+      ],
+      "FERTILIZER": [
+        185,
+        11327,
+        0,
+        0
+      ],
+      "WOOL": [
+        57,
+        5182,
+        0,
+        0
+      ],
+      "MILK": [
+        169,
+        15507,
+        0,
+        0
+      ],
+      "MELON": [
+        66,
+        13840,
+        0,
+        0
+      ],
+      "EGG": [
+        240,
+        11252,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        234,
+        39648,
+        0,
+        0
+      ],
+      "TOMATO": [
+        135,
+        10109,
+        0,
+        0
+      ],
+      "CARROT": [
+        87,
+        3687,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12790,
+      "sell_d10": 58050,
+      "sell_d20": 57366
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 3600,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_MELON": 880,
+      "BUY_SEED_WHEAT": 1560,
+      "BUY_SEED_STRAWBERRY": 3000,
+      "BUY_ANIMAL_GOOSE": 2400,
+      "BUY_SEED_TOMATO": 1050,
+      "BUY_SEED_CARROT": 580
+    }
+  },
+  {
+    "ep": "112330292",
+    "seat": 1,
+    "name": "Unknown Mother-Goose",
+    "opp": "DECEM",
+    "bank": 106614.0,
+    "opp_bank": 104337.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        570,
+        23348,
+        144,
+        5446
+      ],
+      "FERTILIZER": [
+        221,
+        12847,
+        0,
+        0
+      ],
+      "WOOL": [
+        56,
+        5324,
+        0,
+        0
+      ],
+      "MILK": [
+        173,
+        15898,
+        0,
+        0
+      ],
+      "MELON": [
+        89,
+        16095,
+        0,
+        0
+      ],
+      "EGG": [
+        262,
+        12299,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        218,
+        36766,
+        0,
+        0
+      ],
+      "TOMATO": [
+        79,
+        5895,
+        0,
+        0
+      ],
+      "CARROT": [
+        65,
+        2786,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12799,
+      "sell_d10": 60917,
+      "sell_d20": 57542
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 3600,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_MELON": 1200,
+      "BUY_SEED_WHEAT": 1770,
+      "BUY_SEED_STRAWBERRY": 2800,
+      "BUY_ANIMAL_GOOSE": 2400,
+      "BUY_SEED_TOMATO": 600,
+      "BUY_SEED_CARROT": 360
+    }
+  },
+  {
+    "ep": "112325285",
+    "seat": 0,
+    "name": "Artem The Farmer \ud83c\udf45",
+    "opp": "Unknown Mother-Goose",
+    "bank": 108279.0,
+    "opp_bank": 119953.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        434,
+        17193,
+        226,
+        8647
+      ],
+      "FERTILIZER": [
+        193,
+        11007,
+        0,
+        0
+      ],
+      "WOOL": [
+        56,
+        6411,
+        0,
+        0
+      ],
+      "MILK": [
+        330,
+        42739,
+        0,
+        0
+      ],
+      "MELON": [
+        72,
+        15973,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        229,
+        27073,
+        0,
+        0
+      ],
+      "TOMATO": [
+        122,
+        9781,
+        0,
+        0
+      ],
+      "CARROT": [
+        134,
+        6330,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 11380,
+      "sell_d10": 67506,
+      "sell_d20": 57621
+    },
+    "spend": {
+      "BUY_SEED_WHEAT": 1330,
+      "BUY_SEED_MELON": 960,
+      "BUY_ANIMAL_COW": 5600,
+      "BUY_ANIMAL_SHEEP": 1000,
+      "BUY_SEED_STRAWBERRY": 3100,
+      "BUY_SEED_TOMATO": 900,
+      "BUY_SEED_CARROT": 880
+    }
+  },
+  {
+    "ep": "112325285",
+    "seat": 1,
+    "name": "Unknown Mother-Goose",
+    "opp": "Artem The Farmer \ud83c\udf45",
+    "bank": 119953.0,
+    "opp_bank": 108279.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        506,
+        20119,
+        139,
+        5091
+      ],
+      "FERTILIZER": [
+        239,
+        13584,
+        0,
+        0
+      ],
+      "WOOL": [
+        73,
+        10517,
+        0,
+        0
+      ],
+      "MILK": [
+        367,
+        50025,
+        0,
+        0
+      ],
+      "MELON": [
+        83,
+        13561,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        183,
+        24071,
+        0,
+        0
+      ],
+      "EGG": [
+        52,
+        2648,
+        0,
+        0
+      ],
+      "TOMATO": [
+        116,
+        9229,
+        0,
+        0
+      ],
+      "CARROT": [
+        32,
+        1394,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13796,
+      "sell_d10": 74918,
+      "sell_d20": 56434
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 6400,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_MELON": 1120,
+      "BUY_SEED_WHEAT": 1760,
+      "BUY_SEED_STRAWBERRY": 2700,
+      "BUY_ANIMAL_GOOSE": 600,
+      "BUY_SEED_TOMATO": 800,
+      "BUY_SEED_CARROT": 240
+    }
+  },
+  {
+    "ep": "112409511",
+    "seat": 0,
+    "name": "Vadim Vasilenko",
+    "opp": "Unknown Mother-Goose",
+    "bank": 92125.0,
+    "opp_bank": 97742.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        557,
+        16964,
+        226,
+        8314
+      ],
+      "FERTILIZER": [
+        333,
+        12168,
+        0,
+        0
+      ],
+      "WOOL": [
+        455,
+        60329,
+        0,
+        0
+      ],
+      "MILK": [
+        90,
+        4977,
+        0,
+        0
+      ],
+      "MELON": [
+        60,
+        13054,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        107,
+        6540,
+        0,
+        0
+      ],
+      "EGG": [
+        29,
+        1745,
+        0,
+        0
+      ],
+      "TOMATO": [
+        65,
+        4090,
+        0,
+        0
+      ],
+      "CARROT": [
+        93,
+        3395,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14431,
+      "sell_d10": 76047,
+      "sell_d20": 32784
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 2000,
+      "BUY_ANIMAL_SHEEP": 10000,
+      "BUY_SEED_MELON": 800,
+      "BUY_SEED_WHEAT": 1900,
+      "BUY_SEED_STRAWBERRY": 1700,
+      "BUY_ANIMAL_GOOSE": 300,
+      "BUY_SEED_TOMATO": 450,
+      "BUY_SEED_CARROT": 600
+    }
+  },
+  {
+    "ep": "112409511",
+    "seat": 1,
+    "name": "Unknown Mother-Goose",
+    "opp": "Vadim Vasilenko",
+    "bank": 97742.0,
+    "opp_bank": 92125.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        507,
+        13775,
+        130,
+        4425
+      ],
+      "FERTILIZER": [
+        294,
+        13041,
+        0,
+        0
+      ],
+      "WOOL": [
+        437,
+        62488,
+        0,
+        0
+      ],
+      "MILK": [
+        75,
+        4552,
+        0,
+        0
+      ],
+      "MELON": [
+        84,
+        16039,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        87,
+        5582,
+        0,
+        0
+      ],
+      "EGG": [
+        26,
+        1560,
+        0,
+        0
+      ],
+      "CARROT": [
+        208,
+        7837,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14312,
+      "sell_d10": 73654,
+      "sell_d20": 36908
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 2000,
+      "BUY_ANIMAL_SHEEP": 9500,
+      "BUY_SEED_MELON": 1120,
+      "BUY_SEED_WHEAT": 1930,
+      "BUY_SEED_STRAWBERRY": 1600,
+      "BUY_ANIMAL_GOOSE": 300,
+      "BUY_SEED_CARROT": 1200
+    }
+  },
+  {
+    "ep": "112474180",
+    "seat": 0,
+    "name": "DECEM",
+    "opp": "\u5403\u767d\u996d\u7684\u5927\u80a5\u9c7c",
+    "bank": 118923.0,
+    "opp_bank": 112240.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        507,
+        18493,
+        135,
+        4963
+      ],
+      "FERTILIZER": [
+        265,
+        12867,
+        5,
+        272
+      ],
+      "WOOL": [
+        125,
+        21478,
+        0,
+        0
+      ],
+      "MILK": [
+        369,
+        51453,
+        0,
+        0
+      ],
+      "MELON": [
+        66,
+        13653,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        195,
+        15783,
+        0,
+        0
+      ],
+      "EGG": [
+        65,
+        2836,
+        0,
+        0
+      ],
+      "TOMATO": [
+        183,
+        14181,
+        0,
+        0
+      ],
+      "CARROT": [
+        59,
+        2280,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13481,
+      "sell_d10": 81168,
+      "sell_d20": 58375
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 6800,
+      "BUY_ANIMAL_SHEEP": 2500,
+      "BUY_SEED_MELON": 880,
+      "BUY_SEED_WHEAT": 1830,
+      "BUY_SEED_STRAWBERRY": 3000,
+      "BUY_ANIMAL_GOOSE": 900,
+      "BUY_SEED_TOMATO": 1750,
+      "BUY_SEED_CARROT": 460
+    }
+  },
+  {
+    "ep": "112474180",
+    "seat": 1,
+    "name": "\u5403\u767d\u996d\u7684\u5927\u80a5\u9c7c",
+    "opp": "DECEM",
+    "bank": 112240.0,
+    "opp_bank": 118923.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        418,
+        15318,
+        162,
+        6127
+      ],
+      "FERTILIZER": [
+        315,
+        13246,
+        95,
+        828
+      ],
+      "WOOL": [
+        147,
+        26180,
+        0,
+        0
+      ],
+      "MILK": [
+        271,
+        39048,
+        0,
+        0
+      ],
+      "MELON": [
+        90,
+        16402,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        190,
+        17638,
+        0,
+        0
+      ],
+      "EGG": [
+        140,
+        6150,
+        0,
+        0
+      ],
+      "TOMATO": [
+        80,
+        5940,
+        0,
+        0
+      ],
+      "CARROT": [
+        78,
+        3087,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13072,
+      "sell_d10": 69934,
+      "sell_d20": 60003
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 6400,
+      "BUY_SEED_MELON": 1200,
+      "BUY_ANIMAL_SHEEP": 4000,
+      "BUY_SEED_WHEAT": 1480,
+      "BUY_SEED_STRAWBERRY": 2800,
+      "BUY_ANIMAL_GOOSE": 1800,
+      "BUY_SEED_TOMATO": 500,
+      "BUY_SEED_CARROT": 540
+    }
+  },
+  {
+    "ep": "112439679",
+    "seat": 0,
+    "name": "DECEM",
+    "opp": "mikelou1",
+    "bank": 138468.0,
+    "opp_bank": 115984.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        494,
+        18683,
+        132,
+        4747
+      ],
+      "FERTILIZER": [
+        209,
+        11835,
+        1,
+        33
+      ],
+      "WOOL": [
+        109,
+        12924,
+        0,
+        0
+      ],
+      "MILK": [
+        290,
+        38240,
+        0,
+        0
+      ],
+      "MELON": [
+        66,
+        12016,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        377,
+        70894,
+        0,
+        0
+      ],
+      "EGG": [
+        62,
+        3587,
+        0,
+        0
+      ],
+      "TOMATO": [
+        37,
+        2241,
+        0,
+        0
+      ],
+      "CARROT": [
+        7,
+        195,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13698,
+      "sell_d10": 80582,
+      "sell_d20": 76335
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 6000,
+      "BUY_ANIMAL_SHEEP": 2500,
+      "BUY_SEED_MELON": 880,
+      "BUY_SEED_WHEAT": 1800,
+      "BUY_SEED_STRAWBERRY": 5200,
+      "BUY_ANIMAL_GOOSE": 600,
+      "BUY_SEED_TOMATO": 300,
+      "BUY_SEED_CARROT": 100
+    }
+  },
+  {
+    "ep": "112439679",
+    "seat": 1,
+    "name": "mikelou1",
+    "opp": "DECEM",
+    "bank": 115984.0,
+    "opp_bank": 138468.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        382,
+        14507,
+        121,
+        4303
+      ],
+      "FERTILIZER": [
+        346,
+        16046,
+        79,
+        2851
+      ],
+      "WOOL": [
+        121,
+        11845,
+        0,
+        0
+      ],
+      "MILK": [
+        299,
+        31920,
+        0,
+        0
+      ],
+      "MELON": [
+        72,
+        16050,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        251,
+        47801,
+        0,
+        0
+      ],
+      "CARROT": [
+        91,
+        2844,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12657,
+      "sell_d10": 68815,
+      "sell_d20": 59541
+    },
+    "spend": {
+      "BUY_SEED_WHEAT": 1620,
+      "BUY_ANIMAL_COW": 4800,
+      "BUY_ANIMAL_SHEEP": 2500,
+      "BUY_SEED_MELON": 960,
+      "BUY_SEED_STRAWBERRY": 3300,
+      "BUY_SEED_CARROT": 620
+    }
+  },
+  {
+    "ep": "112426490",
+    "seat": 0,
+    "name": "NayuNayu",
+    "opp": "DECEM",
+    "bank": 97245.0,
+    "opp_bank": 126104.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        343,
+        13024,
+        161,
+        5952
+      ],
+      "FERTILIZER": [
+        310,
+        14102,
+        47,
+        1054
+      ],
+      "WOOL": [
+        272,
+        26121,
+        0,
+        0
+      ],
+      "MILK": [
+        191,
+        28453,
+        0,
+        0
+      ],
+      "MELON": [
+        72,
+        16037,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        246,
+        24044,
+        0,
+        0
+      ],
+      "TOMATO": [
+        80,
+        6032,
+        0,
+        0
+      ],
+      "CARROT": [
+        80,
+        3417,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12527,
+      "sell_d10": 61924,
+      "sell_d20": 56779
+    },
+    "spend": {
+      "BUY_SEED_WHEAT": 1660,
+      "BUY_ANIMAL_COW": 2400,
+      "BUY_ANIMAL_SHEEP": 5500,
+      "BUY_SEED_MELON": 960,
+      "BUY_SEED_STRAWBERRY": 3300,
+      "BUY_SEED_TOMATO": 500,
+      "BUY_SEED_CARROT": 560
+    }
+  },
+  {
+    "ep": "112426490",
+    "seat": 1,
+    "name": "DECEM",
+    "opp": "NayuNayu",
+    "bank": 126104.0,
+    "opp_bank": 97245.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        488,
+        18681,
+        136,
+        4813
+      ],
+      "FERTILIZER": [
+        226,
+        12092,
+        2,
+        103
+      ],
+      "WOOL": [
+        234,
+        31396,
+        0,
+        0
+      ],
+      "MILK": [
+        238,
+        36782,
+        0,
+        0
+      ],
+      "MELON": [
+        66,
+        12028,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        175,
+        22092,
+        0,
+        0
+      ],
+      "EGG": [
+        85,
+        3955,
+        0,
+        0
+      ],
+      "TOMATO": [
+        239,
+        19470,
+        0,
+        0
+      ],
+      "CARROT": [
+        69,
+        3103,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13730,
+      "sell_d10": 70258,
+      "sell_d20": 75611
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 4000,
+      "BUY_ANIMAL_SHEEP": 5000,
+      "BUY_SEED_MELON": 880,
+      "BUY_SEED_WHEAT": 1850,
+      "BUY_SEED_STRAWBERRY": 2400,
+      "BUY_SEED_TOMATO": 1950,
+      "BUY_ANIMAL_GOOSE": 900,
+      "BUY_SEED_CARROT": 460
+    }
+  },
+  {
+    "ep": "112472607",
+    "seat": 0,
+    "name": "DECEM",
+    "opp": "Fourth Quadrant",
+    "bank": 84227.0,
+    "opp_bank": 87657.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        651,
+        15534,
+        133,
+        4307
+      ],
+      "FERTILIZER": [
+        204,
+        11422,
+        1,
+        54
+      ],
+      "WOOL": [
+        54,
+        5854,
+        0,
+        0
+      ],
+      "MILK": [
+        272,
+        24714,
+        0,
+        0
+      ],
+      "MELON": [
+        66,
+        13366,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        240,
+        27890,
+        0,
+        0
+      ],
+      "EGG": [
+        122,
+        6881,
+        0,
+        0
+      ],
+      "CARROT": [
+        131,
+        3473,
+        0,
+        0
+      ],
+      "TOMATO": [
+        105,
+        5150,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 13269,
+      "sell_d10": 63742,
+      "sell_d20": 37273
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 4800,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_MELON": 880,
+      "BUY_SEED_WHEAT": 2100,
+      "BUY_SEED_STRAWBERRY": 3500,
+      "BUY_ANIMAL_GOOSE": 1200,
+      "BUY_SEED_TOMATO": 850,
+      "BUY_SEED_CARROT": 840
+    }
+  },
+  {
+    "ep": "112472607",
+    "seat": 1,
+    "name": "Fourth Quadrant",
+    "opp": "DECEM",
+    "bank": 87657.0,
+    "opp_bank": 84227.0,
+    "exact": true,
+    "items": {
+      "FERTILIZER": [
+        1135,
+        50187,
+        870,
+        36605
+      ],
+      "WHEAT": [
+        1975,
+        50123,
+        1464,
+        38725
+      ],
+      "WOOL": [
+        46,
+        4779,
+        0,
+        0
+      ],
+      "MILK": [
+        313,
+        31406,
+        0,
+        0
+      ],
+      "MELON": [
+        72,
+        14917,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        287,
+        33074,
+        0,
+        0
+      ],
+      "CARROT": [
+        158,
+        4693,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 22669,
+      "sell_d10": 115057,
+      "sell_d20": 51453
+    },
+    "spend": {
+      "BUY_SEED_MELON": 960,
+      "BUY_ANIMAL_SHEEP": 1000,
+      "BUY_ANIMAL_COW": 5200,
+      "BUY_SEED_WHEAT": 2700,
+      "BUY_SEED_STRAWBERRY": 4000,
+      "BUY_SEED_CARROT": 1160
+    }
+  },
+  {
+    "ep": "112382966",
+    "seat": 0,
+    "name": "\u5403\u767d\u996d\u7684\u5927\u80a5\u9c7c",
+    "opp": "Sida Zuo",
+    "bank": 113171.0,
+    "opp_bank": 100660.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        467,
+        17753,
+        108,
+        3626
+      ],
+      "FERTILIZER": [
+        314,
+        13868,
+        90,
+        1036
+      ],
+      "WOOL": [
+        207,
+        31594,
+        0,
+        0
+      ],
+      "MILK": [
+        137,
+        12343,
+        0,
+        0
+      ],
+      "MELON": [
+        66,
+        14200,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        222,
+        33444,
+        0,
+        0
+      ],
+      "EGG": [
+        111,
+        5495,
+        0,
+        0
+      ],
+      "CARROT": [
+        165,
+        8079,
+        0,
+        0
+      ],
+      "TOMATO": [
+        48,
+        3494,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14920,
+      "sell_d10": 72550,
+      "sell_d20": 52800
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 3200,
+      "BUY_SEED_MELON": 880,
+      "BUY_ANIMAL_SHEEP": 6000,
+      "BUY_SEED_WHEAT": 1500,
+      "BUY_SEED_STRAWBERRY": 3000,
+      "BUY_ANIMAL_GOOSE": 1800,
+      "BUY_SEED_TOMATO": 300,
+      "BUY_SEED_CARROT": 1040
+    }
+  },
+  {
+    "ep": "112382966",
+    "seat": 1,
+    "name": "Sida Zuo",
+    "opp": "\u5403\u767d\u996d\u7684\u5927\u80a5\u9c7c",
+    "bank": 100660.0,
+    "opp_bank": 113171.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        129,
+        4774,
+        214,
+        7931
+      ],
+      "FERTILIZER": [
+        252,
+        12160,
+        0,
+        0
+      ],
+      "WOOL": [
+        251,
+        28465,
+        0,
+        0
+      ],
+      "MILK": [
+        172,
+        16171,
+        0,
+        0
+      ],
+      "MELON": [
+        78,
+        15048,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        239,
+        29996,
+        0,
+        0
+      ],
+      "CARROT": [
+        285,
+        13416,
+        0,
+        0
+      ],
+      "TOMATO": [
+        128,
+        8765,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12669,
+      "sell_d10": 63499,
+      "sell_d20": 52627
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 2400,
+      "BUY_ANIMAL_SHEEP": 5500,
+      "BUY_SEED_MELON": 1040,
+      "BUY_SEED_WHEAT": 600,
+      "BUY_SEED_STRAWBERRY": 3200,
+      "BUY_SEED_CARROT": 1580,
+      "BUY_SEED_TOMATO": 950
+    }
+  },
+  {
+    "ep": "112490399",
+    "seat": 0,
+    "name": "\u5403\u767d\u996d\u7684\u5927\u80a5\u9c7c",
+    "opp": "Unknown Mother-Goose",
+    "bank": 110373.0,
+    "opp_bank": 117581.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        398,
+        14480,
+        81,
+        2741
+      ],
+      "FERTILIZER": [
+        256,
+        13513,
+        119,
+        3439
+      ],
+      "WOOL": [
+        49,
+        4894,
+        0,
+        0
+      ],
+      "MILK": [
+        232,
+        32807,
+        0,
+        0
+      ],
+      "MELON": [
+        78,
+        14325,
+        0,
+        0
+      ],
+      "EGG": [
+        122,
+        5167,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        176,
+        24856,
+        0,
+        0
+      ],
+      "CARROT": [
+        247,
+        13990,
+        0,
+        0
+      ],
+      "TOMATO": [
+        147,
+        12299,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12801,
+      "sell_d10": 48159,
+      "sell_d20": 75371
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 3600,
+      "BUY_SEED_MELON": 1040,
+      "BUY_ANIMAL_SHEEP": 2000,
+      "BUY_SEED_WHEAT": 1320,
+      "BUY_SEED_STRAWBERRY": 2700,
+      "BUY_ANIMAL_GOOSE": 1500,
+      "BUY_SEED_CARROT": 1540,
+      "BUY_SEED_TOMATO": 950
+    }
+  },
+  {
+    "ep": "112490399",
+    "seat": 1,
+    "name": "Unknown Mother-Goose",
+    "opp": "\u5403\u767d\u996d\u7684\u5927\u80a5\u9c7c",
+    "bank": 117581.0,
+    "opp_bank": 110373.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        459,
+        16951,
+        250,
+        8879
+      ],
+      "FERTILIZER": [
+        236,
+        13352,
+        0,
+        0
+      ],
+      "WOOL": [
+        54,
+        5445,
+        0,
+        0
+      ],
+      "MILK": [
+        216,
+        31764,
+        0,
+        0
+      ],
+      "MELON": [
+        90,
+        16411,
+        0,
+        0
+      ],
+      "EGG": [
+        233,
+        9756,
+        0,
+        0
+      ],
+      "CARROT": [
+        144,
+        7622,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        119,
+        18813,
+        0,
+        0
+      ],
+      "TOMATO": [
+        239,
+        25179,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 12863,
+      "sell_d10": 53989,
+      "sell_d20": 78441
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 3600,
+      "BUY_ANIMAL_SHEEP": 1500,
+      "BUY_SEED_MELON": 1200,
+      "BUY_SEED_WHEAT": 1390,
+      "BUY_SEED_STRAWBERRY": 1500,
+      "BUY_ANIMAL_GOOSE": 2100,
+      "BUY_SEED_CARROT": 980,
+      "BUY_SEED_TOMATO": 1650
+    }
+  },
+  {
+    "ep": "112391485",
+    "seat": 0,
+    "name": "M & M & P & Q",
+    "opp": "\u5403\u767d\u996d\u7684\u5927\u80a5\u9c7c",
+    "bank": 103920.0,
+    "opp_bank": 94329.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        591,
+        18166,
+        119,
+        4112
+      ],
+      "FERTILIZER": [
+        258,
+        12905,
+        0,
+        0
+      ],
+      "WOOL": [
+        339,
+        49481,
+        0,
+        0
+      ],
+      "MILK": [
+        168,
+        11871,
+        0,
+        0
+      ],
+      "MELON": [
+        54,
+        12032,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        239,
+        22904,
+        0,
+        0
+      ],
+      "CARROT": [
+        20,
+        700,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 15025,
+      "sell_d10": 74046,
+      "sell_d20": 38988
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 3200,
+      "BUY_ANIMAL_SHEEP": 6500,
+      "BUY_SEED_MELON": 720,
+      "BUY_SEED_WHEAT": 1860,
+      "BUY_SEED_STRAWBERRY": 3400,
+      "BUY_SEED_CARROT": 120
+    }
+  },
+  {
+    "ep": "112391485",
+    "seat": 1,
+    "name": "\u5403\u767d\u996d\u7684\u5927\u80a5\u9c7c",
+    "opp": "M & M & P & Q",
+    "bank": 94329.0,
+    "opp_bank": 103920.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        501,
+        14847,
+        105,
+        3690
+      ],
+      "FERTILIZER": [
+        305,
+        12766,
+        77,
+        638
+      ],
+      "WOOL": [
+        216,
+        28051,
+        0,
+        0
+      ],
+      "MILK": [
+        148,
+        8986,
+        0,
+        0
+      ],
+      "MELON": [
+        107,
+        19028,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        206,
+        22420,
+        0,
+        0
+      ],
+      "EGG": [
+        184,
+        10655,
+        0,
+        0
+      ],
+      "CARROT": [
+        27,
+        916,
+        0,
+        0
+      ],
+      "TOMATO": [
+        40,
+        2339,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14350,
+      "sell_d10": 61015,
+      "sell_d20": 44643
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 3200,
+      "BUY_SEED_MELON": 1440,
+      "BUY_ANIMAL_SHEEP": 5000,
+      "BUY_SEED_WHEAT": 1680,
+      "BUY_SEED_STRAWBERRY": 2900,
+      "BUY_ANIMAL_GOOSE": 1800,
+      "BUY_SEED_TOMATO": 250,
+      "BUY_SEED_CARROT": 220
+    }
+  },
+  {
+    "ep": "112384144",
+    "seat": 0,
+    "name": "Yannik Schiffner",
+    "opp": "\u5403\u767d\u996d\u7684\u5927\u80a5\u9c7c",
+    "bank": 133632.0,
+    "opp_bank": 150193.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        2403,
+        86094,
+        2016,
+        72595
+      ],
+      "FERTILIZER": [
+        639,
+        38800,
+        464,
+        27547
+      ],
+      "WOOL": [
+        347,
+        65277,
+        0,
+        0
+      ],
+      "EGG": [
+        98,
+        4374,
+        0,
+        0
+      ],
+      "MILK": [
+        162,
+        24010,
+        0,
+        0
+      ],
+      "MELON": [
+        77,
+        14400,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        135,
+        15449,
+        0,
+        0
+      ],
+      "CARROT": [
+        22,
+        943,
+        0,
+        0
+      ],
+      "TOMATO": [
+        86,
+        6471,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 46067,
+      "sell_d10": 132493,
+      "sell_d20": 77258
+    },
+    "spend": {
+      "BUY_SEED_WHEAT": 1920,
+      "BUY_ANIMAL_SHEEP": 7500,
+      "BUY_SEED_MELON": 1120,
+      "BUY_ANIMAL_COW": 2400,
+      "BUY_ANIMAL_GOOSE": 600,
+      "BUY_SEED_STRAWBERRY": 1700,
+      "BUY_SEED_TOMATO": 600,
+      "BUY_SEED_CARROT": 200
+    }
+  },
+  {
+    "ep": "112384144",
+    "seat": 1,
+    "name": "\u5403\u767d\u996d\u7684\u5927\u80a5\u9c7c",
+    "opp": "Yannik Schiffner",
+    "bank": 150193.0,
+    "opp_bank": 133632.0,
+    "exact": true,
+    "items": {
+      "WHEAT": [
+        310,
+        11694,
+        168,
+        6206
+      ],
+      "FERTILIZER": [
+        344,
+        14324,
+        63,
+        723
+      ],
+      "WOOL": [
+        369,
+        69871,
+        0,
+        0
+      ],
+      "MILK": [
+        193,
+        30108,
+        0,
+        0
+      ],
+      "MELON": [
+        78,
+        15919,
+        0,
+        0
+      ],
+      "STRAWBERRY": [
+        208,
+        30570,
+        0,
+        0
+      ],
+      "EGG": [
+        23,
+        993,
+        0,
+        0
+      ],
+      "CARROT": [
+        99,
+        4441,
+        0,
+        0
+      ],
+      "TOMATO": [
+        72,
+        5470,
+        0,
+        0
+      ]
+    },
+    "phase": {
+      "sell_d00": 14554,
+      "sell_d10": 74542,
+      "sell_d20": 94294
+    },
+    "spend": {
+      "BUY_ANIMAL_COW": 3600,
+      "BUY_SEED_MELON": 1040,
+      "BUY_ANIMAL_SHEEP": 9500,
+      "BUY_SEED_WHEAT": 1320,
+      "BUY_SEED_STRAWBERRY": 2900,
+      "BUY_ANIMAL_GOOSE": 300,
+      "BUY_SEED_TOMATO": 450,
+      "BUY_SEED_CARROT": 700
+    }
+  }
+]

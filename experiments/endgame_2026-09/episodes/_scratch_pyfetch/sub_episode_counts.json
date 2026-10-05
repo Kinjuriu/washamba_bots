@@ -1,0 +1,58 @@
+{
+  "W1_reupload": {
+    "sid": 56521297,
+    "total": 62,
+    "types": {
+      "EPISODE_TYPE_PUBLIC": 61,
+      "EPISODE_TYPE_VALIDATION": 1
+    },
+    "states": {
+      "COMPLETED": 62
+    },
+    "non_val": 61,
+    "newest": "2026-09-24 16:11:21.275000",
+    "oldest": "2026-09-24 12:37:29.932000"
+  },
+  "W3": {
+    "sid": 56518334,
+    "total": 85,
+    "types": {
+      "EPISODE_TYPE_PUBLIC": 84,
+      "EPISODE_TYPE_VALIDATION": 1
+    },
+    "states": {
+      "COMPLETED": 85
+    },
+    "non_val": 84,
+    "newest": "2026-09-24 15:41:33.645000",
+    "oldest": "2026-09-24 10:00:55.480000"
+  },
+  "W0_retired": {
+    "sid": 56487592,
+    "total": 158,
+    "types": {
+      "EPISODE_TYPE_PUBLIC": 157,
+      "EPISODE_TYPE_VALIDATION": 1
+    },
+    "states": {
+      "COMPLETED": 158
+    },
+    "non_val": 157,
+    "newest": "2026-09-24 06:48:44.412000",
+    "oldest": "2026-09-23 08:04:06.468000"
+  },
+  "W1_first": {
+    "sid": 56491123,
+    "total": 153,
+    "types": {
+      "EPISODE_TYPE_PUBLIC": 152,
+      "EPISODE_TYPE_VALIDATION": 1
+    },
+    "states": {
+      "COMPLETED": 153
+    },
+    "non_val": 152,
+    "newest": "2026-09-24 10:06:28.127000",
+    "oldest": "2026-09-23 10:57:15.637000"
+  }
+}

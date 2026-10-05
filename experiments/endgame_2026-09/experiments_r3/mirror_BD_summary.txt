@@ -1,0 +1,23 @@
+10/180 games
+20/180 games
+30/180 games
+40/180 games
+50/180 games
+60/180 games
+70/180 games
+80/180 games
+90/180 games
+100/180 games
+110/180 games
+120/180 games
+130/180 games
+140/180 games
+150/180 games
+160/180 games
+170/180 games
+180/180 games
+
+candidate vs opponent: W-L-T (mean margin)
+           B vs w0           17-43-0  points 0.283  mean -19
+          D4 vs w0           16-44-0  points 0.267  mean -196
+          D8 vs w0           13-47-0  points 0.217  mean -388

@@ -1,0 +1,64 @@
+"""Lag between an opponent's visible harvest (yield_units drop on its public tiles) and its actual sale of that product (exact commit log). Usage: harvest_lag.py out.jsonl our_name files..."""
+import gzip,json,sys,os,collections
+import kaggle_environments.envs.kaggriculture.kaggriculture as K
+from kaggle_environments import make
+LOG=[]; CUR={'step':0,'farms':None}
+_pm=K._process_market; _cu=K._commit_unit
+def pm(state,env):
+    CUR['farms']=[id(f) for f in state[0].observation.farms]; return _pm(state,env)
+def cu(op,item,price,farm,private,market,shed_capacity=100):
+    ok=_cu(op,item,price,farm,private,market,shed_capacity)
+    if ok and op=='SELL': LOG.append((CUR['step'],CUR['farms'].index(id(farm)),item,price))
+    return ok
+K._process_market=pm; K._commit_unit=cu
+PROD={'SHEEP':'WOOL','COW':'MILK','GOOSE':'EGG'}
+ours=sys.argv[2]
+with open(sys.argv[1],'a') as f:
+    for path in sys.argv[3:]:
+        d=json.load(gzip.open(path)); st=d['steps']; names=d['info']['TeamNames']
+        if ours!="TOP" and ours not in names: continue
+        if ours=="TOP" and not any(n in ["Boey","M & M & P & Q","DSM","Unknown Mother-Goose","DECEM","吃白饭的大肥鱼"] for n in names): continue
+        TOPS=["Boey","M & M & P & Q","DSM","Unknown Mother-Goose","DECEM","吃白饭的大肥鱼"]
+        opp=[i for i,n in enumerate(names) if n in TOPS][0] if ours=="TOP" else 1-names.index(ours)
+        acts=[[st[t][s]['action'] for t in range(len(st))] for s in (0,1)]
+        def mk(s):
+            def a(obs,cfg):
+                CUR['step']=obs['step']+1
+                return acts[s][obs['step']+1] if obs['step']+1<len(acts[s]) else {'farmer':['PASS'],'hands':[],'market':[]}
+            return a
+        LOG.clear(); env=make('kaggriculture',configuration={'seed':d['info']['seed']},debug=False); env.run([mk(0),mk(1)])
+        # harvest events from public tiles of opp: (step, product, units)
+        harv=collections.defaultdict(list)
+        prev=None
+        for t in range(len(st)):
+            farm=st[t][0]['observation']['farms'][opp]; cur={}
+            for y,row in enumerate(farm['tiles']):
+                for x,tile in enumerate(row):
+                    if isinstance(tile,dict):
+                        if 'animal' in tile: cur[(x,y)]=(PROD[tile['animal']],tile['yield_units'])
+                        elif tile.get('kind')=='PLANT' and tile['crop'] in ('STRAWBERRY','MELON'): cur[(x,y)]=(tile['crop'],tile['yield_units'])
+            if prev:
+                for k,(p,yv) in cur.items():
+                    if k in prev and prev[k][0]==p and prev[k][1]>yv and yv==0: harv[p].append((t,prev[k][1]))
+                for k,(p,yv) in prev.items():
+                    if k not in cur and p=='MELON' and yv>0: harv[p].append((t,yv))  # melon tile cleared on harvest
+            prev=cur
+        # sales of opp by (step,product)
+        sales=collections.defaultdict(list)
+        for (t,s,item,price) in LOG:
+            if s==opp and item in ('WOOL','MILK','STRAWBERRY','MELON','EGG'): sales[item].append(t)
+        out=dict(ep=os.path.basename(path).split('.')[0],opp=names[opp],lags={},harv_to_sale={})
+        for p in ('WOOL','MILK','STRAWBERRY','MELON','EGG'):
+            hs=sorted(set(t for t,_ in harv[p])); ss=sorted(set(sales[p]))
+            # for each sale step, lag since most recent harvest
+            lags=[]
+            for s_ in ss:
+                h=[t for t in hs if t<=s_]
+                if h: lags.append(s_-h[-1])
+            # for each harvest, steps until next sale
+            fwd=[]
+            for h in hs:
+                nxt=[s_ for s_ in ss if s_>=h]
+                fwd.append(nxt[0]-h if nxt else 999)
+            out['lags'][p]=lags; out['harv_to_sale'][p]=fwd
+        f.write(json.dumps(out)+'\n'); f.flush()
